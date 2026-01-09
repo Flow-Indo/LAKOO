@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Flow-Indo/ecommerce-mvp/shared/types"
+	"github.com/Flow-Indo/LAKOO/backend/shared/types"
 )
 
 func PayloadToMap(payload interface{}) (map[string]interface{}, error) {
