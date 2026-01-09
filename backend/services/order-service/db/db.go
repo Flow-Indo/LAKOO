@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/config"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

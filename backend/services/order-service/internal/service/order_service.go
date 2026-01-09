@@ -4,13 +4,13 @@ import (
 	"context"
 	"log"
 
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/internal/repository"
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/models"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/internal/repository"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/models"
 
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/types"
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/utils"
-	"github.com/Flow-Indo/ecommerce-mvp/shared/kafka"
-	sharedTypes "github.com/Flow-Indo/ecommerce-mvp/shared/types"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/types"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/utils"
+	"github.com/Flow-Indo/LAKOO/backend/shared/kafka"
+	sharedTypes "github.com/Flow-Indo/LAKOO/backend/shared/types"
 )
 
 type OrderService struct {

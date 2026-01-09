@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/models"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/models"
 	"gorm.io/gorm"
 )
 

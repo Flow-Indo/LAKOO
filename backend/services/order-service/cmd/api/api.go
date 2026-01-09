@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/internal/controller"
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/internal/repository"
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/internal/service"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/internal/controller"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/internal/repository"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/internal/service"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
 )

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/cmd/api"
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/config"
-	"github.com/Flow-Indo/ecommerce-mvp/services/order-service-go/db"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/cmd/api"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/config"
+	"github.com/Flow-Indo/LAKOO/backend/services/order-service/db"
 	"gorm.io/gorm"
 )
 
