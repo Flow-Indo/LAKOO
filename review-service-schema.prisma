@@ -1,0 +1,392 @@
+// =============================================================================
+// REVIEW SERVICE DATABASE SCHEMA
+// Service: review-service (Port 3016)
+// Database: review_db
+// Owner: Product reviews, review images, votes, moderation, review requests
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("REVIEW_DATABASE_URL")
+}
+
+// =============================================================================
+// PRODUCT REVIEWS
+// =============================================================================
+
+model ProductReview {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  // References (to other services)
+  productId       String       @db.Uuid // Reference to Product Service
+  variantId       String?      @db.Uuid
+  userId          String       @db.Uuid // Reference to Auth Service
+  orderId         String?      @db.Uuid // Reference to Order Service
+  orderItemId     String?      @db.Uuid
+  sellerId        String?      @db.Uuid // Reference to Seller Service (for seller products)
+  brandId         String?      @db.Uuid // Reference to Brand Service (for brand products)
+  // Product snapshot (at time of review)
+  productName     String       @db.VarChar(255)
+  variantName     String?      @db.VarChar(255)
+  productImageUrl String?
+  // Reviewer snapshot
+  reviewerName    String       @db.VarChar(255)
+  reviewerImageUrl String?
+  // Review content
+  rating          Int          // 1-5 stars
+  title           String?      @db.VarChar(255)
+  reviewText      String?
+  // Detailed ratings (optional)
+  qualityRating   Int?         // 1-5
+  valueRating     Int?         // 1-5
+  fitRating       Int?         // 1-5 (for fashion)
+  // Purchase verification
+  isVerified      Boolean      @default(false) // Verified purchase
+  // Engagement
+  helpfulCount    Int          @default(0)
+  unhelpfulCount  Int          @default(0)
+  reportCount     Int          @default(0)
+  replyCount      Int          @default(0)
+  // Moderation
+  status          ReviewStatus @default(pending)
+  moderatedAt     DateTime?    @db.Timestamptz(6)
+  moderatedBy     String?      @db.Uuid
+  moderationNotes String?      @db.VarChar(500)
+  rejectionReason String?      @db.VarChar(255)
+  // Visibility
+  isVisible       Boolean      @default(false) // Only true after moderation
+  isFeatured      Boolean      @default(false)
+  isPinned        Boolean      @default(false)
+  // Analytics
+  viewCount       Int          @default(0)
+  // Edit tracking
+  isEdited        Boolean      @default(false)
+  editedAt        DateTime?    @db.Timestamptz(6)
+  editCount       Int          @default(0)
+  // Timestamps
+  purchasedAt     DateTime?    @db.Timestamptz(6) // When product was purchased
+  deliveredAt     DateTime?    @db.Timestamptz(6) // When product was delivered
+  createdAt       DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @db.Timestamptz(6)
+  deletedAt       DateTime?    @db.Timestamptz(6)
+
+  images  ReviewImage[]
+  votes   ReviewVote[]
+  reports ReviewReport[]
+  replies ReviewReply[]
+
+  @@unique([orderId, productId, variantId])
+  @@index([productId])
+  @@index([userId])
+  @@index([sellerId])
+  @@index([brandId])
+  @@index([rating])
+  @@index([status])
+  @@index([isVisible])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@map("product_review")
+}
+
+model ReviewImage {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewId     String   @db.Uuid
+  imageUrl     String
+  thumbnailUrl String?
+  altText      String?  @db.VarChar(255)
+  displayOrder Int      @default(0)
+  width        Int?
+  height       Int?
+  sizeBytes    Int?
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+
+  review ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@map("review_image")
+}
+
+// =============================================================================
+// REVIEW VOTES (Helpful / Not Helpful)
+// =============================================================================
+
+model ReviewVote {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewId  String   @db.Uuid
+  userId    String   @db.Uuid
+  voteType  VoteType
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+
+  review ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@index([userId])
+  @@map("review_vote")
+}
+
+// =============================================================================
+// REVIEW REPORTS (Flagging inappropriate reviews)
+// =============================================================================
+
+model ReviewReport {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewId     String       @db.Uuid
+  reporterId   String       @db.Uuid
+  reason       ReportReason
+  description  String?      @db.VarChar(500)
+  status       ReportStatus @default(pending)
+  resolvedAt   DateTime?    @db.Timestamptz(6)
+  resolvedBy   String?      @db.Uuid
+  resolution   String?      @db.VarChar(255)
+  createdAt    DateTime     @default(now()) @db.Timestamptz(6)
+
+  review ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, reporterId])
+  @@index([reviewId])
+  @@index([status])
+  @@map("review_report")
+}
+
+// =============================================================================
+// REVIEW REPLIES (Seller/Brand responses)
+// =============================================================================
+
+model ReviewReply {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewId     String      @db.Uuid
+  // Responder (seller or brand manager)
+  responderType ResponderType
+  responderId  String      @db.Uuid
+  responderName String     @db.VarChar(255)
+  // Content
+  replyText    String
+  // Status
+  status       ReplyStatus @default(visible)
+  // Edit tracking
+  isEdited     Boolean     @default(false)
+  editedAt     DateTime?   @db.Timestamptz(6)
+  // Timestamps
+  createdAt    DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime    @updatedAt @db.Timestamptz(6)
+  deletedAt    DateTime?   @db.Timestamptz(6)
+
+  review ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+  @@map("review_reply")
+}
+
+// =============================================================================
+// REVIEW REQUESTS (Prompting customers to leave reviews)
+// =============================================================================
+
+model ReviewRequest {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String        @db.Uuid
+  orderId       String        @db.Uuid
+  orderItemId   String?       @db.Uuid
+  productId     String        @db.Uuid
+  variantId     String?       @db.Uuid
+  // Product snapshot
+  productName   String        @db.VarChar(255)
+  productImageUrl String?
+  // Request details
+  channel       RequestChannel @default(in_app)
+  // Status
+  status        RequestStatus @default(pending)
+  sentAt        DateTime?     @db.Timestamptz(6)
+  openedAt      DateTime?     @db.Timestamptz(6)
+  completedAt   DateTime?     @db.Timestamptz(6)
+  reviewId      String?       @db.Uuid // If review was submitted
+  // Retry tracking
+  sendCount     Int           @default(0)
+  maxSendCount  Int           @default(3)
+  lastSentAt    DateTime?     @db.Timestamptz(6)
+  nextSendAt    DateTime?     @db.Timestamptz(6)
+  // Timestamps
+  eligibleAt    DateTime      @db.Timestamptz(6) // When eligible to request (after delivery)
+  expiresAt     DateTime      @db.Timestamptz(6) // Review window expiration
+  createdAt     DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(6)
+
+  @@unique([orderId, productId, variantId])
+  @@index([userId])
+  @@index([orderId])
+  @@index([productId])
+  @@index([status])
+  @@index([eligibleAt])
+  @@map("review_request")
+}
+
+// =============================================================================
+// REVIEW MODERATION QUEUE
+// =============================================================================
+
+model ModerationQueueItem {
+  id            String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewId      String           @unique @db.Uuid
+  // Auto-moderation results
+  autoScore     Decimal?         @db.Decimal(5, 2) // 0-100 (higher = more likely spam/inappropriate)
+  autoFlags     String[]         // ["profanity", "spam", "fake", etc.]
+  // Priority
+  priority      ModerationPriority @default(normal)
+  // Assignment
+  assignedTo    String?          @db.Uuid
+  assignedAt    DateTime?        @db.Timestamptz(6)
+  // Status
+  status        QueueStatus      @default(pending)
+  processedAt   DateTime?        @db.Timestamptz(6)
+  processedBy   String?          @db.Uuid
+  decision      ModerationDecision?
+  notes         String?          @db.VarChar(500)
+  createdAt     DateTime         @default(now()) @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([priority])
+  @@index([assignedTo])
+  @@map("moderation_queue_item")
+}
+
+// =============================================================================
+// PRODUCT REVIEW SUMMARY (Aggregated per product)
+// =============================================================================
+
+model ProductReviewSummary {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId       String   @unique @db.Uuid
+  // Totals
+  totalReviews    Int      @default(0)
+  totalWithPhotos Int      @default(0)
+  totalVerified   Int      @default(0)
+  // Rating breakdown
+  avgRating       Decimal? @db.Decimal(3, 2)
+  rating5Count    Int      @default(0)
+  rating4Count    Int      @default(0)
+  rating3Count    Int      @default(0)
+  rating2Count    Int      @default(0)
+  rating1Count    Int      @default(0)
+  // Detailed ratings
+  avgQualityRating Decimal? @db.Decimal(3, 2)
+  avgValueRating  Decimal? @db.Decimal(3, 2)
+  avgFitRating    Decimal? @db.Decimal(3, 2)
+  // Common keywords (for display)
+  topKeywords     String[]
+  // Timestamps
+  lastReviewAt    DateTime? @db.Timestamptz(6)
+  recalculatedAt  DateTime  @default(now()) @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime  @updatedAt @db.Timestamptz(6)
+
+  @@map("product_review_summary")
+}
+
+// =============================================================================
+// SERVICE OUTBOX (For future Kafka migration)
+// =============================================================================
+
+model ServiceOutbox {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  aggregateType String    @db.VarChar(100)
+  aggregateId   String    @db.Uuid
+  eventType     String    @db.VarChar(100)
+  payload       Json
+  metadata      Json?
+  isPublished   Boolean   @default(false)
+  publishedAt   DateTime? @db.Timestamptz(6)
+  retryCount    Int       @default(0)
+  lastError     String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([isPublished, createdAt])
+  @@index([aggregateType, aggregateId])
+  @@map("service_outbox")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum ReviewStatus {
+  pending
+  approved
+  rejected
+  hidden      // Temporarily hidden
+  removed     // Permanently removed
+}
+
+enum VoteType {
+  helpful
+  unhelpful
+}
+
+enum ReportReason {
+  spam
+  fake_review
+  inappropriate_content
+  wrong_product
+  offensive_language
+  personal_information
+  copyright
+  other
+}
+
+enum ReportStatus {
+  pending
+  reviewed
+  actioned
+  dismissed
+}
+
+enum ResponderType {
+  seller
+  brand_manager
+  admin
+}
+
+enum ReplyStatus {
+  visible
+  hidden
+  removed
+}
+
+enum RequestChannel {
+  in_app
+  email
+  push
+  sms
+}
+
+enum RequestStatus {
+  pending      // Not yet sent
+  sent         // Request sent
+  opened       // User opened/viewed request
+  completed    // Review submitted
+  expired      // Window expired
+  skipped      // User explicitly skipped
+}
+
+enum ModerationPriority {
+  low
+  normal
+  high
+  urgent
+}
+
+enum QueueStatus {
+  pending
+  in_progress
+  completed
+}
+
+enum ModerationDecision {
+  approved
+  rejected
+  needs_edit
+  escalated
+}

@@ -1,0 +1,46 @@
+AUTH-SERVICE 3001
+psql 'postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/auth_db?sslmode=require&channel_binding=require'
+
+PRODUCT-SERVICE 3002
+psql 'postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/product_db?sslmode=require&channel_binding=require'
+
+CART-SERVICE 3003
+psql 'postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/cart_db?sslmode=require&channel_binding=require'
+
+SUPPLIER-SERVICE 3004
+psql 'postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/supplier_db?sslmode=require&channel_binding=require'
+
+BRAND-SERVICE 3005
+psql 'postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/brand_db?sslmode=require&channel_binding=require'
+
+ORDER-SERVICE 3006
+psql 'postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/order_db?sslmode=require&channel_binding=require'
+
+PAYMENT-SERVICE 3007
+psql 'postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/payment_db?sslmode=require&channel_binding=require'
+
+NOTIFICATION-SERVICE 3008
+
+
+LOGISTIC-SERVICE 3009
+psql 'postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/logistics_db?sslmode=require&channel_binding=require'
+
+ADDRESS-SERVICE 3010
+
+
+WALLET-SERVICE 3011
+psql 'postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/wallet_db?sslmode=require&channel_binding=require'
+
+WAREHOUSE-SERVICE 3012
+psql 'postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/warehouse_db?sslmode=require&channel_binding=require'
+
+ADVERTISEMENTS-SERVICE 3013
+
+
+CUSTOMERSERVICE-SERVICE 3014
+
+
+SELLER-SERVICE 3015
+
+
+REVIEW-SERVICE 3016

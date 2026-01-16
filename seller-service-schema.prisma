@@ -1,0 +1,469 @@
+// =============================================================================
+// SELLER SERVICE DATABASE SCHEMA
+// Service: seller-service (Port 3015)
+// Database: seller_db
+// Owner: Seller accounts, seller products, inventory, payouts, verification
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SELLER_DATABASE_URL")
+}
+
+// =============================================================================
+// SELLERS
+// =============================================================================
+
+model Seller {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId              String             @unique @db.Uuid // Reference to Auth Service
+  sellerCode          String             @unique @db.VarChar(50) // SLR-XXXXX
+  // Shop info
+  shopName            String             @db.VarChar(255)
+  shopSlug            String             @unique @db.VarChar(255)
+  shopDescription     String?
+  shopLogoUrl         String?
+  shopBannerUrl       String?
+  shopAnnouncement    String?            @db.VarChar(500)
+  // Business info
+  businessName        String?            @db.VarChar(255)
+  businessType        BusinessType       @default(individual)
+  businessLicense     String?            @db.VarChar(100)
+  taxId               String?            @db.VarChar(100) // NPWP
+  // Contact
+  contactName         String             @db.VarChar(255)
+  contactEmail        String             @db.VarChar(255)
+  contactPhone        String             @db.VarChar(20)
+  contactWhatsapp     String?            @db.VarChar(20)
+  // Address (for pickup)
+  address             String?
+  district            String?            @db.VarChar(100)
+  city                String?            @db.VarChar(100)
+  province            String?            @db.VarChar(100)
+  postalCode          String?            @db.VarChar(10)
+  // Bank details (for payouts)
+  bankName            String?            @db.VarChar(100)
+  bankAccountName     String?            @db.VarChar(255)
+  bankAccountNumber   String?            @db.VarChar(50)
+  bankBranch          String?            @db.VarChar(100)
+  // Commission (0% for LAKOO)
+  commissionRate      Decimal            @default(0.00) @db.Decimal(5, 2)
+  // Performance metrics
+  totalProducts       Int                @default(0)
+  totalOrders         Int                @default(0)
+  totalRevenue        Decimal            @default(0) @db.Decimal(15, 2)
+  avgRating           Decimal?           @db.Decimal(3, 2)
+  reviewCount         Int                @default(0)
+  responseRate        Decimal?           @db.Decimal(5, 2) // Chat response rate
+  responseTime        Int?               // Avg response time in minutes
+  // Badges/achievements
+  badges              String[]
+  isFeatured          Boolean            @default(false)
+  // Verification
+  verificationStatus  VerificationStatus @default(pending)
+  verifiedAt          DateTime?          @db.Timestamptz(6)
+  verifiedBy          String?            @db.Uuid
+  // Status
+  status              SellerStatus       @default(pending)
+  suspendedAt         DateTime?          @db.Timestamptz(6)
+  suspendReason       String?            @db.VarChar(500)
+  // Settings
+  autoAcceptOrders    Boolean            @default(true)
+  vacationMode        Boolean            @default(false)
+  vacationMessage     String?            @db.VarChar(500)
+  vacationUntil       DateTime?          @db.Timestamptz(6)
+  // Audit
+  createdAt           DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt           DateTime           @updatedAt @db.Timestamptz(6)
+  deletedAt           DateTime?          @db.Timestamptz(6)
+
+  products            SellerProduct[]
+  documents           SellerDocument[]
+  payouts             SellerPayout[]
+  payoutSchedules     SellerPayoutSchedule[]
+
+  @@index([sellerCode])
+  @@index([shopSlug])
+  @@index([status])
+  @@index([verificationStatus])
+  @@index([deletedAt])
+  @@map("seller")
+}
+
+// =============================================================================
+// SELLER VERIFICATION DOCUMENTS
+// =============================================================================
+
+model SellerDocument {
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerId        String         @db.Uuid
+  documentType    SellerDocType
+  documentNumber  String?        @db.VarChar(100)
+  fileUrl         String
+  fileName        String         @db.VarChar(255)
+  fileSize        Int?
+  // Verification
+  status          DocStatus      @default(pending)
+  verifiedAt      DateTime?      @db.Timestamptz(6)
+  verifiedBy      String?        @db.Uuid
+  rejectedAt      DateTime?      @db.Timestamptz(6)
+  rejectionReason String?        @db.VarChar(500)
+  // Expiry
+  expiresAt       DateTime?      @db.Timestamptz(6)
+  createdAt       DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime       @updatedAt @db.Timestamptz(6)
+
+  seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([sellerId])
+  @@index([documentType])
+  @@index([status])
+  @@map("seller_document")
+}
+
+// =============================================================================
+// SELLER PRODUCTS
+// =============================================================================
+
+model SellerProduct {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerId        String        @db.Uuid
+  // Link to warehouse product (optional - for sellers using LAKOO products)
+  warehouseProductId String?    @db.Uuid
+  // Product info
+  sku             String?       @db.VarChar(100)
+  name            String        @db.VarChar(255)
+  slug            String        @unique @db.VarChar(255)
+  description     String?
+  shortDescription String?      @db.VarChar(500)
+  // Category (reference to Product Service)
+  categoryId      String?       @db.Uuid
+  categoryName    String?       @db.VarChar(255)
+  // Pricing
+  price           Decimal       @db.Decimal(15, 2)
+  comparePrice    Decimal?      @db.Decimal(15, 2)
+  costPrice       Decimal?      @db.Decimal(15, 2) // Seller's cost
+  // Inventory
+  trackInventory  Boolean       @default(true)
+  quantity        Int           @default(0)
+  lowStockThreshold Int?        @default(5)
+  // Shipping
+  weightGrams     Int?
+  lengthCm        Decimal?      @db.Decimal(10, 2)
+  widthCm         Decimal?      @db.Decimal(10, 2)
+  heightCm        Decimal?      @db.Decimal(10, 2)
+  // Images (JSON array)
+  images          Json?         // [{url, alt, isPrimary}]
+  primaryImageUrl String?
+  // Variants
+  hasVariants     Boolean       @default(false)
+  // Status
+  status          ProductStatus @default(draft)
+  publishedAt     DateTime?     @db.Timestamptz(6)
+  // SEO
+  metaTitle       String?       @db.VarChar(255)
+  metaDescription String?
+  tags            String[]
+  // Performance
+  viewCount       Int           @default(0)
+  soldCount       Int           @default(0)
+  avgRating       Decimal?      @db.Decimal(3, 2)
+  reviewCount     Int           @default(0)
+  // Audit
+  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt       DateTime?     @db.Timestamptz(6)
+
+  seller    Seller                 @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  variants  SellerProductVariant[]
+  inventory SellerInventory[]
+
+  @@index([sellerId])
+  @@index([slug])
+  @@index([categoryId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("seller_product")
+}
+
+model SellerProductVariant {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId       String   @db.Uuid
+  sku             String?  @db.VarChar(100)
+  name            String   @db.VarChar(255)
+  // Options
+  option1Name     String?  @db.VarChar(50) // "Color"
+  option1Value    String?  @db.VarChar(100) // "Red"
+  option2Name     String?  @db.VarChar(50) // "Size"
+  option2Value    String?  @db.VarChar(100) // "M"
+  option3Name     String?  @db.VarChar(50)
+  option3Value    String?  @db.VarChar(100)
+  // Pricing
+  price           Decimal  @db.Decimal(15, 2)
+  comparePrice    Decimal? @db.Decimal(15, 2)
+  costPrice       Decimal? @db.Decimal(15, 2)
+  // Inventory
+  quantity        Int      @default(0)
+  // Shipping
+  weightGrams     Int?
+  // Image
+  imageUrl        String?
+  // Status
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+
+  product   SellerProduct     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  inventory SellerInventory[]
+
+  @@index([productId])
+  @@index([sku])
+  @@map("seller_product_variant")
+}
+
+model SellerInventory {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerId          String    @db.Uuid
+  productId         String    @db.Uuid
+  variantId         String?   @db.Uuid
+  // Quantities
+  quantity          Int       @default(0)
+  reservedQuantity  Int       @default(0)
+  availableQuantity Int       @default(0)
+  // Location
+  location          String?   @db.VarChar(100)
+  // Tracking
+  lastRestockedAt   DateTime? @db.Timestamptz(6)
+  lastSoldAt        DateTime? @db.Timestamptz(6)
+  // Version for optimistic locking
+  version           Int       @default(0)
+  createdAt         DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @db.Timestamptz(6)
+
+  product SellerProduct         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant SellerProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([sellerId, productId, variantId])
+  @@index([sellerId])
+  @@map("seller_inventory")
+}
+
+// =============================================================================
+// SELLER PAYOUTS
+// =============================================================================
+
+model SellerPayout {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerId        String       @db.Uuid
+  payoutNumber    String       @unique @db.VarChar(50) // PAY-20260115-XXXXX
+  // Period
+  periodStart     DateTime     @db.Date
+  periodEnd       DateTime     @db.Date
+  // Amounts
+  grossAmount     Decimal      @db.Decimal(15, 2) // Total sales
+  commissionAmount Decimal     @default(0) @db.Decimal(15, 2) // Commission (0% for LAKOO)
+  adjustmentAmount Decimal     @default(0) @db.Decimal(15, 2) // Returns, chargebacks, etc.
+  netAmount       Decimal      @db.Decimal(15, 2) // Final payout amount
+  // Order summary
+  orderCount      Int
+  itemCount       Int
+  // Bank details snapshot
+  bankName        String       @db.VarChar(100)
+  bankAccountName String       @db.VarChar(255)
+  bankAccountNumber String     @db.VarChar(50)
+  // Status
+  status          PayoutStatus @default(pending)
+  approvedAt      DateTime?    @db.Timestamptz(6)
+  approvedBy      String?      @db.Uuid
+  processedAt     DateTime?    @db.Timestamptz(6)
+  paidAt          DateTime?    @db.Timestamptz(6)
+  rejectedAt      DateTime?    @db.Timestamptz(6)
+  rejectionReason String?      @db.VarChar(500)
+  // Transfer reference
+  transferReference String?    @db.VarChar(255)
+  transferProofUrl String?
+  // Notes
+  notes           String?
+  internalNotes   String?
+  createdAt       DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @db.Timestamptz(6)
+
+  seller Seller           @relation(fields: [sellerId], references: [id])
+  items  SellerPayoutItem[]
+
+  @@index([sellerId])
+  @@index([payoutNumber])
+  @@index([status])
+  @@index([periodStart, periodEnd])
+  @@map("seller_payout")
+}
+
+model SellerPayoutItem {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payoutId    String   @db.Uuid
+  orderId     String   @db.Uuid
+  orderNumber String   @db.VarChar(50)
+  orderDate   DateTime @db.Timestamptz(6)
+  grossAmount Decimal  @db.Decimal(15, 2)
+  commission  Decimal  @default(0) @db.Decimal(15, 2)
+  netAmount   Decimal  @db.Decimal(15, 2)
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+
+  payout SellerPayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+
+  @@index([payoutId])
+  @@index([orderId])
+  @@map("seller_payout_item")
+}
+
+model SellerPayoutSchedule {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerId        String   @db.Uuid
+  // Schedule type
+  frequency       PayoutFrequency @default(weekly)
+  dayOfWeek       Int?     // 0-6 for weekly
+  dayOfMonth      Int?     // 1-31 for monthly
+  // Minimum amount
+  minPayoutAmount Decimal  @default(50000) @db.Decimal(15, 2) // Min Rp 50,000
+  // Status
+  isActive        Boolean  @default(true)
+  nextPayoutDate  DateTime? @db.Date
+  lastPayoutDate  DateTime? @db.Date
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+
+  seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@unique([sellerId])
+  @@map("seller_payout_schedule")
+}
+
+// =============================================================================
+// SELLER ANALYTICS (Daily aggregated stats)
+// =============================================================================
+
+model SellerDailyStat {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerId        String   @db.Uuid
+  date            DateTime @db.Date
+  // Traffic
+  pageViews       Int      @default(0)
+  uniqueVisitors  Int      @default(0)
+  productViews    Int      @default(0)
+  // Conversion
+  addToCartCount  Int      @default(0)
+  checkoutCount   Int      @default(0)
+  orderCount      Int      @default(0)
+  conversionRate  Decimal? @db.Decimal(5, 2)
+  // Revenue
+  grossRevenue    Decimal  @default(0) @db.Decimal(15, 2)
+  netRevenue      Decimal  @default(0) @db.Decimal(15, 2)
+  avgOrderValue   Decimal? @db.Decimal(15, 2)
+  // Items
+  itemsSold       Int      @default(0)
+  // Returns
+  returnCount     Int      @default(0)
+  returnAmount    Decimal  @default(0) @db.Decimal(15, 2)
+  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+
+  @@unique([sellerId, date])
+  @@index([date])
+  @@map("seller_daily_stat")
+}
+
+// =============================================================================
+// SERVICE OUTBOX (For future Kafka migration)
+// =============================================================================
+
+model ServiceOutbox {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  aggregateType String    @db.VarChar(100)
+  aggregateId   String    @db.Uuid
+  eventType     String    @db.VarChar(100)
+  payload       Json
+  metadata      Json?
+  isPublished   Boolean   @default(false)
+  publishedAt   DateTime? @db.Timestamptz(6)
+  retryCount    Int       @default(0)
+  lastError     String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([isPublished, createdAt])
+  @@index([aggregateType, aggregateId])
+  @@map("service_outbox")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum BusinessType {
+  individual
+  company
+  cv
+  pt
+}
+
+enum VerificationStatus {
+  pending
+  in_review
+  verified
+  rejected
+  expired
+}
+
+enum SellerStatus {
+  pending
+  active
+  suspended
+  banned
+  closed
+}
+
+enum SellerDocType {
+  id_card        // KTP
+  business_license // SIUP/NIB
+  tax_id         // NPWP
+  bank_statement
+  selfie_with_id
+  other
+}
+
+enum DocStatus {
+  pending
+  verified
+  rejected
+  expired
+}
+
+enum ProductStatus {
+  draft
+  pending_review
+  active
+  inactive
+  out_of_stock
+  suspended
+}
+
+enum PayoutStatus {
+  pending
+  approved
+  processing
+  paid
+  rejected
+  cancelled
+}
+
+enum PayoutFrequency {
+  daily
+  weekly
+  biweekly
+  monthly
+}

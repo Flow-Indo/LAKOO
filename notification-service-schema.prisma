@@ -1,0 +1,297 @@
+// =============================================================================
+// NOTIFICATION SERVICE DATABASE SCHEMA
+// Service: notification-service (Port 3008)
+// Database: notification_db
+// Owner: Notifications, templates, preferences, delivery logs
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("NOTIFICATION_DATABASE_URL")
+}
+
+// =============================================================================
+// NOTIFICATIONS
+// =============================================================================
+
+model Notification {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String            @db.Uuid // Reference to Auth Service
+  type          NotificationType
+  channel       NotificationChannel
+  // Content
+  title         String            @db.VarChar(255)
+  message       String
+  shortMessage  String?           @db.VarChar(160) // For SMS
+  htmlContent   String?           // For email
+  // Action
+  actionUrl     String?
+  actionText    String?           @db.VarChar(100)
+  // Related entity
+  relatedType   String?           @db.VarChar(50) // "order", "payment", "shipment"
+  relatedId     String?           @db.Uuid
+  // Delivery status
+  status        NotificationStatus @default(pending)
+  sentAt        DateTime?         @db.Timestamptz(6)
+  deliveredAt   DateTime?         @db.Timestamptz(6)
+  failedAt      DateTime?         @db.Timestamptz(6)
+  failureReason String?           @db.VarChar(500)
+  retryCount    Int               @default(0)
+  // Read status (for in-app)
+  isRead        Boolean           @default(false)
+  readAt        DateTime?         @db.Timestamptz(6)
+  // Scheduling
+  scheduledFor  DateTime?         @db.Timestamptz(6)
+  // Priority
+  priority      Priority          @default(normal)
+  // Metadata
+  metadata      Json?
+  createdAt     DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime          @updatedAt @db.Timestamptz(6)
+
+  @@index([userId])
+  @@index([type])
+  @@index([channel])
+  @@index([status])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notification")
+}
+
+// =============================================================================
+// NOTIFICATION TEMPLATES
+// =============================================================================
+
+model NotificationTemplate {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String            @unique @db.VarChar(100) // "order_confirmation", "payment_success"
+  name          String            @db.VarChar(255)
+  description   String?
+  type          NotificationType
+  // Template content (with placeholders like {{orderNumber}})
+  titleTemplate String            @db.VarChar(255)
+  bodyTemplate  String
+  smsTemplate   String?           @db.VarChar(160)
+  htmlTemplate  String?
+  // Channels this template supports
+  channels      NotificationChannel[]
+  // Default action
+  actionUrlTemplate String?
+  actionText    String?           @db.VarChar(100)
+  // Settings
+  isActive      Boolean           @default(true)
+  priority      Priority          @default(normal)
+  // Versioning
+  version       Int               @default(1)
+  createdBy     String?           @db.Uuid
+  createdAt     DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime          @updatedAt @db.Timestamptz(6)
+
+  @@index([code])
+  @@index([type])
+  @@index([isActive])
+  @@map("notification_template")
+}
+
+// =============================================================================
+// USER NOTIFICATION PREFERENCES
+// =============================================================================
+
+model NotificationPreference {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String            @unique @db.Uuid
+  // Channel preferences
+  emailEnabled  Boolean           @default(true)
+  smsEnabled    Boolean           @default(true)
+  pushEnabled   Boolean           @default(true)
+  whatsappEnabled Boolean         @default(false)
+  inAppEnabled  Boolean           @default(true)
+  // Type preferences
+  orderUpdates  Boolean           @default(true)
+  promotions    Boolean           @default(true)
+  priceAlerts   Boolean           @default(true)
+  newsletter    Boolean           @default(false)
+  // Quiet hours
+  quietHoursEnabled Boolean       @default(false)
+  quietHoursStart String?         @db.VarChar(5) // "22:00"
+  quietHoursEnd   String?         @db.VarChar(5) // "08:00"
+  timezone        String          @default("Asia/Jakarta") @db.VarChar(50)
+  // Contact info
+  preferredEmail  String?         @db.VarChar(255)
+  preferredPhone  String?         @db.VarChar(20)
+  // Device tokens
+  fcmTokens       String[]        // Firebase Cloud Messaging tokens
+  apnsTokens      String[]        // Apple Push Notification tokens
+  createdAt       DateTime        @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(6)
+
+  @@map("notification_preference")
+}
+
+// =============================================================================
+// NOTIFICATION DELIVERY LOG
+// =============================================================================
+
+model NotificationLog {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  notificationId  String?           @db.Uuid
+  userId          String            @db.Uuid
+  channel         NotificationChannel
+  // Recipient info
+  recipient       String            @db.VarChar(255) // email, phone, device token
+  // Content sent
+  subject         String?           @db.VarChar(255)
+  body            String?
+  // Provider info
+  provider        String            @db.VarChar(50) // "sendgrid", "twilio", "firebase"
+  providerMessageId String?         @db.VarChar(255)
+  // Status
+  status          DeliveryStatus    @default(pending)
+  sentAt          DateTime?         @db.Timestamptz(6)
+  deliveredAt     DateTime?         @db.Timestamptz(6)
+  openedAt        DateTime?         @db.Timestamptz(6)
+  clickedAt       DateTime?         @db.Timestamptz(6)
+  bouncedAt       DateTime?         @db.Timestamptz(6)
+  // Error tracking
+  errorCode       String?           @db.VarChar(100)
+  errorMessage    String?
+  // Cost tracking
+  cost            Decimal?          @db.Decimal(10, 6)
+  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
+
+  @@index([notificationId])
+  @@index([userId])
+  @@index([channel])
+  @@index([status])
+  @@index([createdAt])
+  @@map("notification_log")
+}
+
+// =============================================================================
+// NOTIFICATION QUEUE (For batch processing)
+// =============================================================================
+
+model NotificationQueue {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  templateCode    String            @db.VarChar(100)
+  channel         NotificationChannel
+  // Recipients (batch)
+  recipients      Json              // Array of {userId, email, phone, data}
+  totalCount      Int
+  processedCount  Int               @default(0)
+  successCount    Int               @default(0)
+  failureCount    Int               @default(0)
+  // Scheduling
+  scheduledFor    DateTime?         @db.Timestamptz(6)
+  priority        Priority          @default(normal)
+  // Status
+  status          QueueStatus       @default(pending)
+  startedAt       DateTime?         @db.Timestamptz(6)
+  completedAt     DateTime?         @db.Timestamptz(6)
+  // Metadata
+  campaignId      String?           @db.Uuid
+  metadata        Json?
+  createdBy       String?           @db.Uuid
+  createdAt       DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime          @updatedAt @db.Timestamptz(6)
+
+  @@index([status])
+  @@index([scheduledFor])
+  @@index([createdAt])
+  @@map("notification_queue")
+}
+
+// =============================================================================
+// SERVICE OUTBOX (For future Kafka migration)
+// =============================================================================
+
+model ServiceOutbox {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  aggregateType String    @db.VarChar(100)
+  aggregateId   String    @db.Uuid
+  eventType     String    @db.VarChar(100)
+  payload       Json
+  metadata      Json?
+  isPublished   Boolean   @default(false)
+  publishedAt   DateTime? @db.Timestamptz(6)
+  retryCount    Int       @default(0)
+  lastError     String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([isPublished, createdAt])
+  @@index([aggregateType, aggregateId])
+  @@map("service_outbox")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum NotificationType {
+  order_created
+  order_confirmed
+  order_shipped
+  order_delivered
+  order_cancelled
+  payment_pending
+  payment_success
+  payment_failed
+  refund_processed
+  return_approved
+  return_rejected
+  review_request
+  price_drop
+  back_in_stock
+  promotion
+  live_starting
+  cart_abandoned
+  welcome
+  system
+}
+
+enum NotificationChannel {
+  email
+  sms
+  push
+  whatsapp
+  in_app
+}
+
+enum NotificationStatus {
+  pending
+  queued
+  sent
+  delivered
+  failed
+  cancelled
+}
+
+enum DeliveryStatus {
+  pending
+  sent
+  delivered
+  opened
+  clicked
+  bounced
+  failed
+}
+
+enum Priority {
+  low
+  normal
+  high
+  urgent
+}
+
+enum QueueStatus {
+  pending
+  processing
+  completed
+  failed
+  cancelled
+}

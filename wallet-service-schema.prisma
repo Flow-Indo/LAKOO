@@ -1,0 +1,349 @@
+// =============================================================================
+// WALLET SERVICE DATABASE SCHEMA
+// Service: wallet-service (Port 3011)
+// Database: wallet_db
+// Owner: Wallet balances, transactions, cashback rules, top-ups, promotional credits
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("WALLET_DATABASE_URL")
+}
+
+// =============================================================================
+// WALLETS
+// =============================================================================
+
+model Wallet {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @unique @db.Uuid // Reference to Auth Service
+  // Balances
+  balance        Decimal   @default(0) @db.Decimal(15, 2)
+  pendingBalance Decimal   @default(0) @db.Decimal(15, 2) // Awaiting clearance
+  // Lifetime totals
+  totalCredited  Decimal   @default(0) @db.Decimal(15, 2)
+  totalDebited   Decimal   @default(0) @db.Decimal(15, 2)
+  totalCashback  Decimal   @default(0) @db.Decimal(15, 2)
+  // Status
+  status         WalletStatus @default(active)
+  frozenAt       DateTime? @db.Timestamptz(6)
+  frozenReason   String?   @db.VarChar(500)
+  // Optimistic locking for concurrent updates
+  version        Int       @default(0)
+  // Audit
+  createdAt      DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime  @updatedAt @db.Timestamptz(6)
+
+  transactions   WalletTransaction[]
+  topups         WalletTopup[]
+
+  @@map("wallet")
+}
+
+// =============================================================================
+// WALLET TRANSACTIONS (Immutable ledger)
+// =============================================================================
+
+model WalletTransaction {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId       String         @db.Uuid
+  transactionNumber String      @unique @db.VarChar(50) // WTX-20260115-XXXXX
+  type           WalletTxType
+  direction      TxDirection    // credit or debit
+  // Amounts
+  amount         Decimal        @db.Decimal(15, 2)
+  balanceBefore  Decimal        @db.Decimal(15, 2)
+  balanceAfter   Decimal        @db.Decimal(15, 2)
+  // Description
+  description    String?        @db.VarChar(500)
+  shortDesc      String?        @db.VarChar(100)
+  // References
+  referenceType  String?        @db.VarChar(50) // "order", "topup", "refund", etc.
+  referenceId    String?        @db.Uuid
+  orderId        String?        @db.Uuid
+  paymentId      String?        @db.Uuid
+  topupId        String?        @db.Uuid
+  // Status
+  status         TxStatus       @default(completed)
+  // Expiry (for promotional credits)
+  expiresAt      DateTime?      @db.Timestamptz(6)
+  // Idempotency
+  idempotencyKey String?        @unique @db.VarChar(100)
+  // Audit
+  createdBy      String?        @db.Uuid
+  createdAt      DateTime       @default(now()) @db.Timestamptz(6)
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([transactionNumber])
+  @@index([type])
+  @@index([referenceType, referenceId])
+  @@index([createdAt])
+  @@map("wallet_transaction")
+}
+
+// =============================================================================
+// WALLET TOP-UPS
+// =============================================================================
+
+model WalletTopup {
+  id                   String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId             String       @db.Uuid
+  topupNumber          String       @unique @db.VarChar(50) // TOP-20260115-XXXXX
+  userId               String       @db.Uuid
+  amount               Decimal      @db.Decimal(15, 2)
+  bonusAmount          Decimal      @default(0) @db.Decimal(15, 2) // Top-up bonus
+  totalAmount          Decimal      @db.Decimal(15, 2) // amount + bonusAmount
+  // Payment info
+  paymentMethod        String       @db.VarChar(50)
+  paymentGateway       String       @default("xendit") @db.VarChar(50)
+  gatewayTransactionId String?      @db.VarChar(255)
+  // Status
+  status               TopupStatus  @default(pending)
+  // Timestamps
+  paidAt               DateTime?    @db.Timestamptz(6)
+  expiredAt            DateTime?    @db.Timestamptz(6)
+  cancelledAt          DateTime?    @db.Timestamptz(6)
+  // Payment details
+  paymentUrl           String?
+  virtualAccountNumber String?      @db.VarChar(50)
+  expiresAt            DateTime?    @db.Timestamptz(6)
+  // Idempotency
+  idempotencyKey       String       @unique @db.VarChar(100)
+  createdAt            DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime     @updatedAt @db.Timestamptz(6)
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([topupNumber])
+  @@index([userId])
+  @@index([status])
+  @@map("wallet_topup")
+}
+
+// =============================================================================
+// CASHBACK RULES
+// =============================================================================
+
+model CashbackRule {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name              String        @db.VarChar(255)
+  description       String?
+  // Trigger conditions
+  triggerType       CashbackTrigger
+  minOrderAmount    Decimal?      @db.Decimal(15, 2)
+  maxOrderAmount    Decimal?      @db.Decimal(15, 2)
+  // Cashback calculation
+  cashbackType      CashbackType
+  cashbackValue     Decimal       @db.Decimal(15, 2) // Percentage or fixed amount
+  maxCashbackAmount Decimal?      @db.Decimal(15, 2) // Cap for percentage
+  minCashbackAmount Decimal?      @db.Decimal(15, 2) // Minimum to give
+  // Restrictions
+  applicableBrandIds String[]     @db.Uuid // Empty = all brands
+  applicableCategoryIds String[]  @db.Uuid
+  excludedProductIds String[]     @db.Uuid
+  newCustomersOnly  Boolean       @default(false)
+  // Limits
+  perUserLimit      Int?          // Max times per user
+  totalUsageLimit   Int?          // Total uses allowed
+  usedCount         Int           @default(0)
+  // Validity
+  startsAt          DateTime      @db.Timestamptz(6)
+  endsAt            DateTime?     @db.Timestamptz(6)
+  isActive          Boolean       @default(true)
+  // Priority (higher = applied first)
+  priority          Int           @default(0)
+  // Audit
+  createdBy         String?       @db.Uuid
+  createdAt         DateTime      @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime      @updatedAt @db.Timestamptz(6)
+  deletedAt         DateTime?     @db.Timestamptz(6)
+
+  awards CashbackAward[]
+
+  @@index([isActive])
+  @@index([startsAt, endsAt])
+  @@index([deletedAt])
+  @@map("cashback_rule")
+}
+
+model CashbackAward {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ruleId          String   @db.Uuid
+  userId          String   @db.Uuid
+  walletId        String   @db.Uuid
+  orderId         String   @db.Uuid
+  transactionId   String?  @db.Uuid // Wallet transaction when credited
+  // Amounts
+  orderAmount     Decimal  @db.Decimal(15, 2)
+  cashbackAmount  Decimal  @db.Decimal(15, 2)
+  // Status
+  status          AwardStatus @default(pending)
+  // Timestamps
+  awardedAt       DateTime? @db.Timestamptz(6)
+  creditedAt      DateTime? @db.Timestamptz(6)
+  // Some cashback only credited after order completed
+  creditAfterDays Int       @default(0)
+  creditDueAt     DateTime? @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @db.Timestamptz(6)
+
+  rule CashbackRule @relation(fields: [ruleId], references: [id])
+
+  @@index([ruleId])
+  @@index([userId])
+  @@index([orderId])
+  @@index([status])
+  @@map("cashback_award")
+}
+
+// =============================================================================
+// PROMOTIONAL CREDITS (One-time campaigns)
+// =============================================================================
+
+model PromotionalCredit {
+  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String       @db.VarChar(255)
+  description     String?
+  // Credit amount
+  creditAmount    Decimal      @db.Decimal(15, 2)
+  // Conditions
+  minOrderAmount  Decimal?     @db.Decimal(15, 2) // Min order to use credit
+  // Validity
+  validFrom       DateTime     @db.Timestamptz(6)
+  validUntil      DateTime     @db.Timestamptz(6)
+  creditExpiresIn Int?         // Days after award when credit expires
+  // Targeting
+  targetUserIds   String[]     @db.Uuid // Specific users, or empty for all eligible
+  targetSegment   String?      @db.VarChar(100) // "new_users", "dormant", etc.
+  // Limits
+  maxAwards       Int?
+  awardedCount    Int          @default(0)
+  // Status
+  isActive        Boolean      @default(true)
+  // Source
+  campaignType    String?      @db.VarChar(50) // "welcome", "winback", "referral"
+  // Audit
+  createdBy       String?      @db.Uuid
+  createdAt       DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @db.Timestamptz(6)
+
+  awards PromotionalCreditAward[]
+
+  @@index([isActive])
+  @@index([validFrom, validUntil])
+  @@map("promotional_credit")
+}
+
+model PromotionalCreditAward {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  creditId        String    @db.Uuid
+  userId          String    @db.Uuid
+  walletId        String    @db.Uuid
+  transactionId   String?   @db.Uuid
+  amount          Decimal   @db.Decimal(15, 2)
+  remainingAmount Decimal   @db.Decimal(15, 2)
+  expiresAt       DateTime  @db.Timestamptz(6)
+  awardedAt       DateTime  @default(now()) @db.Timestamptz(6)
+  usedAt          DateTime? @db.Timestamptz(6)
+  expiredAt       DateTime? @db.Timestamptz(6)
+
+  credit PromotionalCredit @relation(fields: [creditId], references: [id])
+
+  @@index([creditId])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("promotional_credit_award")
+}
+
+// =============================================================================
+// SERVICE OUTBOX (For future Kafka migration)
+// =============================================================================
+
+model ServiceOutbox {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  aggregateType String    @db.VarChar(100)
+  aggregateId   String    @db.Uuid
+  eventType     String    @db.VarChar(100)
+  payload       Json
+  metadata      Json?
+  isPublished   Boolean   @default(false)
+  publishedAt   DateTime? @db.Timestamptz(6)
+  retryCount    Int       @default(0)
+  lastError     String?
+  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([isPublished, createdAt])
+  @@index([aggregateType, aggregateId])
+  @@map("service_outbox")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum WalletStatus {
+  active
+  frozen
+  suspended
+  closed
+}
+
+enum WalletTxType {
+  topup
+  payment           // Used for order payment
+  refund            // Refund from order
+  cashback          // Cashback from order
+  promotional       // Promotional credit
+  transfer_in       // Transfer from another wallet
+  transfer_out      // Transfer to another wallet
+  withdrawal        // Cash out
+  adjustment        // Manual adjustment
+  expiry            // Promotional credit expired
+}
+
+enum TxDirection {
+  credit
+  debit
+}
+
+enum TxStatus {
+  pending
+  completed
+  failed
+  reversed
+}
+
+enum TopupStatus {
+  pending
+  paid
+  failed
+  expired
+  cancelled
+}
+
+enum CashbackTrigger {
+  order_completed    // On order completion
+  first_order        // First order only
+  nth_order          // Every nth order
+  brand_purchase     // Specific brand purchase
+  category_purchase  // Specific category purchase
+}
+
+enum CashbackType {
+  percentage
+  fixed_amount
+}
+
+enum AwardStatus {
+  pending     // Waiting for order completion
+  credited    // Added to wallet
+  cancelled   // Order cancelled
+  expired     // Expired before credit
+}
