@@ -30,6 +30,7 @@ export interface User {
   email: string;
   phone?: string;
   avatar?: string;
+  createdAt: string;
 }
 
 export interface Order {

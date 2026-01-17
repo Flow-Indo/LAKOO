@@ -34,7 +34,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const value: AuthContextType = {
     user,
-    isAuthenticated: isAuthenticated(),
+    isAuthenticated,
     login,
     logout,
     isLoading: false, // Could be enhanced with actual loading states

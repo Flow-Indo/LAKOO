@@ -1,3 +1,29 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Root background - subtle off-white */
+html {
+  background-color: #F9FAFB; /* gray-50 */
+}
+
+body {
+  background-color: #F9FAFB;
+  overflow-x: hidden;
+}
+
+/* The 3-column grid container gets elevated appearance */
+.app-container {
+  background-color: #FFFFFF;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  margin: 1rem;
+  border-radius: 0.75rem;
+}
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -116,10 +142,54 @@
 }
 
 @layer base {
+  :root {
+    --background: 0 0% 100%; /* Pure white */
+  }
+
+  html {
+    background-color: #F9FAFB; /* gray-50 */
+  }
+
+  body {
+    background-color: #F9FAFB;
+    overflow-x: hidden;
+  }
+
+  /* Prevent horizontal scroll on all screen sizes */
   * {
     @apply border-border outline-ring/50;
   }
+
+  /* Hide scrollbars for horizontal scrolling elements */
+  .scrollbar-hide {
+    /* Firefox */
+    scrollbar-width: none;
+    /* Safari and Chrome */
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ===== ROUTE-BASED STYLES ===== */
+
+/* Live route exception - center column can be black */
+.live-route-container {
+  background-color: #000000 !important;
+}
+
+/* Ensure transitions don't flash black */
+.center-column {
+  transition: background-color 0ms !important; /* Instant, no fade */
+}
+
+/* Safe area for iOS in Live Route */
+.live-route-container {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }

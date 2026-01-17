@@ -25,7 +25,7 @@ export const isValidPostalCode = (postalCode: string): boolean => {
   return postalRegex.test(postalCode);
 };
 
-export const validateRequired = (value: any): string | null => {
+export const validateRequired = (value: unknown): string | null => {
   if (!value || (typeof value === 'string' && value.trim() === '')) {
     return 'Field ini wajib diisi';
   }
@@ -87,8 +87,8 @@ export interface ValidationResult {
 }
 
 export const validateForm = (
-  data: Record<string, any>,
-  rules: Record<string, ((value: any) => string | null)[]>
+  data: Record<string, unknown>,
+  rules: Record<string, ((value: unknown) => string | null)[]>
 ): ValidationResult => {
   const errors: Record<string, string> = {};
   let isValid = true;

@@ -23,7 +23,7 @@ export const showToastWithAction = (
 
 // Promise toast for async operations
 export const showPromiseToast = (
-  promise: Promise<any>,
+  promise: Promise<unknown>,
   messages: {
     loading: string;
     success: string;
