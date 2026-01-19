@@ -29,7 +29,7 @@ func NewServer(config ServerConfig) *Server {
 }
 
 func (s *Server) RegisterRoutes(registerFunc func(*mux.Router)) {
-	subrouter := s.router.PathPrefix(fmt.Sprintf("/api/%s", s.config.APIPrefix)).Subrouter()
+	subrouter := s.router.PathPrefix(fmt.Sprintf("/api%s", s.config.APIPrefix)).Subrouter()
 
 	registerFunc(subrouter)
 }
