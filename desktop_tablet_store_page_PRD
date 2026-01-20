@@ -1,0 +1,750 @@
+# Desktop/Tablet Store/Shop Page for Laku Ecommerce
+
+## OBJECTIVE
+Create a comprehensive desktop and tablet store/shop page at `/store/[sellerId]` route optimized for larger screens (768px and above), using patterns from SHEIN and Shopee store interfaces.
+
+## TARGET ROUTE
+`http://localhost:3000/store/[sellerId]`
+
+## TARGET DEVICES
+- Tablets: 768px - 1023px width
+- Desktop: 1024px and above
+- Landscape orientation
+- Mouse/trackpad interactions
+
+## DESIGN REFERENCE
+Layout patterns inspired by SHEIN and Shopee store pages:
+- Left sidebar with filters and categories
+- Large product grid (4-6 columns)
+- Store header with banner
+- Top navigation bar
+- Pagination or infinite scroll
+- Quick filter toolbar
+
+## IMPORTANT DESIGN PHILOSOPHY
+- **DO NOT specify exact colors** - Choose colors that match Laku brand and follow modern ecommerce best practices
+- **ADAPT, don't copy** - Use proven layout structures but maintain Laku identity
+- Hover states for all interactive elements
+- Responsive grid that adapts to screen size
+- Clear visual hierarchy
+
+---
+
+## 💻 DESKTOP/TABLET STORE PAGE STRUCTURE
+
+### LAYOUT INTEGRATION WITH EXISTING LAKU DESIGN
+
+**CRITICAL - Use Your Existing Layout:**
+- **DO NOT create new left sidebar** - Your existing sidebar stays:
+  - LAKU logo
+  - Beranda, Video, Pesan, Keranjang, Profil, Lainnya
+- **DO NOT create new header** - Use existing search header
+- Store page uses MAIN CONTENT AREA (right of sidebar)
+- **NEW**: Add store-specific left panel for filters/categories WITHIN the main content area
+
+### 1. HEADER INTEGRATION (USE EXISTING)
+Your existing header already has:
+- Search bar: "Cari di LAKU..."
+- Camera icon
+
+**Enhance for Store Page:**
+- Breadcrumb (if space): Home > Stores > [Store Name]
+- Search placeholder: Could change to "Cari di [Store Name]..." or stay as is
+- Back button if user navigated from product
+- Share store icon
+
+### 2. LAYOUT WITHIN MAIN CONTENT AREA
+
+**Important**: The store page layout goes INSIDE your main content container (to the right of the LAKU navigation sidebar)
+
+**Main Content Area Structure:**
+```
+┌─[LAKU Nav]─┬────────────────────────────────────────┐
+│  Beranda   │  [Store Banner]                        │
+│  Video     │  [Store Info Bar]                      │
+│  Pesan     │  [Store Navigation Tabs]               │
+│  Keranjang │  ┌──────────┬──────────────────────┐  │
+│  Profil    │  │ Filters  │   Product Grid       │  │
+│  Lainnya   │  │ Category │   (3-5 columns)      │  │
+│            │  └──────────┴──────────────────────┘  │
+└────────────┴────────────────────────────────────────┘
+```
+
+**Two-Panel Layout (within main content):**
+- **Left Panel** (25-30%): Store filters and categories
+- **Right Panel** (70-75%): Products, reviews, about content
+
+### 2. STORE BANNER SECTION
+**Full-width banner area:**
+- **Height**: 200-300px (desktop), 150-200px (tablet)
+- **Content**:
+  - Store banner image (cover)
+  - OR promotional slider/carousel
+  - Gradient overlay if needed for readability
+
+### 3. STORE INFO BAR
+**Below banner, full-width:**
+
+**Left Side (60%):**
+- **Store Identity**:
+  - Store logo (80-96px circular) - positioned overlapping banner edge
+  - Store name (24-28px, bold)
+  - Verification badge
+  - "Choice Store" / "Trends Store" badge if applicable
+  
+- **Stats Row** (below name):
+  - Star rating (large) + rating count
+  - Product count (e.g., "1.5K Items")
+  - Follower count (e.g., "275K Followers")
+  - Years active (e.g., "Since 2020")
+  - Separator pipes between stats
+
+- **Performance Badges** (horizontal row):
+  - "500K+ Sold Recently" with fire icon
+  - "99K+ Repeat Customers" with repeat icon
+  - "Top Rated Seller" badge
+  - Other achievements
+
+**Right Side (40%):**
+- **Action Buttons**:
+  - "Follow Store" button (large, prominent)
+    - Shows follower count
+    - Changes to "Following" when active
+  - "Chat Now" button (secondary style)
+  - "Share Store" icon button
+
+### 4. STORE NAVIGATION BAR (STICKY)
+**Full-width navigation:**
+- **Tabs/Links**:
+  - "Home" (store homepage)
+  - "All Products"
+  - "Categories" (dropdown if many)
+  - "New Arrivals"
+  - "Best Sellers"
+  - "Sale"
+  - "Reviews"
+  - "About"
+- **Sticks** when scrolling past banner
+- **Active state**: Underline or background highlight
+- **Hover**: Color change
+
+---
+
+## 📐 STORE CONTENT LAYOUT (WITHIN MAIN AREA)
+
+**Context**: This entire section renders to the RIGHT of your existing LAKU sidebar
+
+### CONTENT CONTAINER
+- **Width**: Fills space after LAKU sidebar (~85-90% of viewport)
+- **Max-width**: 1400px
+- **Padding**: 24-40px
+- **Scrollable**: Yes, while LAKU sidebar stays fixed
+
+### INTERNAL TWO-COLUMN LAYOUT
+
+**This is a second level of columns WITHIN your main content area:**
+
+#### LEFT PANEL (25-30% of content area)
+**Store-specific navigation and filters:**
+
+Not to be confused with your main LAKU navigation - this is store-specific content
+
+#### A. CATEGORIES SECTION
+**Collapsible category tree:**
+- **Section title**: "Categories"
+- **Category list**:
+  - Main categories (expandable)
+  - Subcategories (indented)
+  - Product count per category
+  - Checkbox or link style
+  - Active category highlighted
+
+**Category Features:**
+- Expand/collapse arrows
+- Multi-select (optional)
+- "View All" link for each
+- Sticky within scroll container
+
+#### B. FILTERS SECTION
+**Multiple filter groups:**
+
+**Price Range:**
+- Min/Max input fields
+- OR price range slider
+- Quick price buttons (e.g., "Under $20", "$20-$50")
+
+**Rating:**
+- Star filter buttons
+- "4★ & Up", "3★ & Up", etc.
+- Show product count for each
+
+**Discount:**
+- "On Sale" toggle
+- Discount percentage ranges
+- "Free Shipping" toggle
+
+**Shipping:**
+- "Free Shipping" checkbox
+- "Express Delivery" checkbox
+- Shipping origin filter
+
+**Condition:**
+- "New" checkbox
+- "Like New" checkbox
+- Other conditions
+
+**Size** (if applicable):
+- Size checkboxes
+- Size chart link
+
+**Color** (if applicable):
+- Color swatches
+- Multi-select
+
+**Actions:**
+- "Apply Filters" button (if not auto-applying)
+- "Clear All Filters" link
+- Active filter count badge
+
+#### C. STORE INFO WIDGET
+**Seller performance card:**
+- **Ratings**:
+  - Product Quality: Score + bar
+  - Shipping Speed: Score + bar
+  - Customer Service: Score + bar
+- **Response Time**: "Avg. response in X hours"
+- **Ship On Time**: Percentage
+- **Return Rate**: Percentage
+
+#### D. PROMOTIONS WIDGET (OPTIONAL)
+If store has active promotions:
+- Promo banner/card
+- Coupon codes
+- Special offers
+- Countdown timer if time-limited
+
+---
+
+### MAIN CONTENT AREA (75-80% width)
+
+#### E. TOOLBAR ABOVE PRODUCTS
+**Horizontal bar with options:**
+
+**Left Side:**
+- Results count: "Showing X-Y of Z products"
+- Active filters as removable chips
+- "Clear all" link if filters active
+
+**Right Side:**
+- **Sort dropdown**: 
+  - Recommended
+  - Best Selling
+  - Price: Low to High
+  - Price: High to Low
+  - Newest First
+  - Top Rated
+- **View toggle**: Grid vs List (icons)
+- **Per page**: 24 | 48 | 96 options
+
+#### F. PRODUCT GRID
+**Responsive grid layout:**
+
+**Grid System:**
+- **Large Desktop (>1400px)**: 5-6 columns
+- **Desktop (1200-1400px)**: 4-5 columns
+- **Small Desktop (1024-1200px)**: 3-4 columns
+- **Tablet (768-1024px)**: 3 columns
+- **Gap**: 16-20px
+
+**Product Card Structure:**
+
+**Image Container:**
+- Aspect ratio: 3:4 or 1:1
+- Hover: Zoom effect (1.05 scale)
+- Secondary image on hover (optional)
+- Quick view button on hover (optional)
+
+**Badges** (on image, top-left):
+- "New" badge
+- "Sale" badge with percentage
+- "Best Seller" badge
+- "Low Stock" badge
+- "Express" shipping badge
+
+**Product Info** (below image):
+- Product name (2 line truncate)
+- Star rating + review count (small)
+- Price (bold, prominent)
+- Original price (strike-through if on sale)
+- Discount percentage
+- Sales count (e.g., "2.0k+ sold")
+- Free shipping indicator if applicable
+
+**Action Icons** (appear on hover):
+- Wishlist heart (top-right of image)
+- Quick add to cart (bottom-right circle button)
+- Quick view (center of image, optional)
+
+**Special Indicators:**
+- "High Repeat Customers" badge
+- "#1 Bestseller" ranking badge
+- Limited stock warning
+
+#### G. PAGINATION / LOAD MORE
+**Bottom of product grid:**
+
+**Pagination Style:**
+- Page numbers: 1, 2, 3 ... 10
+- Previous/Next arrows
+- Jump to page input
+- Centered layout
+- OR
+- "Load More" button
+- Shows: "Showing X of Y products"
+- OR
+- Infinite scroll with loading indicator
+
+---
+
+## 🔍 SEARCH RESULTS PAGE VARIATION
+If user searches within store:
+
+**Search Bar** (prominent):
+- Large search input
+- Search suggestions dropdown
+- Recent searches
+- Popular searches in this store
+
+**Search Results Header:**
+- "Search results for '[query]'"
+- Result count
+- Suggested corrections if typo
+
+**No Results State:**
+- "No products found for '[query]'"
+- Search suggestions
+- "Browse all products" button
+- Similar products (if available)
+
+---
+
+## 📊 REVIEWS PAGE LAYOUT
+**When Reviews tab/link is active:**
+
+**Two-Column Layout:**
+
+**Left Column (60-65%):**
+
+**Review Summary Card:**
+- Large overall rating (e.g., "4.6")
+- 5 stars display
+- Total review count
+- Review distribution bars (5★ to 1★)
+- "Write a Review" button
+
+**Filter Bar:**
+- "All Reviews" | "With Photos" | "With Videos"
+- Star rating filters (5★, 4★, 3★, 2★, 1★)
+- Sort dropdown: Most Recent, Most Helpful, Highest Rating, Lowest Rating
+- Tag filters (horizontal chips)
+
+**Review Cards:**
+Each review card:
+- User avatar (48px)
+- Username (masked) + verified badge if applicable
+- Star rating
+- Review date
+- Product name + variant purchased (link to product)
+- Review title (if provided)
+- Review text (expandable)
+- Review images/videos (grid or horizontal scroll)
+  - Click to open lightbox
+- "Was this helpful?" section
+  - Thumbs up/down buttons
+  - Helpful count
+- Store reply (if any)
+  - Indented, different background
+  - Store logo + "Store Response"
+  - Reply text
+  - Reply date
+
+**Pagination:**
+- Standard pagination
+- OR load more button
+
+**Right Column (35-40%):**
+
+**Top Rated Products Widget:**
+- "Top Rated from this Store"
+- 4-5 products with high ratings
+- Compact card layout
+- Price and rating
+
+**Helpful Reviews Widget:**
+- "Most Helpful Reviews"
+- Snippets of top reviews
+- "Read more" links
+
+---
+
+## 📝 ABOUT PAGE LAYOUT
+**When About tab/link is active:**
+
+**Store Profile Section:**
+- Store description (full)
+- Brand story
+- Mission and values
+- Expandable sections
+
+**Business Information:**
+- Business type
+- Registration details
+- Years in business
+- Location/headquarters
+- Certifications and badges
+
+**Policies Section:**
+- Return and exchange policy
+- Shipping policy
+- Privacy policy
+- Terms and conditions
+- Links to full policy pages
+
+**Contact Information:**
+- Customer service hours
+- Response time guarantee
+- Contact methods (email, phone, chat)
+- Social media links
+
+**Store Performance:**
+- Detailed performance metrics
+- Charts showing trends
+- Badges and achievements
+- Customer satisfaction scores
+
+---
+
+## 🎨 DESKTOP VISUAL DESIGN
+
+### DESIGN CONSISTENCY WITH LAKU  
+**Critical**: Maintain visual consistency with your existing platform
+
+**Your Current Laku Design:**
+- **Layout**: Left sidebar navigation + main content area
+- **Sidebar**: Fixed width, light background, simple icons with labels
+- **Product Grid**: Multi-column (3-4 visible in screenshot)
+- **Price Color**: Red (Rp) - bold and prominent
+- **Original Price**: Gray, struck through
+- **Sold Count**: "X+ terjual" in gray
+- **Product Cards**: White, rounded corners, shadow or border
+- **Product Images**: Rounded corners, clean aspect ratio
+- **Search Bar**: Rounded, light background
+- **Typography**: Clean sans-serif, clear hierarchy
+- **Spacing**: Generous whitespace, clean and minimal
+
+**Store Page Must Match:**
+- Same sidebar styling (don't interfere with LAKU nav)
+- Same product card design
+- Same color scheme (red prices, gray secondary text)
+- Same typography scale
+- Same border radius values
+- Same shadows and borders
+- Consistent spacing patterns
+- Button styles match existing design
+- Same icon style
+
+### Typography
+- Store name: 24-28px, bold
+- Section headers: 18-20px, semi-bold
+- Product name: 14-16px
+- Price: 18-22px, bold
+- Body text: 14-16px
+- Small text: 13-14px
+
+### Spacing
+- Container padding: 24-40px
+- Section spacing: 32-48px
+- Card padding: 16-20px
+- Product gap: 16-20px
+
+### Hover States
+- Product cards: Elevation increase, image zoom
+- Buttons: Color darken, slight scale
+- Links: Color change, underline
+- Filter options: Background highlight
+- Images: Zoom or secondary image reveal
+
+### Borders & Shadows
+- Sidebar: Border right or subtle shadow
+- Cards: Border or shadow-sm
+- Elevated cards: shadow-md
+- Active filters: Accent border
+
+### Grid & Layout
+- Max-width container: 1400-1600px
+- Sidebar: 250-320px width
+- Main area: Remaining space
+- Gutters: 20-32px
+
+---
+
+## 🔧 DESKTOP FUNCTIONALITY
+
+### Store Actions
+- **Follow button**: 
+  - Toggle follow/unfollow
+  - Update follower count
+  - Show tooltip on hover
+  - Require login if not authenticated
+- **Chat**: Open chat window or navigate to messages
+- **Share**: Share menu with options (copy link, social media)
+
+### Category & Filter
+- **Category click**: Filter products, update URL
+- **Filter change**: Update product grid
+- **Auto-apply** OR "Apply" button
+- **Clear filters**: Reset to default
+- **Active filters**: Show as removable chips
+- **URL updates**: Reflect filters for sharing/bookmarking
+
+### Product Grid
+- **Hover product**: Show secondary image, actions
+- **Click product**: Navigate to product page
+- **Quick view** (optional): Modal with product details
+- **Add to wishlist**: Heart icon toggle
+- **Quick add to cart**: Show size/variant selector if needed
+
+### Sorting
+- **Sort dropdown**: Change product order
+- **Persist sort**: Remember across navigation
+- **Combine with filters**: Apply both
+
+### Pagination
+- **Page click**: Load that page, scroll to top
+- **Previous/Next**: Navigate pages
+- **URL update**: Page number in URL
+- **Keyboard**: Arrow keys navigation (optional)
+
+### Search
+- **Search input**: Auto-suggest as typing
+- **Enter**: Execute search
+- **Suggestions click**: Execute that search
+- **Recent searches**: Click to re-search
+
+### Reviews
+- **Filter reviews**: Update display
+- **Helpful button**: Increment count, disable after click
+- **Review images**: Click to open lightbox
+- **Sort reviews**: Reorder display
+- **Load more**: Pagination or infinite scroll
+
+---
+
+## 📊 DESKTOP DATA STRUCTURE
+
+Same as mobile, with additions:
+
+```typescript
+{
+  // ... all mobile fields
+  collections: {
+    id: string
+    name: string
+    description: string
+    products: Product[]
+  }[]
+  topRatedProducts: Product[]
+  newArrivals: Product[]
+  bestSellers: Product[]
+}
+```
+
+---
+
+## 🎯 RESPONSIVE BREAKPOINTS
+
+### Tablet (768px - 1023px)
+- Sidebar: 30% width
+- Product grid: 3 columns
+- Smaller fonts and spacing
+- Collapsible sidebar (optional)
+
+### Small Desktop (1024px - 1279px)
+- Sidebar: 25% width
+- Product grid: 3-4 columns
+- Standard spacing
+
+### Medium Desktop (1280px - 1599px)
+- Sidebar: 22% width
+- Product grid: 4-5 columns
+- Comfortable spacing
+
+### Large Desktop (1600px+)
+- Max-width container (1600px)
+- Sidebar: 20% width
+- Product grid: 5-6 columns
+- Generous spacing
+
+---
+
+## ⚡ DESKTOP PERFORMANCE
+
+- Lazy load images below fold
+- Optimize images (600-1000px for products)
+- Virtual scrolling for 500+ products
+- Prefetch on hover (products)
+- Cache filter state
+- Debounce filter updates
+- Fast pagination (< 500ms)
+- Initial load < 2s
+
+---
+
+## 🔐 DESKTOP ACCESSIBILITY
+
+- Keyboard navigation
+- Focus indicators
+- ARIA labels
+- Screen reader friendly
+- Skip to content
+- Alt text for images
+- Color contrast WCAG AA
+- Semantic HTML
+
+---
+
+## 💡 DESKTOP-SPECIFIC FEATURES
+
+1. **Advanced filtering** - More filter options than mobile
+2. **Bulk actions** - Compare products (optional)
+3. **Quick view** - Product preview without navigation
+4. **Keyboard shortcuts** - Navigate with keys
+5. **Saved filters** - Save filter combinations
+6. **Price history** (optional) - Show price trends
+7. **Comparison tool** - Side-by-side product comparison
+
+---
+
+## 🚀 IMPLEMENTATION NOTES
+
+### CRITICAL - LAKU INTEGRATION
+**Store page works within your existing Laku desktop layout:**
+
+1. **Three-Column Layout Structure**:
+   ```
+   [LAKU Sidebar] | [Store Filters/Cat] | [Products Grid]
+        15%       |        25%          |      60%
+   ```
+   - Keep existing LAKU sidebar (Beranda, Video, etc.)
+   - Add store-specific left panel WITHIN main content area
+   - Product grid takes remaining space
+
+2. **Component Reuse**:
+   - Sidebar: Keep existing LAKU navigation completely unchanged
+   - Header: Use existing, modify search placeholder
+   - Product Cards: Use SAME component as homepage
+   - Price Display: Same red Rp styling
+   - Buttons: Existing button components
+   - Modals: Existing modal/dialog components
+
+3. **Routing & Navigation**:
+   - Route: `/store/[sellerId]` or `/shop/[sellerId]`
+   - URL parameters for filters: `/store/[id]?category=x&price=y`
+   - Breadcrumb: Home > Stores > [Store Name]
+   - LAKU sidebar: Highlight "Beranda" or relevant item
+
+4. **Layout Within Main Content**:
+   - Main content area (right of LAKU sidebar)
+   - Store banner: Full-width within content area
+   - Two-column: Store filters left (25-30%) + Products right (70-75%)
+   - Product grid: 3-5 columns depending on space
+   - Responsive: Adjust columns as content area width changes
+
+5. **Design Consistency**:
+   - Match homepage product grid exactly
+   - Red prices, gray struck-through original prices
+   - "X+ terjual" sold count format
+   - Same card shadows/borders
+   - Same spacing between products
+   - Consistent hover states
+   - Same typography scale
+
+**Layout Pattern:**
+- Left sidebar with filters (fixed or scrollable)
+- Main content area with responsive grid
+- Sticky navigation and toolbar
+- Breadcrumb navigation
+- URL-based filtering and pagination
+
+**Development Approach:**
+1. Start with tablet baseline (768px)
+2. Scale up to desktop layouts
+3. Test filter/sort interactions
+4. Optimize grid performance
+5. Use Server Components for data fetching
+6. Use Client Components for filters/interactions
+7. Implement proper loading states
+
+**Key Technical Considerations:**
+- CSS Grid for product layout
+- Flexbox for sidebar
+- Intersection Observer for infinite scroll
+- URL query parameters for filters
+- State management for filters/sort
+- Image lazy loading
+- Virtual scrolling for large catalogs
+
+---
+
+## ✅ DESKTOP/TABLET ACCEPTANCE CRITERIA
+
+The desktop/tablet store page is complete when:
+- ✅ Store banner and info display prominently
+- ✅ Left sidebar shows categories and filters
+- ✅ Product grid displays in correct columns (3-6 based on screen)
+- ✅ Filtering updates products correctly
+- ✅ Sorting changes product order
+- ✅ Pagination or infinite scroll works
+- ✅ Search within store functions
+- ✅ Hover states work on all products
+- ✅ Quick add to cart works
+- ✅ Wishlist toggle works
+- ✅ Category navigation works
+- ✅ Reviews page displays properly
+- ✅ About page shows store info
+- ✅ Follow button toggles correctly
+- ✅ All transitions are smooth
+- ✅ Page loads fast (< 2s)
+- ✅ Keyboard navigation works
+- ✅ Responsive across breakpoints
+- ✅ Accessibility standards met
+- ✅ URLs update with filters
+
+---
+
+## 🎨 COLOR SCHEME GUIDANCE
+
+Choose colors that:
+- Make store branding stand out
+- Highlight follow and chat buttons (primary CTAs)
+- Create clear filter UI (active vs inactive)
+- Ensure product cards have good hierarchy
+- Make badges visible and meaningful
+- Support rating and trust indicators
+- Work well with sidebar background
+- Create clear navigation states
+- Match Laku brand identity
+
+**Desktop Considerations:**
+- Sidebar might have different background
+- Active filters need clear visual state
+- Hover states should be obvious but subtle
+- Focus indicators for keyboard navigation
+- Sale/discount colors should attract attention
+
+---
+
+**DELIVERABLE:**
+A complete desktop/tablet store page (768px+) with left sidebar filtering, responsive product grid (3-6 columns), comprehensive search and filtering, reviews section, and store information - all optimized for mouse/keyboard interactions while maintaining Laku's brand identity.
+
+**NOTE:** This is Part 2 of 2. Mobile store view (320-767px) is a separate implementation with different layout and interaction patterns.

@@ -7,6 +7,7 @@ import {
   Heart,
   Package,
   HelpCircle,
+  ChevronDown,
   LucideIcon
 } from 'lucide-react';
 
@@ -27,18 +28,18 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     badge: false,
   },
   {
-    id: 'live',
-    labelKey: 'nav.live',
+    id: 'video',
+    labelKey: 'nav.video',
     icon: Video,
-    href: '/live',  // Real route now
+    href: '/video',  // Real route now
     badge: false,
   },
   {
-    id: 'notifications',
-    labelKey: 'nav.notifications',
+    id: 'messages',
+    labelKey: 'nav.messages',
     icon: Bell,
-    href: '/notifications',
-    badge: true,  // Show notification count
+    href: '/messages',
+    badge: true,  // Show message count
   },
   {
     id: 'cart',
@@ -52,6 +53,13 @@ export const MAIN_NAV_ITEMS: NavItem[] = [
     labelKey: 'nav.profile',
     icon: User,
     href: '/profile',
+    badge: false,
+  },
+  {
+    id: 'more',
+    labelKey: 'nav.more',
+    icon: ChevronDown,
+    href: '#more',
     badge: false,
   },
 ];

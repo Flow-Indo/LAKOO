@@ -9,10 +9,10 @@ const config: Config = {
   theme: {
     extend: {
       screens: {
-        'sm': '640px',   // Small mobile → 3-col grid
-        'md': '768px',   // Tablet → Left sidebar appears
-        'lg': '1024px',  // Desktop → Right sidebar appears
-        'xl': '1280px',  // Desktop L → 5-col grid
+        'sm': '640px',   // Small mobile → single column
+        'md': '768px',   // Tablet → slim sidebar (72px)
+        'lg': '1024px',  // Large desktop
+        'xl': '1264px',  // Custom breakpoint for expanded sidebar (245px)
         '2xl': '1536px', // Keep default
       },
       colors: {

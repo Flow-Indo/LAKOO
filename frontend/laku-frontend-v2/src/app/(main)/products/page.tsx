@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layouts';
 import { CenterColumnFeed } from '@/components/layouts/center-column';
-import { ProductFilters } from '@/components/layouts/sidebars';
 import { MOCK_PRODUCTS, fetchMoreProducts } from '@/lib/mock-data';
 
 export default function ProductsPage() {
@@ -31,12 +30,9 @@ export default function ProductsPage() {
   };
 
   return (
-    <AppLayout
-      rightSidebarContent={<ProductFilters />}
-    >
+    <AppLayout>
       <CenterColumnFeed
         products={initialProducts}
-        onLoadMore={onLoadMore}
         hasMore={hasMore}
       />
     </AppLayout>

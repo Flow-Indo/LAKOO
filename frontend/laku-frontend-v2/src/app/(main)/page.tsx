@@ -1,18 +1,10 @@
-'use client';
+import { HomePageClient } from './HomePageClient';
 
-import { CenterColumnFeed } from '@/components/layouts/center-column';
-import { MOCK_PRODUCTS } from '@/lib/mock-data';
+export default async function HomePage() {
+  // TODO: Replace with your real API endpoint
+  const products = await fetch('http://localhost:3000/api/products', {
+    next: { revalidate: 3600 } // Cache for 1 hour
+  }).then(r => r.json()).catch(() => []); // Fallback to empty array if API fails
 
-export default function HomePage() {
-  return (
-    <CenterColumnFeed
-      products={MOCK_PRODUCTS}
-      onLoadMore={async () => {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return MOCK_PRODUCTS.slice(0, 20); // Return more products
-      }}
-      hasMore={true}
-    />
-  );
+  return <HomePageClient initialProducts={products} />;
 }

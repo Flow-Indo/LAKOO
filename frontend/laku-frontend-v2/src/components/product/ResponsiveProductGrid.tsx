@@ -15,28 +15,38 @@ interface TaobaoProductCardProps {
 }
 
 function TaobaoProductCard({ product }: TaobaoProductCardProps) {
+  const imageSrc = product.image && product.image.trim() !== '' ? product.image : '/placeholder-image.jpg';
+
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group block bg-white rounded-lg p-3 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 hover:z-10"
+      className="group block bg-white rounded-lg p-4 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all duration-300 hover:z-10"
     >
       {/* Image */}
-      <div className="relative aspect-square overflow-hidden rounded-md mb-2">
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-        />
+      <div className="relative aspect-square overflow-hidden rounded-md mb-3">
+        {imageSrc !== '/placeholder-image.jpg' ? (
+          <Image
+            src={imageSrc}
+            alt={product.name}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <div className="text-gray-400 text-sm">No Image</div>
+          </div>
+        )}
       </div>
 
       {/* Content */}
-      <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+      <div className="space-y-2">
+        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 leading-tight">
         {product.name}
       </h3>
 
-      <div className="flex items-baseline gap-2 mb-1">
+        <div className="space-y-1">
+          <div className="flex items-baseline gap-2">
         <span className="text-lg font-bold text-red-600">
           {formatPrice(product.price)}
         </span>
@@ -47,8 +57,10 @@ function TaobaoProductCard({ product }: TaobaoProductCardProps) {
         )}
       </div>
 
-      <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-500 leading-relaxed">
         {product.sold}+ terjual
+          </div>
+        </div>
       </div>
     </Link>
   );
@@ -66,9 +78,9 @@ export function ResponsiveProductGrid({ products }: ResponsiveProductGridProps) 
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-      {products.map((product) => (
-        <TaobaoProductCard key={product.id} product={product} />
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
+      {products.map((product, index) => (
+        <TaobaoProductCard key={`${product.id}-${product.slug}-${index}`} product={product} />
       ))}
     </div>
   );

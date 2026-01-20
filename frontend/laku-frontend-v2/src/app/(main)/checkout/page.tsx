@@ -3,7 +3,7 @@ import { CheckoutPage } from '@/components/checkout/CheckoutPage';
 
 export default function Checkout() {
   return (
-    <AppLayout hideRightSidebar>
+    <AppLayout>
       <CheckoutPage />
     </AppLayout>
   );

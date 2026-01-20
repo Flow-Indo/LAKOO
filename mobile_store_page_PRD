@@ -1,0 +1,534 @@
+# Mobile Store/Shop Page for Laku Ecommerce
+
+## OBJECTIVE
+Create a comprehensive, mobile-first store/shop page at `/store/[sellerId]` route optimized for mobile devices (320px - 767px). This page displays a seller's complete shop with products, reviews, and store information.
+
+## TARGET ROUTE
+`http://localhost:3000/store/[sellerId]`
+
+## TARGET DEVICES
+- Mobile phones: 320px - 767px width
+- Portrait orientation primary
+- Touch-optimized interactions
+
+## IMPORTANT DESIGN PHILOSOPHY
+- **DO NOT specify exact colors** - Choose colors that create excellent contrast, match Laku brand, and follow modern ecommerce best practices
+- Mobile-first with thumb-friendly interactions
+- Fast loading with lazy-loaded images
+- Infinite scroll or pagination for products
+- Clear category navigation
+- Easy filtering and sorting
+
+---
+
+## 📱 MOBILE STORE PAGE STRUCTURE
+
+### 1. HEADER INTEGRATION (USE EXISTING)
+**DO NOT create a new header** - Enhance your existing Laku mobile header:
+
+**Your Current Header Has:**
+- Search bar: "Cari di LAKU..." with camera icon
+
+**Modify for Store Page:**
+- **Back button**: Add to left of search bar
+- **Search placeholder**: Change to "Cari di [Store Name]..." (search within this store)
+- **Keep**: Camera icon, existing styling
+- **Add**: Share store icon (right side)
+
+**Implementation Note**: 
+- Same header component as homepage
+- Just contextual changes for store page
+- Maintains your existing header height and design
+
+### 2. STORE BANNER/HERO
+**Full-width image section:**
+- Store banner image (aspect ratio 16:9 or 2:1)
+- Can be promotional image or store branding
+- Overlay gradient if needed for readability
+- Height: 150-200px
+
+### 3. STORE INFO CARD
+**Prominent card below banner:**
+
+**Store Identity:**
+- Store logo (circular, 64-72px) - positioned overlapping banner
+- Store name (bold, 18-20px)
+- Verification badge if official/verified
+- "Trends Store" or similar badge if applicable
+
+**Store Stats Row:**
+- Rating: Star rating + number (e.g., "4.6")
+- Products: Total product count (e.g., "1.5K items")
+- Followers: Follower count (e.g., "275K followers")
+- Layout: Horizontal, evenly spaced
+
+**Performance Metrics:**
+- Product Quality: Score + indicator (Low/Medium/High)
+- Shipping Speed: Score + indicator
+- Customer Service: Score + indicator
+- Each with icon and score display
+
+**Store Badges Row:**
+- Recent sales (e.g., "500K+ Sold Recently" with fire icon)
+- Repeat customers (e.g., "99K+ Repurchase" with repeat icon)
+- Years in business (e.g., "近一年2万回头客")
+- VIP program info if applicable
+- Horizontal scroll if too many
+
+**Action Buttons:**
+- "Follow" button (outlined when not following, filled when following)
+- "Chat" / "Contact" button
+- Full-width or side-by-side layout
+- Height: 44-48px each
+
+### 4. NAVIGATION TABS (STICKY)
+**Horizontal scrollable tabs:**
+- **Tabs**: "Products" | "Categories" | "Reviews" | "About" | "Recommend"
+- Active tab: Underlined with accent color
+- Background: White or light
+- Sticks below header on scroll
+- Smooth scroll to sections
+
+### 5. PROMO/ANNOUNCEMENT BANNER (OPTIONAL)
+If store has active promotions:
+- Slim banner (40-50px height)
+- Promotional message (e.g., "开通88VIP，退货免运费")
+- Dismiss button or auto-hide
+- Accent background color
+
+### 6. QUICK FILTERS BAR
+**Below tabs, before products:**
+- Horizontal scroll chips
+- Filter options:
+  - "Official Discount"
+  - "Best Deals"
+  - "New Arrivals"
+  - "Top Rated"
+  - Price ranges
+- Active filter: Filled background
+- Count badges if applicable
+
+### 7. SORT & VIEW OPTIONS
+**Toolbar above product grid:**
+- Sort dropdown: "Recommend" | "Sales" | "Price ↑" | "Price ↓" | "New"
+- View toggle: Grid (2 cols) vs List view
+- Filter button: Opens filter bottom sheet
+- Results count: "Showing X items"
+
+### 8. PRODUCTS TAB CONTENT (DEFAULT)
+
+#### Product Grid
+- **Layout**: 2 columns
+- **Gap**: 8-12px
+- **Product Card** (each):
+  - Product image (aspect ratio 3:4)
+  - Badges: "New", "Sale", "Best Seller", "Express Shipping"
+  - Product name (2 line truncate)
+  - Price (bold, prominent)
+  - Original price (strike-through if on sale)
+  - Discount percentage
+  - Sales count (e.g., "100+ sold")
+  - Mini rating (stars + count)
+  - Quick add button (optional, on long press)
+
+**Load More:**
+- Infinite scroll (auto-load on scroll)
+- OR "Load More" button
+- Loading skeleton while fetching
+
+### 9. CATEGORIES TAB CONTENT
+**When Categories tab is active:**
+
+**Category List:**
+- Category name + product count
+- Category icon/image
+- Chevron right
+- Tap to filter products
+- OR
+- Category grid with images
+- Each category card: Image + Name + Count
+
+**Subcategories** (if applicable):
+- Expandable category sections
+- Nested subcategories
+- Filter by multiple categories
+
+### 10. REVIEWS TAB CONTENT
+**When Reviews tab is active:**
+
+**Review Summary Card:**
+- Overall store rating (large number)
+- 5 stars display
+- Total review count
+- Rating breakdown (5 stars to 1 star with bars)
+
+**Filter Bar:**
+- "All Reviews" | "With Photos" | "With Videos"
+- Star rating filter (5★, 4★, 3★, etc.)
+- Sort: Most Recent, Most Helpful, Highest Rating
+
+**Review Cards:**
+- User avatar (circular, 36-40px)
+- Username (masked)
+- Star rating
+- Review date
+- Product info: Product name + variant purchased
+- Review text (expandable if long)
+- Review images/videos (horizontal scroll)
+- "Helpful" button with count
+- Store reply (if any) - indented, different background
+
+**Pagination:**
+- Load more button
+- Or infinite scroll
+
+### 11. ABOUT TAB CONTENT
+**When About tab is active:**
+
+**Store Description:**
+- About the store text
+- Store mission/values
+- Brand story
+- Expandable if long
+
+**Store Details:**
+- Business type
+- Location/country
+- Years in business
+- Certifications
+- Return policy summary
+- Shipping info
+
+**Contact Information:**
+- Customer service hours
+- Response time
+- Contact methods
+- Chat button
+
+**Seller Performance:**
+- Response rate
+- Ship on time rate
+- Return rate
+- Customer satisfaction
+
+### 12. RECOMMEND TAB CONTENT
+**When Recommend tab is active:**
+
+**Curated Collections:**
+- "Store Picks"
+- "Best Sellers"
+- "New Arrivals"
+- "Trending Now"
+- Each section: Horizontal scroll of products
+
+**Similar Stores:**
+- Stores selling similar items
+- Store cards with logo, name, rating
+- Follow button on each
+
+### 13. BOTTOM NAVIGATION (USE EXISTING)
+
+**Important**: Use your existing bottom navigation bar:
+- Beranda (Home)
+- Video
+- Pesan (Messages) - Can be used to chat with this store
+- Keranjang (Cart) - with badge showing cart items
+- Profil (Profile)
+
+**No changes needed** - Your existing bottom nav works perfectly for store pages:
+- "Beranda" navigates home
+- "Pesan" can open chat with this seller
+- "Keranjang" shows cart
+- Navigation remains consistent across all pages
+
+**Floating Elements** (if needed):
+- Floating chat button (bottom-right, above nav) - optional if "Pesan" is enough
+- Notification badge on "Pesan" icon if unread messages from seller
+
+### 14. FILTER BOTTOM SHEET
+**Slides up from bottom when filter button tapped:**
+
+**Filter Options:**
+- **Price Range**: Min/Max input or slider
+- **Rating**: Star filter (4★ & up, 3★ & up, etc.)
+- **Shipping**: Free shipping, Express, etc.
+- **Discount**: On sale only toggle
+- **Condition**: New, Like new, etc.
+- **Sort By**: Combined with filters
+
+**Actions:**
+- "Reset" button (clears all filters)
+- "Apply" button (applies and closes sheet)
+- Results count preview
+
+---
+
+## 🎨 MOBILE VISUAL DESIGN
+
+### DESIGN CONSISTENCY WITH LAKU
+**Match your existing design patterns:**
+
+**From Your Current Layout:**
+- **Price Display**: Red color (Rp format), bold
+- **Original Price**: Gray, struck through, smaller
+- **Sold Count**: "X+ terjual" format in gray
+- **Product Grid**: 2 columns with consistent gap
+- **Product Cards**: White background, rounded corners, clean shadows
+- **Product Images**: Rounded corners, aspect ratio 3:4 or similar
+- **Bottom Nav Icons**: Simple line icons with labels
+- **Search Bar**: Rounded, light background, camera icon
+- **Spacing**: Clean and minimal
+
+**Store Page Design Must:**
+- Use same product card styling
+- Match color scheme (red for prices, gray for secondary info)
+- Use same typography
+- Maintain consistent spacing
+- Same border radius throughout
+- Button styles match existing UI
+- Tab navigation follows same pattern
+
+### Typography
+- Store name: Bold, 18-20px
+- Product name: 14-15px
+- Price: Bold, 16-18px
+- Body text: 14px
+- Small text: 12-13px
+
+### Spacing
+- Page padding: 12-16px horizontal
+- Section spacing: 20-24px
+- Card padding: 12-16px
+- Product gap: 8-12px
+
+### Cards & Containers
+- Border radius: 8-12px
+- Shadows: Subtle elevation
+- Store card: Slightly elevated
+
+### Touch Targets
+- Minimum: 44x44px
+- Buttons: 44-48px height
+- Tab height: 44-48px
+
+### Color Zones
+- Header: Solid background
+- Banner: Can be colorful/branded
+- Product grid: White/light background
+- Cards: White with borders/shadows
+
+---
+
+## 🔧 MOBILE FUNCTIONALITY
+
+### Store Actions
+- **Follow button**: Toggle follow/unfollow
+  - Animation on state change
+  - Update follower count
+  - Require login if not authenticated
+- **Share store**: Native share or share options
+- **Chat**: Open conversation with seller
+
+### Product Interactions
+- **Tap product card**: Navigate to product page
+- **Long press** (optional): Quick actions (add to cart, wishlist)
+- **Image tap**: Direct to product
+
+### Filtering & Sorting
+- **Filter button**: Open bottom sheet
+- **Sort dropdown**: Select sort option, reload grid
+- **Quick filter chips**: Tap to activate, reload
+- **Multiple filters**: Apply together
+
+### Infinite Scroll
+- Auto-load when user reaches bottom
+- Loading indicator
+- "End of results" message when done
+
+### Tab Navigation
+- **Tap tab**: Activate and scroll to content
+- **Swipe left/right** (optional): Navigate between tabs
+- Active state visible
+
+### Review Interactions
+- **Expand review**: Tap to see full text
+- **View images**: Tap to open gallery
+- **Helpful button**: Increment, visual feedback
+- **Read seller reply**: Expandable
+
+---
+
+## 📊 MOBILE DATA STRUCTURE
+
+### Store Object
+```typescript
+{
+  id: string
+  name: string
+  logo: string
+  banner: string
+  verified: boolean
+  rating: number
+  productCount: number
+  followers: number
+  description: string
+  stats: {
+    totalSales: string
+    repurchaseRate: string
+    qualityScore: number
+    shippingScore: number
+    serviceScore: number
+    responseRate: number
+    shipOnTimeRate: number
+  }
+  badges: string[]
+  location: string
+  joinedDate: Date
+  policies: {
+    return: string
+    shipping: string
+  }
+  products: Product[]
+  categories: Category[]
+  reviews: Review[]
+}
+```
+
+### Category Object
+```typescript
+{
+  id: string
+  name: string
+  icon?: string
+  productCount: number
+  subcategories?: Category[]
+}
+```
+
+---
+
+## ⚡ MOBILE PERFORMANCE
+
+- Lazy load product images
+- Optimize images (400-600px width)
+- Virtual scrolling for large product lists
+- Skeleton screens while loading
+- Infinite scroll with pagination
+- Cache store data
+- Prefetch on tab hover (anticipate navigation)
+- Initial load < 2s on 4G
+
+---
+
+## 🔐 MOBILE ACCESSIBILITY
+
+- ARIA labels on all buttons
+- Semantic HTML
+- Screen reader friendly
+- Color contrast WCAG AA
+- Touch targets 44x44px minimum
+- Focus management
+- Alt text for images
+
+---
+
+## 💡 MOBILE-SPECIFIC FEATURES
+
+1. **Pull to refresh** - Reload store data
+2. **Share store** - Native share API
+3. **Save/bookmark store** - Quick access
+4. **Store notifications** - New product alerts
+5. **Price drop alerts** - For followed stores
+6. **Recently viewed** - Quick access to viewed products
+
+---
+
+## 🚀 MOBILE IMPLEMENTATION NOTES
+
+### CRITICAL - LAKU INTEGRATION  
+**Store page integrates seamlessly with existing Laku mobile app:**
+
+1. **Use Existing Navigation**:
+   - Header: Modify existing header (change search placeholder)
+   - Bottom Nav: Use existing (Beranda, Video, Pesan, Keranjang, Profil)
+   - Chat: "Pesan" icon can open seller chat
+   - Cart: "Keranjang" shows items from any store
+
+2. **Component Reuse**:
+   - Product cards: Use SAME component as homepage
+   - Price display: Use existing price component (red Rp)
+   - Search bar: Adapt existing search
+   - Tabs: Match navigation tab style if you have it elsewhere
+   - Buttons: Reuse existing button components
+
+3. **Routing**:
+   - Route: `/store/[sellerId]` or `/shop/[sellerId]`
+   - Navigate from: Product page seller link, search results, featured stores
+   - Back button: Return to previous page
+
+4. **State & Data**:
+   - Cart: Updates global cart state
+   - Wishlist: Syncs with user profile
+   - Follow store: Persist in user preferences
+   - Search: Filter products within this store
+   - Filters: Local state for this store view
+
+5. **Design Consistency**:
+   - 2-column product grid (same as homepage)
+   - Same product card height and proportions
+   - Red prices, gray secondary text
+   - Sold count format: "X+ terjual"
+   - Same spacing and padding
+   - Rounded corners match existing design
+
+1. **Mobile-first approach** - Build mobile, scale up
+2. **Use Server Components** for store data fetching
+3. **Use Client Components** for interactions
+4. **Optimize images** - Multiple sizes, lazy loading
+5. **Virtual scrolling** if 1000+ products
+6. **State management** - Filter/sort state
+7. **Deep linking** - Support category/filter URLs
+8. **Analytics** - Track product views, taps
+
+---
+
+## ✅ MOBILE ACCEPTANCE CRITERIA
+
+The mobile store page is complete when:
+- ✅ Renders perfectly on 320px to 767px screens
+- ✅ Store banner and info display correctly
+- ✅ Follow button toggles properly
+- ✅ Tabs navigate smoothly
+- ✅ Product grid displays 2 columns
+- ✅ Infinite scroll or pagination works
+- ✅ Filtering updates product grid
+- ✅ Sorting changes product order
+- ✅ Filter bottom sheet slides up smoothly
+- ✅ Reviews load with filters
+- ✅ Chat button is accessible
+- ✅ Share functionality works
+- ✅ All touch targets are 44x44px minimum
+- ✅ Page loads fast (< 2s on 4G)
+- ✅ Images lazy load correctly
+- ✅ Accessibility standards met
+
+---
+
+## 🎨 COLOR SCHEME GUIDANCE
+
+Choose colors that:
+- Make store branding prominent
+- Highlight follow and chat buttons (primary CTAs)
+- Create clear product card hierarchy
+- Make filters and active states obvious
+- Ensure badge visibility
+- Support trust indicators (ratings, badges)
+- Work with store banner images
+- Match Laku brand identity
+
+---
+
+**DELIVERABLE:**
+A complete mobile store page (320-767px) that showcases a seller's products, reviews, and information with easy navigation, filtering, and smooth interactions optimized for mobile shopping.
+
+**NOTE:** This is Part 1 of 2. Desktop/Tablet store view is a separate implementation with different layout patterns.

@@ -1,0 +1,735 @@
+# Desktop/Tablet Product Page for Laku Ecommerce
+
+## OBJECTIVE
+Create a comprehensive desktop and tablet product detail page at `/product/[id]` route optimized for larger screens (768px and above), using a SHEIN-inspired layout pattern.
+
+## TARGET ROUTE
+`http://localhost:3000/product/[id]`
+
+## TARGET DEVICES
+- Tablets: 768px - 1023px width
+- Desktop: 1024px and above
+- Landscape orientation
+- Mouse/trackpad interactions
+
+## DESIGN REFERENCE
+Layout pattern inspired by SHEIN desktop interface:
+- 60/40 split layout (image gallery left, product info right)
+- Sticky right sidebar
+- Vertical thumbnail strip
+- Collapsible policy sections
+- Multi-column product grids
+
+## IMPORTANT DESIGN PHILOSOPHY
+- **DO NOT specify exact colors** - Choose colors that match Laku brand, create excellent contrast, and follow modern ecommerce best practices
+- **ADAPT, don't copy** - Use SHEIN's layout structure but maintain Laku identity
+- Hover states for all interactive elements
+- Smooth transitions and animations
+- Generous whitespace and breathing room
+
+---
+
+## 💻 DESKTOP/TABLET PAGE STRUCTURE
+
+### LAYOUT INTEGRATION WITH EXISTING LAKU DESIGN
+
+**CRITICAL - Use Your Existing Layout:**
+- **DO NOT create new left sidebar** - Use your existing navigation sidebar with:
+  - LAKU logo at top
+  - Beranda (Home)
+  - Video
+  - Pesan (Messages)
+  - Keranjang (Cart)
+  - Profil (Profile)
+  - Lainnya (More)
+- **DO NOT create new header** - Use your existing search header
+- Product page content goes in the MAIN CONTENT AREA (to the right of sidebar)
+
+### 1. HEADER INTEGRATION (USE EXISTING)
+Your existing header already has:
+- Search bar: "Cari di LAKU..."
+- Camera icon
+
+**Add for Product Page Context:**
+- Breadcrumb navigation (if space allows): Home > Category > Product
+- Back button or browser back
+- Share icon (if not already present)
+
+**Keep these in your existing header component**
+
+### 2. MAIN CONTENT CONTAINER
+**This is the area to the RIGHT of your existing left sidebar:**
+
+**Container Specifications:**
+- **Width**: Fills remaining space after left sidebar (~85-90% of viewport)
+- **Max-width**: 1400px (centered if very large screens)
+- **Padding**: 24-40px horizontal, 20-32px top
+- **Background**: White or your current background color
+- **This area is scrollable** while left sidebar remains fixed
+
+**Important**: 
+- Don't overlap with your existing sidebar (LAKU logo + nav items)
+- Content starts immediately to the right of sidebar
+- Use your existing layout's spacing and padding conventions
+
+---
+
+## 📐 TWO-COLUMN LAYOUT (PRIMARY STRUCTURE)
+
+### LEFT COLUMN (60% width, 55-65% range)
+
+#### A. IMAGE GALLERY SECTION
+
+**Vertical Thumbnail Strip:**
+- **Position**: Fixed on left side of image area
+- **Width**: 80-100px
+- **Thumbnails**:
+  - Height: 80-100px each
+  - Gap between: 8-12px
+  - Border: 2px solid transparent (active gets accent color)
+  - Hover: Slight scale (1.05), cursor pointer
+  - Active: Bold border with accent color
+- **Scrollable**: If more than 6-8 thumbnails
+  - Scroll indicator arrows (top/bottom)
+  - Mousewheel scroll when hovering
+- **Layout**: Vertical flex column
+
+**Main Product Image:**
+- **Position**: Right of thumbnail strip
+- **Size**: Fills remaining space (flexible)
+- **Aspect ratio**: Maintained (typically 3:4 or 1:1)
+- **Features**:
+  - High resolution image
+  - Zoom on hover (120-150% scale)
+  - Click to open fullscreen gallery
+  - Smooth transition when switching (300ms fade)
+- **Overlays**:
+  - Image counter badge (top-right): "1/4"
+  - "Get The Look" button (over image, center-bottom if applicable)
+
+**Full Gallery Container:**
+- Display: flex
+- Gap: 16-20px
+- Total height: Auto based on aspect ratio
+
+---
+
+### RIGHT COLUMN (40% width, 35-45% range)
+
+#### STICKY SIDEBAR BEHAVIOR
+- **Position**: Sticky as user scrolls
+- **Top offset**: Below fixed header (80-100px from top)
+- **Stops sticking**: When reaching review section
+- **Transition**: Smooth when becoming unstuck
+- **Max height**: Viewport height minus header
+
+#### B. PRODUCT INFORMATION (in sticky sidebar)
+
+**Badges Row:**
+- Horizontal flex
+- Badges: "Trends", "Choice", featured seller badges
+- Gap: 8px
+- Small badges with icons
+
+**Product Title:**
+- Font size: 22-26px
+- Font weight: 600-700
+- Line clamp: 2-3 lines
+- Color: Primary text
+- Margin bottom: 12px
+
+**SKU & Rating Row:**
+- Small text (13-14px)
+- SKU: "sku: sm2507119482691158.d #"
+- Separator: "|"
+- Star rating: Interactive stars
+- Review count: Clickable link (scrolls to reviews)
+- "109+ Reviews" format
+
+**Price Section:**
+- Current price: 32-38px, bold, accent color
+- Original price: 20-22px, strike-through, gray
+- Discount badge: Pill, "-50%" format
+- Payment info text: "Pay now in 4 payments of $4.00..." with info icon
+
+**Bestseller Badge** (if applicable):
+- "#2 Bestseller in Casual - Basic Men Sweatpants"
+- With category icon
+- Clickable to category
+- Arrow icon on right
+
+#### C. VARIANT SELECTION (in sidebar)
+
+**Color Selector:**
+- Label: "Color: [Selected Color]"
+- "Large Image" link on same line (right-aligned)
+- Color options: Horizontal flex wrap
+- Each swatch:
+  - Size: 56-64px square or circle
+  - Border: 2px solid (active gets bold accent border)
+  - Image thumbnail if color has pattern
+  - Hover: Slight scale, cursor pointer
+  - Gap: 8-12px
+
+**Size Selector:**
+- Label: "Size [US Size]" with size system dropdown
+- Size buttons: Grid (4-5 columns)
+- Each button:
+  - Height: 44-48px
+  - Min width: 80-100px
+  - Border: 2px solid
+  - Selected: Filled background + bold border
+  - Out of stock: Opacity 0.5, diagonal line
+  - Hover: Border color change
+  - Text: Size + (US equivalent)
+- Gap: 8px
+
+**Size Helper Links:**
+- "Size Guide" with icon (opens modal)
+- "Check My Size" with icon (interactive tool)
+
+**Quantity Selector:**
+- Label: "Quantity"
+- Layout: Horizontal
+- Minus button | Number input | Plus button
+- Styled buttons with borders
+- Width: 120-140px total
+
+#### D. ACTION BUTTONS (in sidebar)
+
+**Add to Cart Button:**
+- Width: 80-85% of sidebar
+- Height: 50-54px
+- Background: Black or primary brand color
+- Text: "ADD TO CART"
+- Font: Bold, 16-17px, uppercase
+- Icon: Shopping bag (optional)
+- Hover: Slight color darken, subtle scale
+- Click: Loading state (spinner)
+
+**Wishlist Button:**
+- Width: 15-20% of sidebar
+- Height: 50-54px
+- Icon: Heart outline (filled when saved)
+- Border: 2px solid
+- Hover: Fill with light color
+- Position: Right of cart button
+
+**Points/Rewards Info:**
+- Small text below buttons
+- "Earn up to 16 SHEIN Points calculated at checkout"
+- Icon + text
+
+#### E. COLLAPSIBLE INFO SECTIONS (in sidebar)
+
+Each section has:
+- Header row: Icon + Title + Chevron (down/up)
+- Collapsed by default (except first)
+- Click to expand/collapse
+- Smooth height transition (300ms)
+- Border between sections
+
+**1. Shipping to [Country]:**
+- Icon: Truck
+- Expanded content:
+  - Free Shipping badge (or cost)
+  - Estimated delivery: "Jan 27 - Feb 3"
+  - Additional details
+  - Shipping provider info
+
+**2. Return Policy:**
+- Icon: Return arrow
+- Expanded content:
+  - "Free Return" text
+  - Return window: "7 business days"
+  - Terms link
+
+**3. Shopping Security:**
+- Icon: Shield
+- Expanded content:
+  - Safe Payments (checkmark)
+  - Privacy Protection (checkmark)
+  - Additional security info
+
+**4. Sourced from [Seller Name]:**
+- Icon: Store
+- Expanded content:
+  - "Sold by and Ships from SHEIN"
+  - "To report this seller and/or product" link
+  - Seller rating/info
+
+#### F. ADDITIONAL INFO SECTIONS (in sidebar, below collapsibles)
+
+**Description (expandable):**
+- "Description" header with chevron
+- Product tags: "Trends", "#ChicFWEdi", "Winter (<10/60)"
+- Expand to show full description
+
+**Size & Fit (expandable):**
+- "Size & Fit" header with chevron
+- Expand to show measurements and fit guide
+
+**About Store (expandable):**
+- "About Store" header with chevron
+- Seller card when expanded:
+  - Seller logo + name + "Choice" badge
+  - Rating (4.90) + items count + followers
+  - User browsing indicator
+  - "All Items" button
+  - "+ Follow" button
+
+#### G. MATCHING STYLES (in sidebar)
+
+**Section Title**: "Matching Styles"
+**Minimize/Collapse option**: Dash icon
+
+**Grid Layout**:
+- 2-3 columns
+- Multiple categories:
+  - "You May Like" (10 items)
+  - "You May Love" (3 items)
+  - "More Style" (1 item)
+  - "Sets" (1 item)
+  - "You May Also Like" (15 items)
+
+**Each Category Card**:
+- Product images in grid
+- Item count overlay
+- Hover: Slight elevation
+- Click: Navigate to product or gallery
+
+---
+
+## 📊 FULL-WIDTH SECTIONS (BELOW TWO-COLUMN LAYOUT)
+
+### 3. CUSTOMER REVIEWS SECTION
+
+**Layout**: 
+- Full width container
+- Max-width: Same as main container
+- Two-column split: Reviews (55-60%) | Right Sidebar continues (40%)
+
+#### Review Summary (left side)
+**Title**: "Customer Reviews"
+
+**Rating Overview Card**:
+- Large rating number: "4.55"
+- 5 stars display
+- Star count breakdown
+- "Review Policy" link with info icon
+
+**Fit Breakdown Bars**:
+- "Overall Fit:"
+- Three bars: Small (3%), True to Size (87%), Large (10%)
+- Horizontal bars with percentages
+
+**Filter and Sort Bar**:
+- "All Reviews" tab | "Image" tab
+- Dropdowns:
+  - Rating: All ▼
+  - Filter by product (color or size): All ▼
+  - Sort by: Recommend ▼
+
+**Tag Filters** (horizontal scroll if needed):
+- Chips: "No Smell (13)", "Good Portability (6)", etc.
+- Active state: Filled background
+- Count in parentheses
+
+#### Review Cards (left side, stacked)
+Each review card:
+- User avatar (circular, 40-48px)
+- Username (masked): "b***9"
+- Review date: "8 Oct, 2025"
+- Star rating: 5 stars
+- Product info: "Overall Fit: True to Size | Height: 186cm | Weight: 71kg | Size: L | Color: Beige"
+- Review text: Multiple lines, expandable
+- "Translate" link if foreign language
+- Review images: Horizontal scroll thumbnails (if attached)
+- Footer:
+  - "From SHEIN US" + "Points Program"
+  - "Helpful (18)" button + "..." menu
+- Border bottom between reviews
+
+**Pagination**:
+- Numbers: 1, 2, 3, 4, 5 ... 10
+- Previous/Next arrows
+- Centered below reviews
+
+#### Right Sidebar Continues (40% width)
+- Description expandable
+- Size & Fit expandable
+- About Store expandable
+- Matching Styles gallery
+
+---
+
+### 4. CUSTOMERS ALSO VIEWED SECTION
+
+**Full-width section at page bottom**
+
+**Title**: "Customers Also Viewed"
+**Layout**: Multi-column grid
+
+#### Grid System (Responsive)
+- **Large Desktop (>1400px)**: 5 columns
+- **Medium Desktop (1200-1400px)**: 4 columns
+- **Small Desktop/Large Tablet (1024-1200px)**: 3 columns
+- **Tablet (<1024px)**: 3 columns
+- **Gap**: 16-20px horizontal, 24px vertical
+
+#### Product Card Structure
+
+**Image Container**:
+- Aspect ratio: 3:4
+- Background: Light gray
+- Hover: Image slight zoom (1.05)
+
+**Badges** (absolute positioned top-left on image):
+- "Trends" badge (purple gradient)
+- "Choice" badge (black)
+- "#1 Bestseller in [Category]" (orange)
+- "#2 Bestseller", "#3 Bestseller", etc.
+- Discount badge (e.g., "-30%")
+- Stack multiple badges vertically
+
+**Product Info** (below image):
+- Category tags: Small badges
+- Seller info: Icon + "Manfinity EZcore Men's..." 
+- Star rating: Small stars + "(1000+)"
+- Original price: Strike-through, gray, 14-15px
+- Sales info: "2.0k+ sold" with small fire icon
+- Current price: Bold, 18-22px, primary text
+
+**Action Icons** (appear on hover or always visible):
+- Wishlist heart: Top-right of card
+- Quick add cart: Bottom-right circle button with cart icon
+- Size: 36-40px
+- Hover: Background fill
+
+**Special Indicators**:
+- "High Repeat Customers" badge (orange pill)
+- "#2 Bestseller" with mini chart icon
+- "#4 Bestseller" with mini chart icon
+
+#### Bottom Actions
+- "View More" button (centered)
+- Style: Outlined or subtle filled
+- Width: 200-250px
+- Height: 44-48px
+- Loads more products
+
+---
+
+## 🎨 DESKTOP VISUAL DESIGN
+
+### DESIGN CONSISTENCY WITH LAKU
+**Critical**: Match your existing Laku design system
+
+**Your Current Design Patterns:**
+- **Sidebar Background**: Light gray or white (from screenshot)
+- **Main Content Background**: White
+- **Price Color**: Red - prominent for current/sale price
+- **Original Price**: Gray, struck through, smaller
+- **Sold Count**: Gray text, "X+ terjual" format
+- **Product Cards**: White, rounded corners, subtle shadow
+- **Product Images**: Rounded corners, clean presentation
+- **Search Bar**: Rounded, light background with placeholder text
+- **Icons**: Simple, minimal line icons
+- **Spacing**: Clean, generous whitespace between elements
+
+**Product Page Must Match:**
+- Same color palette (especially red for prices)
+- Same typography and font weights
+- Same border radius values
+- Same shadow styles
+- Same spacing scale
+- Button styles consistent with existing UI
+- Navigation item styling when applicable
+
+### Typography
+- Product title: 22-26px, bold
+- Price: 32-38px, bold
+- Body text: 15-16px
+- Small text: 13-14px
+- Button text: 16px, semi-bold
+
+### Spacing
+- Container padding: 24-40px
+- Section spacing: 40-60px vertical
+- Card padding: 20-24px
+- Column gap: 24-32px
+
+### Hover States
+- Buttons: Color darken, subtle scale (1.02)
+- Links: Color change, underline
+- Images: Slight zoom, cursor pointer
+- Cards: Elevation increase (shadow)
+- Thumbnails: Border color, scale (1.05)
+
+### Borders & Shadows
+- Cards: shadow-sm or border 1px
+- Elevated elements: shadow-md
+- Active elements: Accent color border
+- Border radius: 8-12px
+
+### Transitions
+- Duration: 200-300ms
+- Easing: ease or ease-in-out
+- Properties: transform, opacity, color, box-shadow
+
+---
+
+## 🔧 DESKTOP FUNCTIONALITY
+
+### Image Gallery
+- Thumbnail click: Change main image, smooth fade
+- Main image hover: Zoom in place (cursor: zoom-in)
+- Main image click: Open fullscreen lightbox
+- Arrow keys: Navigate images
+- Thumbnail strip scroll: Mousewheel when hovering
+
+### Sticky Sidebar
+- Stick on scroll: When user scrolls past hero
+- Stop sticking: When reaching reviews section
+- Calculate height: Adjust based on content
+- Smooth transition: No jarring jumps
+
+### Collapsible Sections
+- Click header: Toggle expand/collapse
+- Smooth animation: Height transition 300ms
+- Chevron rotation: 180deg when expanded
+- Preserve other sections: Only one expands at a time (accordion) OR all can expand (independent)
+
+### Variant Selection
+- Size/color button click: Select, update state
+- Out of stock: Cannot select, tooltip on hover
+- Hover effects: Border color change
+- Size guide modal: Open on click, overlay background
+
+### Add to Cart
+- Click: Validate selections
+- Loading: Button shows spinner
+- Success: Toast notification, cart badge updates
+- Error: Show error message if validation fails
+
+### Reviews
+- Filter/sort: Update display
+- Tag filters: Toggle active, refetch
+- Pagination: Navigate pages
+- Helpful button: Increment count, disable after click
+- Review images: Click to open gallery
+
+### Product Cards (Customers Also Viewed)
+- Hover: Show wishlist and quick cart
+- Quick cart: Add to cart without leaving page
+- Wishlist: Toggle saved state
+- Click card: Navigate to product
+- Image hover: Zoom effect
+
+---
+
+## 📊 DESKTOP DATA STRUCTURE
+
+Same as mobile, with additions:
+
+```typescript
+{
+  // ... all mobile fields
+  relatedProducts: Product[]
+  customersAlsoViewed: Product[]
+  matchingStyles: {
+    category: string
+    items: Product[]
+  }[]
+  sizeGuide: {
+    // Detailed size chart
+  }
+}
+```
+
+---
+
+## 🎯 RESPONSIVE BREAKPOINTS
+
+### Tablet (768px - 1023px)
+- Two-column layout begins
+- Smaller font sizes than desktop
+- Right sidebar: 45% width
+- Product grid: 3 columns
+- Reduced padding/margins
+
+### Small Desktop (1024px - 1279px)
+- Full two-column layout
+- Right sidebar: 40% width
+- Product grid: 3-4 columns
+- Standard spacing
+
+### Medium Desktop (1280px - 1599px)
+- Optimal layout proportions
+- Right sidebar: 38-40% width
+- Product grid: 4-5 columns
+- Comfortable spacing
+
+### Large Desktop (1600px+)
+- Max-width container (1600px)
+- Centered content
+- Product grid: 5 columns
+- Generous spacing
+
+---
+
+## ⚡ DESKTOP PERFORMANCE
+
+- Lazy load images below fold
+- Optimize image sizes (800-1200px for main, 100px for thumbnails)
+- Prefetch on hover (product cards)
+- Code splitting by section
+- Smooth 60fps animations
+- Initial load < 2s on broadband
+
+---
+
+## 🔐 DESKTOP ACCESSIBILITY
+
+- Keyboard navigation throughout
+- Focus visible indicators
+- ARIA labels for interactive elements
+- Skip to content link
+- Screen reader friendly
+- Alt text for all images
+- Color contrast WCAG AA compliant
+
+---
+
+## 💡 DESKTOP-SPECIFIC FEATURES
+
+1. **Keyboard shortcuts** (optional)
+   - Arrow keys: Navigate images
+   - Esc: Close modals
+   - Tab: Navigate form elements
+
+2. **Hover previews** on product cards
+
+3. **Quick view modals** for related products (optional)
+
+4. **Advanced filtering** for reviews
+
+5. **Size comparison** tool in size guide
+
+6. **Zoom functionality** on main image
+
+---
+
+## 🚀 IMPLEMENTATION NOTES
+
+### CRITICAL - LAKU INTEGRATION
+**This product page works within your existing Laku desktop layout:**
+
+1. **Layout Integration**:
+   - Left Sidebar: Keep existing LAKU navigation (Beranda, Video, Pesan, Keranjang, Profil, Lainnya)
+   - Main Content: Product page renders in main content area (right of sidebar)
+   - Header: Enhance existing header, don't replace it
+   - Width: Content adapts to space after sidebar (~85-90% of viewport)
+
+2. **Component Reuse**:
+   - Use existing header component
+   - Use existing sidebar component  
+   - Use same product card styling as homepage
+   - Reuse existing modal/overlay components
+   - Share button styles, form inputs, etc.
+
+3. **Routing & Navigation**:
+   - Route: `/product/[id]` or `/p/[id]`
+   - Breadcrumb: Home > Category > Product (if space in header)
+   - Back: Browser back or programmatic navigation
+   - Sidebar: Active state on "Beranda" or relevant section
+
+4. **Styling Consistency**:
+   - Import Laku design system (colors, typography, spacing)
+   - Red color for prices (match homepage)
+   - Gray for secondary text
+   - Same border radius and shadows
+   - Consistent button styles
+   - Match existing hover states
+
+5. **Two-Column Product Layout**:
+   - Within main content area (after sidebar)
+   - Left 60%: Image gallery
+   - Right 40%: Product info (sticky)
+   - Full-width below: Reviews, recommendations
+
+**IMPORTANT - Layout Adaptation:**
+- **Use SHEIN's 60/40 split pattern** for layout structure
+- **Implement sticky sidebar** that stops at reviews
+- **Vertical thumbnail strip** on left of main image
+- **Collapsible sections** for policies
+- **Multi-column product grids** that are responsive
+- **BUT maintain Laku brand**: colors, typography, spacing
+- **DO NOT copy**: SHEIN's exact colors or branding
+
+**Development Approach:**
+1. Start with tablet (768px) as baseline
+2. Scale up to desktop (1024px+)
+3. Test sticky behavior thoroughly
+4. Ensure smooth breakpoint transitions
+5. Use React Server Components for static content
+6. Use Client Components for interactions
+
+**Key Technical Considerations:**
+- Intersection Observer for sticky behavior
+- CSS Grid for product grids
+- Flexbox for sidebar layout
+- Transform for smooth animations
+- Image optimization and lazy loading
+
+---
+
+## ✅ DESKTOP/TABLET ACCEPTANCE CRITERIA
+
+The desktop/tablet product page is complete when:
+- ✅ 60/40 split layout works on desktop (1024px+)
+- ✅ Right sidebar sticks correctly and stops at reviews
+- ✅ Vertical thumbnail strip scrolls smoothly
+- ✅ Image gallery hover zoom works
+- ✅ Collapsible sections expand/collapse smoothly
+- ✅ All hover states are implemented
+- ✅ Size and color selection works
+- ✅ Add to cart validates and shows states
+- ✅ Review filtering and sorting works
+- ✅ Product grid displays in correct columns (3-5 based on screen)
+- ✅ Customers Also Viewed cards have all badges and indicators
+- ✅ Matching Styles displays correctly in sidebar
+- ✅ All transitions are smooth (60fps)
+- ✅ Page loads fast (< 2s)
+- ✅ Keyboard navigation works
+- ✅ Responsive across tablet and desktop breakpoints
+- ✅ Accessibility standards met
+- ✅ No layout shift or jank
+
+---
+
+## 🎨 COLOR SCHEME GUIDANCE
+
+Choose colors that:
+- Match Laku brand identity
+- Create clear visual hierarchy
+- Make CTAs prominent (cart button especially)
+- Work well for badges (Trends, Choice, Bestseller)
+- Provide excellent hover state feedback
+- Ensure collapsible section headers are clear
+- Make selected states obvious (size, color)
+- Support trust elements (shipping, security badges)
+- Create good contrast for sidebar on white page
+
+**Desktop Considerations:**
+- Sidebar background might differ slightly from main content
+- Active states need to be more subtle (no touch feedback)
+- Hover states should be clear but not jarring
+- Focus indicators for keyboard navigation
+
+---
+
+**DELIVERABLE:**
+A complete desktop/tablet product page (768px+) using SHEIN's proven layout pattern with a sticky sidebar, vertical image gallery, collapsible sections, and multi-column product grids, all adapted to maintain Laku's brand identity.
+
+**NOTE:** This is Part 2 of 2. Mobile view (320-767px) is a separate implementation with different layout and interaction patterns.

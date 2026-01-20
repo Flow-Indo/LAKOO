@@ -1,6 +1,6 @@
 'use client';
 
-import { useCartStore } from '@/stores';
+import { useCartStore } from '@/stores/cart-store';
 import { Button } from '@/components/ui';
 import Link from 'next/link';
 

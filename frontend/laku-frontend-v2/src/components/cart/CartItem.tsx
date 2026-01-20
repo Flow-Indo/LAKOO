@@ -1,89 +1,112 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
-import { CartItem as CartItemType } from '@/types';
-import { Button } from '@/components/ui/button';
-import { useCartStore } from '@/stores';
-import { ROUTES } from '@/constants';
+import { Minus, Plus } from 'lucide-react';
+import type { CartProduct } from '@/types/cart';
 
-interface CartItemProps {
-  item: CartItemType;
+interface Props {
+  product: CartProduct;
+  onUpdate: (product: CartProduct) => void;
+  onDelete: () => void;
 }
 
-export function CartItem({ item }: CartItemProps) {
-  const { updateQuantity, removeItem } = useCartStore();
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
+export function CartItem({ product, onUpdate, onDelete }: Props) {
   const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeItem(item.id);
-    } else {
-      updateQuantity(item.id, newQuantity);
-    }
+    if (newQuantity < 1 || newQuantity > product.stock) return;
+    onUpdate({ ...product, quantity: newQuantity });
   };
 
   return (
-    <div className="flex items-center space-x-4 bg-white p-4 rounded-lg shadow">
-      <Link href={ROUTES.PRODUCT(item.slug)} className="flex-shrink-0">
-        <div className="relative w-20 h-20">
-          <Image
-            src={item.image}
-            alt={item.name}
-            fill
-            className="object-cover rounded"
-            sizes="80px"
+    <div className="p-4">
+      <div className="grid grid-cols-12 gap-4 items-center">
+
+        {/* Checkbox + Product Info */}
+        <div className="col-span-12 md:col-span-6 flex items-center gap-4">
+          <input
+            type="checkbox"
+            checked={product.isSelected}
+            onChange={(e) => onUpdate({ ...product, isSelected: e.target.checked })}
+            className="w-4 h-4 accent-red-500 flex-shrink-0"
           />
+
+          <Image
+            src={product.image}
+            alt={product.name}
+            width={80}
+            height={80}
+            className="rounded-lg object-cover flex-shrink-0"
+          />
+
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm text-gray-900 font-medium line-clamp-2 mb-1">
+              {product.name}
+            </h3>
+            {product.variations && (
+              <p className="text-xs text-gray-600">{product.variations}</p>
+            )}
+            {product.originalPrice && (
+              <div className="mt-1 flex items-center gap-2">
+                <span className="text-xs text-gray-600 line-through">
+                  Rp{product.originalPrice.toLocaleString()}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-      </Link>
 
-      <div className="flex-grow">
-        <Link href={ROUTES.PRODUCT(item.slug)}>
-          <h3 className="font-semibold hover:text-blue-600 line-clamp-2">
-            {item.name}
-          </h3>
-        </Link>
-        <p className="text-sm text-gray-600">{item.store.name}</p>
-        <p className="font-semibold text-green-600">{formatPrice(item.price)}</p>
-      </div>
+        {/* Unit Price */}
+        <div className="col-span-3 md:col-span-2 text-center">
+          <span className="text-sm text-gray-900">
+            Rp{product.price.toLocaleString()}
+          </span>
+        </div>
 
-      <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleQuantityChange(item.quantity - 1)}
-          disabled={item.quantity <= 1}
-        >
-          -
-        </Button>
-        <span className="w-12 text-center">{item.quantity}</span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleQuantityChange(item.quantity + 1)}
-          disabled={item.quantity >= item.stock}
-        >
-          +
-        </Button>
-      </div>
+        {/* Quantity Controls */}
+        <div className="col-span-4 md:col-span-2 flex items-center justify-center gap-2">
+          <button
+            onClick={() => handleQuantityChange(product.quantity - 1)}
+            disabled={product.quantity <= 1}
+            className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50 disabled:opacity-30"
+          >
+            <Minus className="w-4 h-4 text-gray-600" />
+          </button>
 
-      <div className="text-right">
-        <p className="font-semibold">{formatPrice(item.price * item.quantity)}</p>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => removeItem(item.id)}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-        >
-          Remove
-        </Button>
+          <input
+            type="text"
+            value={product.quantity}
+            readOnly
+            className="w-12 h-8 text-center border border-gray-200 rounded text-sm"
+          />
+
+          <button
+            onClick={() => handleQuantityChange(product.quantity + 1)}
+            disabled={product.quantity >= product.stock}
+            className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50 disabled:opacity-30"
+          >
+            <Plus className="w-4 h-4 text-gray-600" />
+          </button>
+        </div>
+
+        {/* Total Price */}
+        <div className="col-span-3 md:col-span-1 text-center">
+          <span className="text-sm font-medium text-red-500">
+            Rp{(product.price * product.quantity).toLocaleString()}
+          </span>
+        </div>
+
+        {/* Actions */}
+        <div className="col-span-2 md:col-span-1 flex flex-col items-center gap-2">
+          <button
+            onClick={onDelete}
+            className="text-sm text-gray-900 hover:text-red-500"
+          >
+            Hapus
+          </button>
+          <button className="text-sm text-red-500 hover:underline">
+            Cari Serupa
+          </button>
+        </div>
+
       </div>
     </div>
   );

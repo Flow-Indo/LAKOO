@@ -22,6 +22,7 @@ export async function fetchMoreProducts(offset: number, limit: number): Promise<
       id,
       name: `${baseProduct.name} (${id})`,
       slug: `${baseProduct.slug}-${id}`,
+      image: baseProduct.image || 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500',
       sold: (baseProduct.sold || 0) + variation * 10,
       price: baseProduct.price + variation * 5000,
     });

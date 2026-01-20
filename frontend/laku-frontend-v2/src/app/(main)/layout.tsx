@@ -1,5 +1,4 @@
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { RightSidebarContent } from '@/components/layouts/RightSidebarContent';
 
 export default function MainLayout({
   children
@@ -7,9 +6,7 @@ export default function MainLayout({
   children: React.ReactNode
 }) {
   return (
-    <AppLayout
-      rightSidebarContent={<RightSidebarContent />}
-    >
+    <AppLayout>
       {children}
     </AppLayout>
   );

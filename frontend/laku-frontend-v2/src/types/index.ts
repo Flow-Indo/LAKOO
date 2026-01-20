@@ -18,6 +18,8 @@ export interface Product {
     name: string;
     location: string;
   };
+  // optional selected variant e.g. "White, XL"
+  variant?: string;
 }
 
 export interface CartItem extends Product {

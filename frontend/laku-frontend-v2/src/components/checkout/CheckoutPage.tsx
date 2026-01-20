@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useCartStore } from '@/stores';
+import { useCartStore } from '@/stores/cart-store';
 import { Button } from '@/components/ui';
 import { Address } from '@/types';
 

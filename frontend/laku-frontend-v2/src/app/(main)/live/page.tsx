@@ -1,14 +1,11 @@
-import { LiveVideoFeed } from '@/components/live/LiveVideoFeed';
+import { LiveStreamPlayer } from '@/components/live-stream/LiveStreamPlayer';
+import { currentLiveStream } from '@/lib/mock-live-stream-data';
 
 export default function LivePage() {
-  return (
-    <div className="h-full bg-black live-route-container">
-      <LiveVideoFeed />
-    </div>
-  );
+  return <LiveStreamPlayer stream={currentLiveStream} />;
 }
 
 export const metadata = {
   title: 'Live Shopping | LAKU',
-  description: 'Watch live shopping streams',
+  description: 'Join live shopping streams with real-time interaction',
 };

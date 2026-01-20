@@ -23,9 +23,9 @@ export function StickyHeader() {
   };
 
   return (
-    <div className="w-full sticky top-0 z-50 bg-white border-b border-gray-200 pt-safe">
+    <div className="w-full sticky top-0 z-50 bg-white border-b border-gray-200 pt-safe mb-6">
       {/* ROW 1: Search Bar */}
-      <div className="px-4 py-2">
+      <div className="px-6 md:px-8 lg:px-12 xl:px-16 py-4">
         <form onSubmit={handleSearch} className="relative">
           <div className="relative flex items-center">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
