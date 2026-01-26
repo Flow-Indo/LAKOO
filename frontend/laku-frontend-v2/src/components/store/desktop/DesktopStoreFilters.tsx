@@ -111,24 +111,30 @@ export function DesktopStoreFilters({ store, filters, onFiltersChange }: Desktop
                 placeholder="Min"
                 className="px-3 py-2 border border-gray-300 rounded text-sm"
                 value={filters.priceRange?.min || ''}
-                onChange={(e) => updateFilters({
-                  priceRange: {
-                    ...filters.priceRange,
-                    min: parseInt(e.target.value) || undefined
-                  }
-                })}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  updateFilters({
+                    priceRange: {
+                      ...filters.priceRange,
+                      min: isNaN(value) ? undefined : value
+                    }
+                  });
+                }}
               />
               <input
                 type="number"
                 placeholder="Max"
                 className="px-3 py-2 border border-gray-300 rounded text-sm"
                 value={filters.priceRange?.max || ''}
-                onChange={(e) => updateFilters({
-                  priceRange: {
-                    ...filters.priceRange,
-                    max: parseInt(e.target.value) || undefined
-                  }
-                })}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  updateFilters({
+                    priceRange: {
+                      ...filters.priceRange,
+                      max: isNaN(value) ? undefined : value
+                    }
+                  });
+                }}
               />
             </div>
 

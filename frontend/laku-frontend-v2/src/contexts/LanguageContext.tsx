@@ -503,7 +503,18 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
 export function useLanguage() {
   const context = useContext(LanguageContext);
   if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    // Fallback: return a safe default that uses the default Indonesian translations
+    // so server and client render the same placeholder strings and avoid hydration mismatches.
+    // eslint-disable-next-line no-console
+    console.warn('useLanguage called without LanguageProvider - falling back to defaults');
+    return {
+      locale: 'id' as Locale,
+      setLocale: () => {},
+      t: (key: string) => {
+        const val = (translations as any)['id']?.[key];
+        return typeof val === 'string' ? val : key;
+      },
+    } as LanguageContextType;
   }
   return context;
 }

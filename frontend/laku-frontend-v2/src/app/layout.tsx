@@ -1,13 +1,19 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import './globals.css';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ChatProvider } from '@/contexts/ChatContext';
 import { AppProvider } from '@/providers';
 import { DevAuthProvider } from '@/providers/DevAuthProvider';
 import { Toaster } from 'sonner';
+import { Plus_Jakarta_Sans } from 'next/font/google';
 
-const inter = Inter({ subsets: ['latin'] });
+// Configure the font with Next.js font optimization
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['200', '300', '400', '500', '600', '700', '800'],
+  variable: '--font-plus-jakarta',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'LAKU - Marketplace Indonesia',
@@ -20,8 +26,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
-      <body className={`${inter.className} bg-white`}>
+    <html lang="id" className={plusJakartaSans.variable}>
+      <body className={`${plusJakartaSans.className} bg-white`}>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 px-4 py-2 bg-primary text-white rounded">
+          Skip to main content
+        </a>
         <div className="bg-white min-h-screen w-full">
           <LanguageProvider>
             <ChatProvider>

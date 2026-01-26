@@ -16,6 +16,10 @@ const config: Config = {
         '2xl': '1536px', // Keep default
       },
       colors: {
+        'laku-red': '#EE4D2D',
+        'laku-red-dark': '#D84315',
+        'laku-gray': '#757575',
+        'laku-gray-light': '#F5F5F5',
         primary: {
           DEFAULT: '#FF6B6B',
           dark: '#FF4444',
@@ -23,7 +27,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-plus-jakarta)', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         slideUp: {

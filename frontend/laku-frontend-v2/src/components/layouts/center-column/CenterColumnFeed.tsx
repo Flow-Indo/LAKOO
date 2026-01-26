@@ -2,7 +2,7 @@
 
 import { Product } from '@/types';
 import { StickyHeader } from './StickyHeader';
-import { InfiniteProductFeed } from '@/components/product';
+import { InfiniteProductFeed } from '@/components/shared/InfiniteProductFeed';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 
 interface CenterColumnFeedProps {

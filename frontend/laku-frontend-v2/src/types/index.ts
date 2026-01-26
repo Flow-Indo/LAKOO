@@ -1,12 +1,14 @@
 export interface Product {
   id: string;
   name: string;
-  slug: string;
+  slug?: string;
   price: number;
   originalPrice?: number;
   discount?: number;
   image: string;
-  images?: string[];
+  images?: Array<string | { url: string; width?: number; height?: number }>;
+  imageTall?: boolean;
+  isOfficial?: boolean;
   category: string;
   description: string;
   stock: number;
@@ -21,6 +23,9 @@ export interface Product {
   // optional selected variant e.g. "White, XL"
   variant?: string;
 }
+
+// Export detailed product types for product pages
+export type { Product as DetailedProduct, ProductVariant, ProductSize, ProductSeller, ProductShipping, ProductSpecification, ProductReview, ProductRecommendation, ProductTab, ProductSortOption, ProductFilterOption } from './product';
 
 export interface CartItem extends Product {
   quantity: number;

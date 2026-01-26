@@ -1,582 +1,435 @@
-# Mobile Product Page for Laku Ecommerce
+# 📱 MOBILE PRODUCT PAGE - Visual Reference Description
 
-## OBJECTIVE
-Create a comprehensive, mobile-first product detail page at `/product/[id]` route optimized for mobile devices (320px - 767px).
+## ROUTE
+`/product/[id]`
 
-## TARGET ROUTE
-`http://localhost:3000/product/[id]`
-
-## TARGET DEVICES
-- Mobile phones: 320px - 767px width
-- Portrait orientation primary
-- Touch-optimized interactions
-
-## IMPORTANT DESIGN PHILOSOPHY
-- **DO NOT specify exact colors** - Choose colors that create excellent contrast for readability, match the Laku brand aesthetic, and follow modern ecommerce best practices
-- Use appropriate accent colors for CTAs, sale badges, and interactive elements
-- Ensure all text is readable over product images and backgrounds
-- Touch targets minimum 44x44px
-- Thumb-friendly bottom navigation
+## VIEWPORT
+Mobile phones: 320px - 767px width
 
 ---
 
-## 📱 MOBILE PAGE STRUCTURE
+## REFERENCE WEBSITES TO STUDY
 
-### 1. HEADER INTEGRATION (USE EXISTING)
-**DO NOT create a new header** - Use the existing Laku mobile header:
-- Your current search bar: "Cari di LAKU..." with camera icon
-- Keep existing header height and styling
-- Product page content starts below the existing header
+**Primary References:**
+1. **Shopee Mobile App** - Product detail page
+2. **Taobao Mobile App** - Product detail page
+3. **SHEIN Mobile App** - Product detail page
 
-**Product-Specific Header Actions:**
-- Add these to your existing header component:
-  - Back button (left) - navigate to previous page
-  - Share icon (if not already present)
-- Keep existing: Search bar, Camera icon
+Study how these platforms organize product information on mobile devices.
 
-**Note**: The header component already exists in your layout - just enhance it with back button for product page context
+---
 
-### 2. PRODUCT IMAGE CAROUSEL
-**Full-width swipeable gallery:**
-- Height: 80-90vw (roughly square)
-- Swipe gestures enabled
-- Snap to each image
-- Image counter overlay (e.g., "1/4") - top right corner
-- Dot indicators at bottom (optional)
-- Double-tap to zoom
-- Pinch to zoom
-- Smooth transitions between images
-- Preload next/previous images
+## EXISTING LAKU LAYOUT TO PRESERVE
 
-### 3. PRODUCT INFO SECTION
-**Price Display:**
-- Current sale price: Large (28-32px), bold, prominent color
-- Original price: Medium (16-18px), struck through, grayed
-- Discount badge: Pill shape, percentage (e.g., "-50%")
-- Currency symbol displayed
-- Padding: 16px horizontal
+**Your Current Mobile App Has:**
+- A header at the top with search bar that says "Cari di LAKU..." and a camera icon
+- A bottom navigation bar with 5 icons: Beranda (home), Video, Pesan (messages), Keranjang (shopping cart with badge), and Profil (profile)
+- A 2-column product grid on the homepage
+- Product cards with images, names, red prices (Rp format), gray struck-through original prices, and "X+ terjual" (sold count)
+- Clean white background with minimal design
+
+**The product page should work within this existing layout, not replace it.**
+
+---
+
+## PAGE STRUCTURE DESCRIPTION
+
+### At The Very Top
+The page starts right below your existing header. Add a small back arrow button to the left side of the existing header when on a product page. Keep everything else about the header the same.
+
+### Image Section (First Thing User Sees)
+When you first land on the page, you see a large full-width image carousel that takes up most of the screen above the fold. This carousel shows the product from different angles. 
+
+**Image Carousel Details:**
+- The images are swipeable - you can swipe left or right with your finger to see different product photos
+- There's a small counter in the bottom-right or top-right corner showing which image you're on, like "1/5" or "3/6"
+- The images snap into place when you swipe - they don't just scroll freely
+- When you tap on an image, it could open a fullscreen view where you can zoom in
+- Small dot indicators at the bottom showing which image is active (optional)
+
+**Taobao does this:** They have a full-width image with small thumbnail previews at the bottom showing all available images. The counter shows clearly "1/5" in white text over the image.
+
+**Shopee does this:** Similar carousel with smooth swipe gestures and a counter badge.
+
+### Price and Basic Info Section
+Right below the images, there's a white section with padding showing:
+
+**Badge Row:**
+At the very top of this section, small colorful badges like "Trends" in purple, "Choice" in black, or other promotional badges. These are small pill-shaped badges that sit in a row.
 
 **Product Title:**
-- Font size: 18-20px
-- Font weight: Bold
-- Line clamp: 2-3 lines max
-- Color: Dark/primary text
-- Padding: 16px horizontal
+Below the badges is the product name in large, bold text. This is prominent and easy to read. The title might be 2-3 lines long.
 
-**Badges Row:**
-- Seller/store badge (if trending)
-- "Trends Store" badge
-- Other promotional badges
-- Horizontal scroll if too many
+**Price Display:**
+The most important visual element here - shown very prominently:
+- Current price in large, bold RED text (your Laku red color)
+- Original price next to it in smaller, GRAY text with a strikethrough line
+- A small badge showing the discount percentage like "-25%" in red or orange background
 
-**Quick Info Tags:**
-- Brief descriptor pills (e.g., "Casual", "Loose Fit", "Winter")
-- Horizontal scroll
-- Small, subtle styling
+The price difference should be immediately obvious - the red current price should be the most eye-catching element.
 
-### 4. VARIANT SELECTION
-**Size Selector:**
-- Label: "Size" with selected value shown
-- Button grid: 4 columns
-- Each size button: Pill shaped, outlined
-- Selected state: Filled background, bold border
-- Out of stock: Disabled appearance, diagonal line
-- Touch target: 44px minimum height
-- Spacing between buttons: 8-12px
+**Rating and Reviews:**
+Below the price, show:
+- Star rating (5 gold stars, filled based on rating)
+- The numeric rating like "4.8"
+- Review count in parentheses like "(1,247 reviews)"
+- All in one horizontal line
 
-**Action Links Row:**
-- "Size Guide" link with icon
-- "Check My Size" link with icon
-- "Not your size? Tell me your size" helper
+**Verification/Trust Badge:**
+If the purchase is verified or the seller is verified, show a small checkmark icon with "Verified Purchase" text in green.
 
-**Color Selector** (if applicable):
-- Label: "Color" with selected name
-- Horizontal scroll of color swatches
-- Each swatch: 48-56px circle or square
-- Selected: Bold border ring
-- Image thumbnails if colors have patterns
+### Tabs Section (Sticky Navigation)
+This is a crucial organizational element. There are three tabs that allow you to switch between different types of information:
 
-**Quantity Selector:**
-- Label: "Quantity"
-- Minus button | Number display | Plus button
-- Centered layout
-- Large touch targets (44px)
-- Min: 1, Max: stock available
+**Tab Bar Design:**
+- Three equal-width tabs: "Goods" | "Details" | "Recommend"
+- These tabs stick to the top of the screen as you scroll (but below your app's header)
+- The active tab has a red underline or red text
+- Inactive tabs are gray
+- When you tap a tab, the content below changes
 
-### 5. SHIPPING & DELIVERY CARD
-**White card with border/shadow:**
-- Icon on left (truck/shipping)
-- Text layout:
-  - "Shipping to [Country/Region]"
-  - Shipping method badge (e.g., "Free Shipping")
-  - Estimated delivery: "Jan 23 - Jan 28"
-- Chevron right to expand details
-- Tap to see full shipping info modal
+**Shopee Reference:** They have tabs exactly like this - you tap to switch between product details, shop information, and recommendations.
 
-### 6. POLICIES CARDS
-**Each card expandable:**
+**Taobao Reference:** Similar tab system that organizes all the product information into digestible sections.
 
-**COD Policy Card:**
-- Icon + "COD Policy"
-- Brief description
-- Chevron to expand
+---
 
-**Return Policy Card:**
-- Icon + "Return Policy"  
-- Brief text (e.g., "Free Return")
-- Chevron to expand
+## TAB CONTENT DESCRIPTIONS
 
-**Shopping Security Card:**
-- Shield icon + "Shopping Security"
-- Bullet points: "Safe Payments", "Privacy Protection"
-- Chevron to expand
+### GOODS TAB (Default/First Tab)
+This tab shows the core product information and seller details.
 
-### 7. SELLER CARD
-**Prominent card with padding:**
-- Seller logo/avatar (left, 48-56px circle)
-- Seller name with verification badge
-- Star rating (small stars) + followers count
-- Stats row:
-  - "500K+ Sold Recently" with fire icon
-  - "99K+ Repurchase" with repeat icon
-- "Trends Store" badge if applicable
-- Action buttons (full width):
-  - "Follow" button (outlined)
-  - "All Items" button (filled)
+**Seller Card Section:**
+Near the top, there's a card showing the seller/store information:
+- Store logo (circular image)
+- Store name next to the logo
+- Verification badge if the store is verified
+- Star rating for the store
+- Follower count
+- A "View Store" button or link
 
-### 8. SELLER OTHER PRODUCTS
-**Horizontal scroll section:**
-- Section title: "More from this seller"
-- Horizontal scroll (no pagination)
-- Each product card:
-  - Square image
-  - Product name (truncated)
-  - Price
-  - Small discount badge if applicable
-- 4-6 products visible with scroll
+Below that, show quick stats about the seller in a 3-column grid:
+- "Sold" with a number like "500K+"
+- "Quality" with a rating like "4.8 High" in green
+- "Shipping" with a rating like "4.9 High" in green
 
-### 9. TAB NAVIGATION
-**Sticky horizontal tabs (stick below header on scroll):**
-- Three tabs: "Goods" | "Details" | "Recommend"
-- Full width, equal distribution
-- Active tab: Underlined with accent color
-- Smooth scroll to tab content
-- Background matches page
+At the bottom of this card, show promotional badges like "500K+ Sold Recently" with a fire icon, or "99K+ Repurchase" with a repeat icon.
 
-### 10. GOODS TAB CONTENT (DEFAULT)
-Shows sections 3-8 above in order.
+**Quick Info Cards:**
+Below the seller card, show expandable sections or cards for:
+- Shipping information (where it ships to, estimated delivery dates)
+- Return policy (free returns, how many days)
+- Payment options (COD available, installment options)
+- Product specifications in a simple list
 
-### 11. DETAILS TAB CONTENT
-**When Details tab is active:**
+**More From This Seller:**
+A section titled "More from this seller" showing a 2-column grid of other products from the same seller. Each product shows:
+- Product image
+- Product name (truncated to 2 lines)
+- Price in red
+- Original price struck through
+- Small badges if on sale
 
-**Model Information Card:**
-- Model avatar (circular, 40px)
+### DETAILS TAB (Second Tab)
+This tab shows in-depth product information.
+
+**Model Information:**
+At the top, show a small section with a model photo (circular) and text like:
 - "Model is wearing: S"
-- Measurements: Height, Bust, Waist, Hips
-- Small text, grid layout
+- "Height: 68.5" | Bust: 29.9" | Waist: 23.6" | Hips: 34.3""
+
+**Product Tags:**
+Show category tags like "Summer", "Floral", "Maxi", "Casual" in small pill badges.
 
 **Product Specifications:**
-- Table or list format
-- Rows: Material, Season, Style, Fit, Closure, etc.
-- Label: Value pairs
-- Alternating row backgrounds for readability
+A table or list showing specifications:
+- Material: [value]
+- Season: [value]
+- Style: [value]
+- Fit: [value]
+- Each row alternating background color for readability
 
-**Description Section:**
-- Expandable "View more" if long
-- Body text, readable size (14-15px)
-- Line height: 1.6
-- Feature bullet points if applicable
+**Description:**
+Full product description text in readable paragraphs.
 
-**Size Chart:**
-- Table with horizontal scroll
-- Columns: Size | Foot Length (cm)
-- Recommended size highlighted
-- Helper text: "Based on your measurements, size 40"
+**Size Chart Section:**
+Show a size chart table with:
+- Size columns (XS, S, M, L, XL)
+- Measurement rows (Length, Bust, Waist, etc.)
+- A highlighted recommendation like "Based on your size, we recommend: Size 40"
+- Customer size feedback showing what other buyers purchased
 
-**Customer Size Reference:**
-- "Buyers' size feedback" title
-- Sample data showing what other customers bought
-- Usernames + their size choices
-- Foot length + size purchased
+**Taobao Reference:** They have very detailed size charts with customer feedback showing if items run small, large, or true to size.
 
-### 12. REVIEWS SECTION (IN DETAILS TAB)
-**Rating Summary Card:**
-- Large rating number (e.g., 4.55)
-- 5 stars display
+**Reviews Summary (In Details Tab):**
+Show the overall rating prominently:
+- Large number like "4.8"
+- Star visualization
 - Total review count
-- Review policy info icon
+- Rating breakdown bars showing how many 5-star, 4-star, etc.
 
-**Fit Breakdown:**
-- Horizontal bars showing distribution
-- Small | True to Size | Large
-- Percentages displayed
+**Filter Buttons:**
+Buttons to filter reviews:
+- "All Reviews (1247)" - currently active, shown in red background
+- "Image (24)" - reviews with photos
+- "No Smell (13)" - tagged reviews
+- Other tag filters in a horizontal scrollable row
 
-**Filter/Sort Bar:**
-- "All Reviews" button (shows count)
-- "Image" filter button
-- Sort dropdown (Most Recent, Highest Rating, etc.)
-
-**Filter Tags:**
-- Horizontal scroll chips
-- "No Smell", "Good Portability", "Keep Warm", etc.
-- Tap to filter reviews
-- Active state clearly shown
-
-**Review Cards:**
-- User avatar + masked username
+**Individual Review Cards:**
+Each review shows:
+- User avatar (small circle)
+- Username (partially masked like "Sarah M.")
 - Star rating (5 stars)
-- Date posted
-- Product variant info (Color, Size)
-- Review text (expandable if long)
-- "Translate" link if foreign language
-- Review images (if attached) - horizontal scroll
-- "Helpful" button with count
-- Verified purchase badge
-- Points program indicator if applicable
+- Date "1/15/2024"
+- Review text
+- Product variant purchased (Size: S - Floral Print)
+- Review photos if available (horizontal scrollable thumbnails)
+- "Helpful (24)" button at the bottom right
 
-**Load More:**
-- Button at bottom to load more reviews
-- Or infinite scroll (auto-load)
+Stack these review cards vertically.
 
-### 13. RECOMMEND TAB CONTENT
-**Category Filter Pills:**
-- Horizontal scroll
-- "Recommend" | "Underwear & Sleepwear" | "Apparel Accessories"
-- Active pill highlighted
+**Load More Button:**
+At the bottom, a button to load more reviews.
 
-**"You May Also Like" Section:**
-- Grid layout: 2 columns
-- Product cards:
-  - Image (aspect ratio 3:4)
-  - Seller badge (if trends)
-  - Product name (2 line truncate)
-  - Current price (bold)
-  - Original price (struck through) if on sale
-  - Discount percentage badge
-  - Sales count (e.g., "100+ sold")
-  - "#3 Bestseller in [Category]" badge if applicable
-  - Quick cart button (bottom-right circle)
+**Shopee Reference:** Their review section is very similar with filters, tags, and helpful buttons.
 
-**Matching Styles Section:**
-- Title: "Matching Styles"
-- Horizontal scroll
-- Larger cards showing styled outfits
-- Item count per style set
+### RECOMMEND TAB (Third Tab)
+This tab shows related products and recommendations.
 
-**Load More:**
-- "View More" button at bottom
-- Loads additional products or navigates to category
+**Filter Pills:**
+At the top, scrollable filter pills:
+- "Recommend" (active, red background)
+- "Similar Items"
+- "From This Seller"
+- Other category filters
 
-### 14. BOTTOM NAVIGATION (USE EXISTING + PRODUCT ACTIONS)
+**Product Grid Sections:**
+Multiple sections, each with a title:
 
-**Important**: Your app already has a bottom navigation with:
-- Beranda (Home)
-- Video  
-- Pesan (Messages)
-- Keranjang (Cart) - with badge
-- Profil (Profile)
+**"You May Also Like":**
+- Section title with optional "View all" link
+- 2-column product grid
+- Each product shows image, name, price, discount badge, sold count
 
-**For Product Page - Two Options:**
+**"Matching Styles":**
+- Products that go well with this item
+- Same 2-column grid layout
 
-**Option A: Overlay Action Bar (Recommended)**
-Create a **sticky action bar** that sits ABOVE your existing bottom nav:
-- **Height**: 56-60px
-- **Position**: Fixed, sits above bottom nav (bottom: 56px)
-- **Background**: White with top shadow
-- **Layout**: Horizontal split
-  - Left (30%): Wishlist heart icon + label
-  - Right (70%): "Add to Cart" button (with discount if applicable)
-- **This doesn't replace your bottom nav** - it's an additional layer
+**"Complete The Look":**
+- Outfit or style suggestions
+- Same grid format
 
-**Option B: Contextual Bottom Nav**
-On product pages, temporarily replace bottom nav with product actions:
-- Store icon | Wishlist | Add to Cart (60% width)
-- When user scrolls up, show regular bottom nav
-- When viewing product, show product actions
-
-**Recommended: Use Option A** to maintain navigation consistency
+Each product card in these grids should look exactly like the product cards on your homepage.
 
 ---
 
-## 🎨 MOBILE VISUAL DESIGN
+## BOTTOM ACTION BAR (ALWAYS VISIBLE)
 
-### DESIGN CONSISTENCY WITH LAKU
-**Match your existing design system:**
+**Shopee does this particularly well:**
 
-**Current Laku Design Patterns (from your screenshots):**
-- **Price Color**: Red (Rp in red) - use for sale/current price
-- **Original Price**: Gray, struck through (smaller text)
-- **Sold Count**: Gray text, format: "X+ terjual"
-- **Product Cards**: White background, rounded corners, subtle shadow or border
-- **Product Images**: Rounded corners, consistent aspect ratio
-- **Spacing**: Clean, generous whitespace
-- **Typography**: Clean sans-serif, good hierarchy
+Above your existing bottom navigation (the one with Beranda, Video, Pesan, Keranjang, Profil), add another fixed bar that's specific to this product page.
 
-**Apply These to Product Page:**
-- Use the same red color for product price
-- Same typography scale and font family
-- Same card styling (shadows, borders, radius)
-- Same spacing patterns
-- Consistent button styles with your existing UI
+**This Additional Bar Contains:**
+- A heart icon button on the left (for adding to wishlist/favorites)
+  - Outline heart when not saved
+  - Filled heart when saved
+  - Label "Save" below it
+- A large "Add to Cart" button taking up the remaining space
+  - Red background
+  - White text
+  - Shows discount if applicable like "50% OFF! Add to Cart"
+  - Clicking this opens the variant selector
 
-### Typography
-- Product title: Bold, 18-20px
-- Price: Bold, 28-32px
-- Original price: 16px, strike-through
-- Body text: 14-15px
-- Small labels: 12-13px
-- Button text: 15-16px, semi-bold
-
-### Spacing
-- Page padding: 16px horizontal
-- Section spacing: 24px vertical
-- Card padding: 16px
-- Element spacing: 12px
-
-### Touch Targets
-- Minimum: 44x44px
-- Buttons: 48px height preferred
-- Icon buttons: 44x44px minimum
-- Spacing between tappable elements: 8px minimum
-
-### Cards & Containers
-- Border radius: 8-12px
-- Box shadow: Subtle (0 2px 8px rgba)
-- Border: 1px solid if not using shadow
-- Background: White or very light
-
-### Interactive States
-- **Default**: Defined styling
-- **Hover**: N/A (touch device)
-- **Active/Pressed**: Slight scale down (0.95-0.98), opacity change
-- **Disabled**: 50% opacity, no interaction
-- **Loading**: Spinner or skeleton
-
-### Animations
-- Transitions: 200-300ms ease
-- Page transitions: Slide in from right
-- Modal entry: Slide up from bottom
-- Toast notifications: Slide down from top
+**Important:** This bar sits ABOVE your existing bottom navigation, creating a two-layer bottom interface. Your 5-icon navigation stays visible and usable.
 
 ---
 
-## 🔧 MOBILE FUNCTIONALITY
+## VARIANT SELECTION BOTTOM SHEET
 
-### Image Gallery
-- Swipe gesture support (left/right)
-- Snap to each image
-- Pinch to zoom
-- Double-tap to zoom
-- Smooth transitions
-- Image counter updates
+When the user taps "Add to Cart", a sheet slides up from the bottom covering most of the screen.
 
-### Variant Selection
-- Size button tap: Select size, update selection
-- Out of stock: Cannot select, visual feedback
-- Quantity: +/- buttons, number validation
-- Color: Tap to select, show selection state
+**Taobao and Shopee do this:**
 
-### Add to Cart
-- Tap button: Validate selections
-- If no size selected: Prompt to select
-- Show loading state (spinner in button)
-- Success: Toast notification
-- Update cart badge count
-- Option: Continue shopping or go to cart
+**Sheet Header:**
+- A small handle bar at the very top (just a gray rounded line)
+- User can drag this down to close the sheet
 
-### Wishlist/Save
-- Tap heart: Toggle saved state
-- Animation: Heart fills/empties
-- Persist across sessions
-- Require login if not authenticated
-- Feedback: Toast or icon animation
+**Product Summary at Top:**
+- Small product image on the left
+- Price in red and large on the right
+- Stock count "15 available"
+- Selected variant info if any selected
 
-### Tab Navigation
-- Tap tab: Activate tab
-- Smooth scroll to content
-- Highlight active tab
-- Lazy load tab content if needed
+**Size Selection:**
+- "Size" label with a "Size Guide" link on the right
+- Grid of size buttons (XS, S, M, L, XL)
+- Each button is a rounded rectangle
+- Selected size has red border and red text
+- Unselected sizes have gray border
+- Below the sizes: "Not your size? Tell me your size" link
 
-### Review Interactions
-- Tap review card: Expand if truncated
-- Tap review images: Open gallery viewer
-- Tap "Helpful": Increment count, visual feedback
-- Filter tags: Toggle active state
-- Sort dropdown: Show bottom sheet options
+**Color Selection:**
+- "Color" label
+- Color swatches shown as circles or squares
+- Selected color has a bold border
+- Colors can be solid colors or show small product image in that color
 
-### Modals & Bottom Sheets
-- Size guide: Slide up from bottom
-- Shipping details: Slide up from bottom
-- Policy details: Slide up from bottom
-- Dismiss: Swipe down or tap backdrop
+**Quantity Selector:**
+- "Quantity" label
+- Minus button | Number display | Plus button
+- Shows "15 available" text
+- Buttons disabled when at min (1) or max (stock count)
 
-### Scroll Behavior
-- Header: Fixed at top
-- Tabs: Sticky below header on scroll
-- Bottom bar: Always fixed
-- Smooth scroll to sections
+**Add to Cart Button:**
+- Large red button at the bottom
+- Full width
+- Text: "Add to Cart"
+- Disabled (gray) if no size/color selected
+- Active state when everything is selected
+
+**Sheet Behavior:**
+- Slides up smoothly with a spring animation
+- Can be dismissed by dragging down
+- Can be dismissed by tapping the backdrop
+- Shows smooth transitions when closing
 
 ---
 
-## 📊 MOBILE DATA STRUCTURE
+## INTERACTION BEHAVIORS
 
-### Product Object
-```typescript
-{
-  id: string
-  name: string
-  description: string
-  price: number
-  originalPrice: number
-  discount: number
-  currency: string
-  rating: number
-  reviewCount: number
-  images: string[]
-  variants: {
-    sizes: { value: string, inStock: boolean }[]
-    colors: { name: string, hex?: string, image?: string }[]
-  }
-  stock: number
-  seller: {
-    id: string
-    name: string
-    logo: string
-    verified: boolean
-    rating: number
-    followers: number
-    soldCount: string
-    repurchaseRate: string
-    isTrending: boolean
-  }
-  shipping: {
-    destination: string
-    method: string
-    free: boolean
-    estimatedDelivery: string
-  }
-  specifications: Record<string, string>
-  sizeChart: SizeChartData
-}
-```
+**Image Carousel:**
+- Swipe left/right smoothly
+- Images snap to position
+- Counter updates as you swipe
+- Tap to zoom or open fullscreen gallery
+
+**Tabs:**
+- Tap to switch immediately
+- Active tab shows red underline
+- Content changes with smooth scroll
+- Tabs stick to top when scrolling down
+
+**Collapsible Sections (in Goods tab):**
+- Sections like shipping, return policy can expand/collapse
+- Tap the section header to toggle
+- Chevron icon rotates when expanding
+- Smooth height animation
+
+**Review Helpful Button:**
+- Tap to mark review as helpful
+- Number increments
+- Button changes color or shows checkmark
+- Can't un-mark (one-way action)
+
+**Wishlist/Save Button:**
+- Tap to toggle
+- Heart fills with smooth animation
+- Persists across page visits
+- Shows toast notification "Added to favorites"
+
+**Add to Cart:**
+- Opens variant sheet from bottom
+- Requires size/color selection
+- Shows loading state when adding
+- Shows success toast "Added to cart"
+- Cart badge in bottom nav updates
 
 ---
 
-## ⚡ MOBILE PERFORMANCE
+## VISUAL DESIGN NOTES
 
-- Lazy load images below fold
-- Optimize images for mobile (400-800px width)
-- Defer non-critical JavaScript
-- Use skeleton screens while loading
-- Target 60fps animations
-- Initial load < 2s on 4G connection
-- Use CSS transforms for animations (GPU accelerated)
+**Match Your Existing Laku Design:**
+- Use the same red color for prices that you use on the homepage
+- Use the same gray color for struck-through original prices
+- Product cards in the Recommend tab should look identical to homepage cards
+- Use the same "X+ terjual" format for sold counts
+- Same rounded corners on images and cards
+- Same shadows or borders on cards
+- Same fonts and text sizes
+- Same spacing between elements
 
----
+**Color Hierarchy:**
+- Red: Prices, CTAs, active states, badges
+- Gray: Secondary text, original prices, borders
+- Black: Primary text, titles
+- Green: Trust indicators, verified badges, ratings
+- White: Background, cards
 
-## 🔐 MOBILE ACCESSIBILITY
+**Typography Hierarchy:**
+- Product title: Large and bold
+- Price: Very large and bold in red
+- Section titles: Medium bold
+- Body text: Regular weight
+- Small text: Reviews dates, meta info
 
-- ARIA labels on all interactive elements
-- Touch targets meet minimum 44x44px
-- Color contrast ratios meet WCAG AA
-- Focus management for modals
-- Screen reader friendly
-- Alt text for all images
-- Semantic HTML structure
-
----
-
-## 💡 MOBILE-SPECIFIC FEATURES
-
-1. **Pull to refresh** (optional)
-2. **Native share** (use Web Share API)
-3. **Add to home screen** prompt
-4. **Haptic feedback** on interactions (if supported)
-5. **Gesture controls** (swipe, pinch, etc.)
-6. **Bottom sheet modals** (native mobile pattern)
-7. **Toast notifications** (brief, non-intrusive)
+**Spacing:**
+- Generous padding inside cards (16px minimum)
+- Clear separation between sections (24px gaps)
+- Comfortable line height for text
+- Breathing room around interactive elements
 
 ---
 
-## 🚀 MOBILE IMPLEMENTATION NOTES
+## MOBILE-SPECIFIC BEHAVIORS
 
-### CRITICAL - LAKU INTEGRATION
-**This product page integrates with your existing Laku app:**
+**Touch Targets:**
+- All buttons at least 44x44 pixels for easy tapping
+- Enough space between tappable elements
+- No tiny touch targets
 
-1. **Use Existing Components**:
-   - Header: Modify existing header component, don't create new one
-   - Bottom Nav: Keep existing bottom nav, add overlay action bar if needed
-   - Search: Use existing search functionality
-   - Product Cards: Use same card component as homepage
+**Scrolling:**
+- Smooth vertical scrolling
+- Tabs stick when scrolling past them
+- Infinite scroll for reviews (or paginated load more)
+- Horizontal scroll for filter pills (if many)
+- Horizontal scroll for review images
 
-2. **Routing**: 
-   - Route: `/product/[id]` or `/p/[id]`
-   - Navigates from homepage grid, search results, or category pages
-   - Back button returns to previous page
+**Loading States:**
+- Skeleton screens while loading content
+- Loading spinners for actions
+- Smooth transitions when data loads
 
-3. **State Management**:
-   - Cart state: Update existing cart (Keranjang)
-   - Wishlist state: Sync with user profile
-   - User session: Use existing auth
-
-4. **Styling**:
-   - Import existing Laku design tokens/variables
-   - Use same color palette (especially red for prices)
-   - Match existing typography
-   - Consistent spacing scale
-
-5. **Layout Strategy**:
-   - Full-width content (no left sidebar on mobile)
-   - Content starts below existing header
-   - Scrollable main content
-   - Fixed bottom action bar above bottom nav
-
-1. **Mobile-first development** - Start with mobile, scale up later
-2. **Use Client Components** for all interactive elements
-3. **Touch event handlers** instead of click when needed
-4. **Test on actual devices** - emulators aren't enough
-5. **Consider thumb zones** - easy-to-reach areas
-6. **Vertical scrolling** is natural, horizontal scroll sparingly
-7. **Fixed position elements** - header and bottom bar only
-8. **Prevent zoom** on input focus (font-size >= 16px)
+**Feedback:**
+- Toast notifications for actions (added to cart, saved to wishlist)
+- Button press states (slight scale down)
+- Disabled states clearly shown
 
 ---
 
-## ✅ MOBILE ACCEPTANCE CRITERIA
+## KEY REFERENCE BEHAVIORS
 
-The mobile product page is complete when:
-- ✅ Renders perfectly on 320px to 767px screens
-- ✅ Image carousel swipes smoothly with gestures
-- ✅ All touch targets are minimum 44x44px
-- ✅ Sticky header and bottom bar work correctly
-- ✅ Tab navigation works with smooth scrolling
-- ✅ Variant selection updates properly
-- ✅ Add to cart shows validation and loading states
-- ✅ Wishlist toggles with visual feedback
-- ✅ Reviews load with filtering and sorting
-- ✅ Modals slide up from bottom
-- ✅ All text is readable and properly sized
-- ✅ Page loads fast (< 2s on 4G)
-- ✅ No horizontal scroll (unless intentional)
-- ✅ Touch interactions feel responsive
-- ✅ Accessibility standards are met
+**Study These Specific Interactions:**
 
----
+**From Shopee:**
+- How the bottom action bar works above the main navigation
+- How the variant bottom sheet slides up and dismisses
+- How tabs organize content
+- How product images carousel smoothly
 
-## 🎨 COLOR SCHEME GUIDANCE
+**From Taobao:**
+- How they show seller information prominently
+- How detailed their size charts are
+- How customer size feedback is displayed
+- How review filtering works
 
-Choose colors that:
-- Make price highly visible and attention-grabbing
-- Create clear distinction between primary and secondary actions
-- Ensure bottom bar stands out from page content
-- Make sale/discount badges pop without being jarish
-- Provide excellent readability for all text sizes
-- Work well for success states (cart add, save)
-- Match Laku brand identity
+**From SHEIN:**
+- How clean and minimal the design is
+- How badges are used for trends and promotions
+- How ratings and reviews are displayed
+- How the "More from seller" section works
 
 ---
 
-**DELIVERABLE:**
-A complete mobile product page (320-767px) that feels like a best-in-class mobile shopping experience with smooth touch interactions, clear visual hierarchy, and optimized for one-handed use.
+## WHAT TO BUILD
 
-**NOTE:** This is Part 1 of 2. Desktop/Tablet view is a separate implementation with different layout patterns.
+Create a mobile product page that:
+- Feels native to your existing Laku app
+- Uses your existing header and bottom navigation
+- Organizes information using tabs like Shopee/Taobao
+- Has smooth touch interactions
+- Shows product info clearly
+- Makes buying easy with the variant bottom sheet
+- Matches your current design system exactly
+- Works perfectly on small screens (320px+)
+
+Focus on making it feel fast, smooth, and easy to use on a phone. Every interaction should feel natural and responsive.

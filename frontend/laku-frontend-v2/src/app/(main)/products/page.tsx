@@ -1,40 +1,27 @@
-'use client';
-
-import { useState } from 'react';
 import { AppLayout } from '@/components/layouts';
 import { CenterColumnFeed } from '@/components/layouts/center-column';
-import { MOCK_PRODUCTS, fetchMoreProducts } from '@/lib/mock-data';
+import { MOCK_PRODUCTS } from '@/lib/mock-data';
+import React, { Suspense } from 'react';
+import ProductGridSkeleton from '@/components/product/ProductGridSkeleton';
 
-export default function ProductsPage() {
-  // Start with first 20 products for infinite scroll
-  const initialProducts = MOCK_PRODUCTS.slice(0, 20);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadCount, setLoadCount] = useState(0);
+interface ProductsPageProps {
+  searchParams?: Record<string, string | string[]>;
+}
 
-  const onLoadMore = async () => {
-    try {
-      const newProducts = await fetchMoreProducts(initialProducts.length + (loadCount * 20), 20);
-      setLoadCount(prev => prev + 1);
+export default async function ProductsPage({ searchParams }: ProductsPageProps) {
+  // Server-side: fetch or compute initial product list using searchParams for filters/sort
+  // For now use mock data; replace with real fetch later.
+  const allProducts = MOCK_PRODUCTS;
 
-      // Stop loading after 3 batches (60 total products)
-      if (loadCount >= 2) {
-        setHasMore(false);
-      }
-
-      return newProducts;
-    } catch (error) {
-      console.error('Error loading more products:', error);
-      setHasMore(false);
-      return [];
-    }
-  };
+  // TODO: apply server-side filtering/sorting using searchParams
+  const initialProducts = allProducts.slice(0, 20);
+  const hasMore = allProducts.length > initialProducts.length;
 
   return (
     <AppLayout>
-      <CenterColumnFeed
-        products={initialProducts}
-        hasMore={hasMore}
-      />
+      <Suspense fallback={<ProductGridSkeleton />}>
+        <CenterColumnFeed products={initialProducts} hasMore={hasMore} />
+      </Suspense>
     </AppLayout>
   );
 }

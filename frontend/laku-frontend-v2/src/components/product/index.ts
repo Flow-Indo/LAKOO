@@ -1,20 +1,9 @@
-export { ProductDetailClient } from './ProductDetailClient';
-export { ProductHeader } from './ProductHeader';
-export { ProductImageGallery } from './ProductImageGallery';
-export { ProductPriceSection } from './ProductPriceSection';
-export { ProductTitle } from './ProductTitle';
-export { ProductVariantSelector } from './ProductVariantSelector';
-export { ProductShippingInfo } from './ProductShippingInfo';
-export { ProductPolicies } from './ProductPolicies';
-export { ProductSellerCard } from './ProductSellerCard';
-export { ProductSellerProducts } from './ProductSellerProducts';
+export { default as ProductImageGallery } from './ProductImageGallery';
+export { ProductImageCarousel } from './ProductImageCarousel';
+export { default as ProductInfo } from './ProductInfo';
+export { CollapsibleSection } from './CollapsibleSection';
 export { ProductTabs } from './ProductTabs';
-export { ProductBottomBar } from './ProductBottomBar';
-
-// Existing components
-export { AddToCartButton } from './AddToCartButton';
-export { InfiniteProductFeed } from './InfiniteProductFeed';
-export { ProductCard } from './ProductCard';
-export { ProductGrid } from './ProductGrid';
-export { ProductMasonryGrid } from './ProductMasonryGrid';
-export { ResponsiveProductGrid } from './ResponsiveProductGrid';
+export { ReviewsSection } from './ReviewsSection';
+export { RecommendationsSection } from './RecommendationsSection';
+export { CustomersAlsoViewed } from './CustomersAlsoViewed';
+export { default as StickyBottomBar } from './StickyBottomBar';

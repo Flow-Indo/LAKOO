@@ -31,19 +31,19 @@ export async function fetchMoreProducts(offset: number, limit: number): Promise<
   return additionalProducts;
 }
 
-export const MOCK_PRODUCTS: Product[] = [
+export const MOCK_PRODUCTS_RAW: Product[] = [
   {
     id: '1',
-    name: 'Batik Tulis Jogja Premium',
+    name: 'LEA 606 - Regular Fit Base Series 12,75 Oz Black 619027391023483194',
     slug: 'batik-tulis-jogja-premium',
     price: 450000,
     originalPrice: 600000,
     discount: 25,
-    image: 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=500',
+    image: '/jeans/jean_mock_images2/IMG_0001.JPG',
     images: [
-      'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=800',
-      'https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=800',
+      { url: '/jeans/jean_mock_images2/IMG_0001.JPG' }
     ],
+    imageTall: false,
     category: 'Fashion',
     description: 'Batik tulis asli Jogja dengan motif klasik. Dibuat dengan pewarna alami dan dikerjakan oleh pengrajin berpengalaman.',
     stock: 15,
@@ -61,7 +61,12 @@ export const MOCK_PRODUCTS: Product[] = [
     name: 'Kopi Arabica Gayo Premium 500g',
     slug: 'kopi-arabica-gayo-premium',
     price: 125000,
-    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=500',
+    image: '/jeans/jean_mock_images2/IMG_0002.JPG',
+    images: [
+      { url: '/jeans/jean_mock_images2/IMG_0002.JPG' }
+    ],
+    imageTall: true,
+    isOfficial: true,
     category: 'Makanan & Minuman',
     description: 'Kopi Arabica dari dataran tinggi Gayo, Aceh. Citarasa khas dengan aroma yang kuat.',
     stock: 50,
@@ -81,7 +86,12 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 750000,
     originalPrice: 950000,
     discount: 21,
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500',
+    image: '/jeans/jean_mock_images2/IMG_0003.JPG',
+    images: [
+      { url: '/jeans/jean_mock_images2/IMG_0003.JPG' }
+    ],
+    imageTall: true,
+    isOfficial: true,
     category: 'Fashion',
     description: 'Tenun ikat asli Sumba dengan motif tradisional. Cocok untuk acara formal atau koleksi pribadi.',
     stock: 8,
@@ -99,7 +109,11 @@ export const MOCK_PRODUCTS: Product[] = [
     name: 'Madu Hutan Kalimantan 1kg',
     slug: 'madu-hutan-kalimantan',
     price: 280000,
-    image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=500',
+    image: '/jeans/jean_mock_images2/IMG_0004.JPG',
+    images: [
+      { url: '/jeans/jean_mock_images2/IMG_0004.JPG' }
+    ],
+    imageTall: false,
     category: 'Makanan & Minuman',
     description: 'Madu hutan asli dari hutan Kalimantan. Dipanen secara tradisional tanpa bahan kimia.',
     stock: 25,
@@ -119,7 +133,12 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 350000,
     originalPrice: 420000,
     discount: 17,
-    image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=500',
+    image: '/jeans/jean_mock_images2/IMG_0005.JPG',
+    images: [
+      { url: '/jeans/jean_mock_images2/IMG_0005.JPG' }
+    ],
+    imageTall: false,
+    isOfficial: true,
     category: 'Fashion',
     description: 'Kerajinan perak tangan dengan motif Jawa klasik. Bisa untuk gelang, kalung, atau aksesoris lainnya.',
     stock: 12,
@@ -137,7 +156,12 @@ export const MOCK_PRODUCTS: Product[] = [
     name: 'Gula Semut Merah Premium 250g',
     slug: 'gula-semut-merah-premium',
     price: 95000,
-    image: 'https://images.unsplash.com/photo-1587393855524-087f83d95bc9?w=500',
+    image: '/jeans/jean_mock_images2/IMG_0006.JPG',
+    images: [
+      { url: '/jeans/jean_mock_images2/IMG_0006.JPG' }
+    ],
+    imageTall: true,
+    isOfficial: false,
     category: 'Makanan & Minuman',
     description: 'Gula semut merah organik dari petani lokal. Kaya akan nutrisi dan cocok untuk kesehatan.',
     stock: 40,
@@ -155,7 +179,11 @@ export const MOCK_PRODUCTS: Product[] = [
     name: 'Batik Cap Modern Motif Abstrak',
     slug: 'batik-cap-modern-motif-abstrak',
     price: 180000,
-    image: 'https://images.unsplash.com/photo-1610701596061-2ecf227e85b2?w=500',
+    image: '/jeans/jean_mock_images2/IMG_0007.JPG',
+    images: [
+      { url: '/jeans/jean_mock_images2/IMG_0007.JPG' }
+    ],
+    imageTall: false,
     category: 'Fashion',
     description: 'Batik cap dengan motif modern dan abstrak. Nyaman dipakai untuk acara casual maupun semi formal.',
     stock: 30,
@@ -175,7 +203,12 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 450000,
     originalPrice: 550000,
     discount: 18,
-    image: 'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=500',
+    image: '/jeans/jean_mock_images2/IMG_9999.JPG',
+    images: [
+      { url: '/jeans/jean_mock_images2/IMG_9999.JPG' }
+    ],
+    imageTall: true,
+    isOfficial: true,
     category: 'Makanan & Minuman',
     description: 'Kopi luwak premium dengan proses fermentasi alami. Citarasa unik dan langka.',
     stock: 5,
@@ -189,7 +222,11 @@ export const MOCK_PRODUCTS: Product[] = [
     },
   }
 ];
-
+// Deterministically assign tall images across the mock set to avoid non-deterministic SSR mismatches.
+export const MOCK_PRODUCTS: Product[] = MOCK_PRODUCTS_RAW.map((p, i) => ({
+  ...p,
+  imageTall: typeof p.imageTall === 'boolean' ? p.imageTall : (i % 3 === 0),
+}));
 export const CATEGORIES = [
   { id: '1', name: 'Fashion', slug: 'fashion', icon: '👔' },
   { id: '2', name: 'Makanan & Minuman', slug: 'food-beverage', icon: '🍽️' },

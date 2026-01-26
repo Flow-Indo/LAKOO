@@ -46,9 +46,12 @@ export function DesktopStoreProducts({
     }
 
     if (filters.priceRange) {
-      products = products.filter(product =>
-        product.price >= filters.priceRange!.min && product.price <= (filters.priceRange!.max || Infinity)
-      );
+      const { min, max } = filters.priceRange;
+      products = products.filter(product => {
+        const meetsMin = min === undefined || product.price >= min;
+        const meetsMax = max === undefined || product.price <= max;
+        return meetsMin && meetsMax;
+      });
     }
 
     if (filters.rating) {

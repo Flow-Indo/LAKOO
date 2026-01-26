@@ -92,7 +92,7 @@ Create a comprehensive, mobile-first store/shop page at `/store/[sellerId]` rout
 ### 5. PROMO/ANNOUNCEMENT BANNER (OPTIONAL)
 If store has active promotions:
 - Slim banner (40-50px height)
-- Promotional message (e.g., "开通88VIP，退货免运费")
+- Promotional message (e.g., "开通vip，退货免运费")
 - Dismiss button or auto-hide
 - Accent background color
 

@@ -125,13 +125,13 @@ export interface Store {
 export interface StoreFilter {
   categories?: string[];
   priceRange?: {
-    min: number;
-    max: number;
+    min?: number;
+    max?: number;
   };
   rating?: number; // minimum rating (1-5)
   shipping?: {
-    free: boolean;
-    express: boolean;
+    free?: boolean;
+    express?: boolean;
   };
   discount?: boolean;
   condition?: 'new' | 'like-new' | 'used';

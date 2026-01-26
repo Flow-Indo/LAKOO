@@ -16,7 +16,15 @@ html {
 body {
   height: 100%;
   background-color: #FFFFFF;
-  overflow: hidden;
+  overflow: auto; /* allow page scrolling by default */
+  font-family: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont,
+    'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 
@@ -150,7 +158,7 @@ body {
   body {
     height: 100%;
     background-color: #F9FAFB;
-    overflow: hidden;
+    overflow: auto;
   }
 
   /* Prevent horizontal scroll on all screen sizes */
@@ -192,11 +200,338 @@ body {
   }
 }
 
+/* ===== PLUS JAKARTA SANS TYPOGRAPHY ===== */
+
+/* Apply font to all elements */
+* {
+  font-family: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont,
+    'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+}
+
+/* Buttons */
+button, .btn {
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-weight: 600;
+}
+
+/* Inputs */
+input, textarea, select {
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+
+/* Links */
+a {
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+
+/* Typography Scale for Indonesian Text */
+
+/* Display Text */
+.text-display {
+  font-size: 3.5rem; /* 56px */
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Heading 1 */
+.text-h1 {
+  font-size: 2.5rem; /* 40px */
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+/* Heading 2 */
+.text-h2 {
+  font-size: 2rem; /* 32px */
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+/* Heading 3 */
+.text-h3 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Heading 4 */
+.text-h4 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Body Large */
+.text-body-lg {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Body Regular */
+.text-body {
+  font-size: 1rem; /* 16px */
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Body Small */
+.text-body-sm {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Caption */
+.text-caption {
+  font-size: 0.75rem; /* 12px */
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Button Text */
+.text-button {
+  font-size: 1rem; /* 16px */
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* Price Text */
+.text-price {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Indonesian text needs slightly more line-height */
+.text-indonesia {
+  line-height: 1.65;
+}
+
+/* Font Weight Reference */
+
+/* Extra Light - 200 */
+.text-extra-light {
+  font-weight: 200;
+}
+/* Use for: Subtle decorative text, large hero text */
+
+/* Light - 300 */
+.text-light {
+  font-weight: 300;
+}
+/* Use for: Secondary information, captions */
+
+/* Regular - 400 */
+.text-regular {
+  font-weight: 400;
+}
+/* Use for: Body text, descriptions, paragraphs */
+
+/* Medium - 500 */
+.text-medium {
+  font-weight: 500;
+}
+/* Use for: Emphasized text, labels, tabs */
+
+/* Semibold - 600 */
+.text-semibold {
+  font-weight: 600;
+}
+/* Use for: Buttons, important labels, cards */
+
+/* Bold - 700 */
+.text-bold {
+  font-weight: 700;
+}
+/* Use for: Headings, prices, CTAs */
+
+/* Extra Bold - 800 */
+.text-extrabold {
+  font-weight: 800;
+}
+/* Use for: Large headings, hero titles, special emphasis */
+
+/* Mobile-specific typography adjustments */
+@media (max-width: 768px) {
+  /* Slightly smaller headings on mobile */
+  .text-display {
+    font-size: 2.5rem; /* 40px */
+  }
+
+  .text-h1 {
+    font-size: 2rem; /* 32px */
+  }
+
+  .text-h2 {
+    font-size: 1.5rem; /* 24px */
+  }
+
+  /* Ensure readability on small screens */
+  body {
+    font-size: 16px; /* Never go below 16px on mobile */
+  }
+
+  /* Better tap targets */
+  button, a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ===== SWIPER STYLES ===== */
+
+/* Default swiper styles */
+.swiper-pagination {
+  bottom: 16px !important;
+}
+
+.swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  opacity: 1;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* Taobao-style swiper pagination (white bullets) */
+.swiper-pagination-bullet.bg-white\/50 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.swiper-pagination-bullet.bg-white {
+  background-color: white !important;
+}
+
+/* ===== SAFE AREA SUPPORT ===== */
+
+/* iOS safe area support for bottom bar */
+.safe-area-pb, .pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+/* ===== PRODUCT PAGE SCROLLING FIXES ===== */
+
+/* Ensure page scrolls properly */
+html, body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Remove swiper pagination default styles conflict */
+.swiper-pagination {
+  bottom: 16px !important;
+}
+
+.swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+}
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* ===== ROUTE-BASED STYLES ===== */
 
 /* Live route exception - center column can be black */
 .live-route-container {
   background-color: #000000 !important;
+}
+
+/* ===== MOBILE PRODUCT PAGE STYLES ===== */
+
+/* Ensure mobile scrolling works properly on product pages */
+@media (max-width: 1023px) {
+  html, body {
+    overflow: auto !important;
+    height: auto !important;
+  }
+
+  /* Prevent over-scrolling on product pages */
+  /* Gentle overscroll prevention for mobile product pages */
+  body:has(.mobile-product-page) {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Mobile product page container */
+  .mobile-product-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent overscroll on all child elements */
+  .mobile-product-page * {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Specific fix for scrollable content area */
+  .mobile-product-page .flex-1 {
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent all overscroll on mobile */
+  @supports (-webkit-touch-callout: none) {
+    .mobile-product-page {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: none;
+    }
+  }
+}
+
+/* Hide scrollbar on thumbnail strip */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Taobao-style swiper pagination */
+.swiper-pagination {
+  bottom: 100px !important; /* Above thumbnail strip */
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.swiper-pagination-bullet {
+  transition: all 0.3s ease;
+  margin: 0 !important;
 }
 
 /* Ensure transitions don't flash black */
@@ -208,4 +543,108 @@ body {
 .live-route-container {
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ===== GRID & IMAGE FIXES FOR TAOBAO-STYLE LAYOUT ===== */
+/* (Removed aggressive .grid > * override to avoid global layout interference) */
+
+/* Masonry product container (tight edges, 2 columns, horizontal gap only) */
+.product-masonry {
+  padding: 0;
+  box-sizing: border-box;
+  column-count: 2;
+  column-gap: 0;
+  -webkit-column-fill: balance;
+  column-fill: balance;
+  width: 100%;
+}
+
+.product-masonry-item {
+  display: block;
+  width: 100%;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  margin-bottom: 4px; /* vertical spacing between cards */
+}
+
+/* Ensure page always allows vertical scrolling */
+html, body, #__next {
+  height: auto !important;
+  overflow-y: auto !important;
+}
+
+/* Full-bleed helper to escape parent padding and touch screen edges */
+.full-bleed {
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  width: 100vw;
+  box-sizing: border-box;
+  /* tiny side gaps to avoid touching screen edges */
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 10px;
+}
+
+/* Full-bleed helper to cancel parent paddings (mobile -> xl) */
+.product-full-bleed {
+  width: calc(100% + 48px);
+  margin-left: -24px;
+  margin-right: -24px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .product-full-bleed {
+    width: calc(100% + 64px);
+    margin-left: -32px;
+    margin-right: -32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-full-bleed {
+    width: calc(100% + 96px);
+    margin-left: -48px;
+    margin-right: -48px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .product-full-bleed {
+    width: calc(100% + 128px);
+    margin-left: -64px;
+    margin-right: -64px;
+  }
+}
+
+/* Simple aspect-square fallback for environments without Tailwind aspect-ratio */
+.aspect-square {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%;
+}
+.aspect-square > img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Small gap variant used on product grid */
+.gap-2 {
+  gap: 8px;
+}
+
+/* Line clamp helper for two-line truncation with ellipsis */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 }

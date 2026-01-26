@@ -1,4 +1,7 @@
+'use client';
+
 import { ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { LeftSidebar } from './LeftSidebar';
 import { BottomNav } from './BottomNav';
 
@@ -7,14 +10,19 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const pathname = usePathname();
+
+  // Hide bottom navigation on product pages
+  const isProductPage = pathname?.startsWith('/product/');
+
   return (
     <div className="w-full min-h-screen bg-white">
-      <div className="grid grid-cols-1 md:grid-cols-[72px_1fr] xl:grid-cols-[245px_1fr] h-screen">
+      <div className={`grid grid-cols-1 md:grid-cols-[72px_1fr] xl:grid-cols-[245px_1fr] ${isProductPage ? '' : 'h-screen'}`}>
         <LeftSidebar />
-        <main className="overflow-y-auto bg-white">
+        <main className={`bg-white ${isProductPage ? 'overflow-y-auto' : 'overflow-y-auto'}`}>
           {children}
         </main>
-        <BottomNav />
+        {!isProductPage && <BottomNav />}
       </div>
     </div>
   );
