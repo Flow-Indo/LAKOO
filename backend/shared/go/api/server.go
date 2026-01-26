@@ -28,10 +28,11 @@ func NewServer(config ServerConfig) *Server {
 	}
 }
 
-func (s *Server) RegisterRoutes(registerFunc func(*mux.Router)) {
-	subrouter := s.router.PathPrefix(fmt.Sprintf("/api%s", s.config.APIPrefix)).Subrouter()
+func (s *Server) RegisterRoutes(registerFunc func(*mux.Router, *mux.Router)) {
+	external_subrouter := s.router.PathPrefix(fmt.Sprintf("/api%s", s.config.APIPrefix)).Subrouter()
+	internal_subrouter := s.router.PathPrefix(fmt.Sprintf("/internal%s", s.config.APIPrefix)).Subrouter()
 
-	registerFunc(subrouter)
+	registerFunc(external_subrouter, internal_subrouter)
 }
 
 func (s *Server) Start() error {

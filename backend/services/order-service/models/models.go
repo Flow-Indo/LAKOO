@@ -4,7 +4,7 @@ package models
 import (
 	"time"
 
-	"github.com/Flow-Indo/LAKOO/backend/shared/types"
+	"github.com/Flow-Indo/LAKOO/backend/shared/go/utils"
 	"github.com/shopspring/decimal"
 )
 
@@ -51,7 +51,7 @@ type OrderItem struct {
 	Quantity        int             `gorm:"not null" json:"quantity"`
 	UnitPrice       decimal.Decimal `gorm:"type:bigint;not null" json:"unit_price"`
 	Subtotal        decimal.Decimal `gorm:"type:bigint;not null" json:"subtotal"`
-	ProductSnapshot types.JSONB     `gorm:"type:jsonb" json:"product_snapshot"`
+	ProductSnapshot utils.JSONB     `gorm:"type:jsonb" json:"product_snapshot"`
 	CreatedAt       time.Time       `gorm:"not null" json:"created_at"`
 
 	Order   Order   `gorm:"foreignKey:OrderID" json:"-"`

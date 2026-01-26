@@ -7,7 +7,7 @@ import (
 
 	// "github.com/segmentio/kafka-go"
 	"github.com/Flow-Indo/LAKOO/backend/services/notification-service/config"
-	kafkaService "github.com/Flow-Indo/LAKOO/backend/shared/kafka"
+	kafkaService "github.com/Flow-Indo/LAKOO/backend/shared/go/kafka"
 	"go.uber.org/zap"
 )
 
