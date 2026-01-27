@@ -1,6 +1,7 @@
 import { prisma } from '@src/lib/prisma';
 import bcrypt from 'bcrypt';
 import { error } from 'console';
+import { UserRole } from '@src/models/models';
 
 
 export class UserRepository {
@@ -32,10 +33,10 @@ export class UserRepository {
             const user = await prisma.user.create({
                 data: {
                     phoneNumber: phoneNumber,
-                    first_name: firstName,
-                    last_name: lastName || '',
-                    password_hash: hashedPassword,
-                    role: 'customer',
+                    firstName: firstName || '',
+                    lastName: lastName || '',
+                    passwordHash: hashedPassword,
+                    role: UserRole.Buyer,
                     status: 'active',
                 },
             })
