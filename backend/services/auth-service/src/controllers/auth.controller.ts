@@ -1,5 +1,4 @@
 import { type Request, type Response} from 'express';
-import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import { UserResponseDTO } from '@src/types/response_dto';
 import AuthService from '@src/services/auth.service';

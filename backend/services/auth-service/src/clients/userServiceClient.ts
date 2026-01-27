@@ -103,9 +103,8 @@ export class UserHTTPClient implements UserServiceClient {
                     throw new Error("No response from user service");
                 }
 
-                throw new Error(`Failed to create user: ${error instanceof Error ? error.message : String(error)}`);
-
             }
+            throw new Error(`Failed to create user: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 

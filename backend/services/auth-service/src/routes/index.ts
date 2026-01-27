@@ -10,7 +10,7 @@ const controller = new AuthController();
 
 
 router.post("/login", validate(getUserBodyLoginSchema), controller.login);
-router.post("/signup", validate(getUserBodySignUpSchema), controller.signup)
+router.post("/signup", validate(getUserBodySignUpSchema), controller.signup);
 // router.post("/refresh", controller.refresh);
 // router.post("/sendOTP", controller.sendOTP);
 
