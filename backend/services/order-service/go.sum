@@ -1,5 +1,5 @@
-github.com/Flow-Indo/LAKOO/backend/shared v0.0.0-20260109082945-9c63e42ac69b h1:XoFyYfkWm0yj0mXxXgUsqkXzyEpagE79YZGfHXPEvLU=
-github.com/Flow-Indo/LAKOO/backend/shared v0.0.0-20260109082945-9c63e42ac69b/go.mod h1:v6BpXgR1g2PRCTOKW4k5jUOznPi35GtteD21VImbfAc=
+github.com/Flow-Indo/LAKOO/backend/shared/go v0.0.0-20260119151619-f06f49a17d9a h1:hI92sd/8vrzzW++cwVxM9+OL9xlD2AMJolAQXeNolsI=
+github.com/Flow-Indo/LAKOO/backend/shared/go v0.0.0-20260119151619-f06f49a17d9a/go.mod h1:r0/lNzn7nSkwlCzUzglPSHp8qTZb0VIX9B1EstljvAw=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

@@ -76,5 +76,9 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 
+#air hot reload for go
+.air.toml
+.air.conf
+
 
 

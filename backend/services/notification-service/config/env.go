@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/Flow-Indo/LAKOO/backend/shared/env"
+	"github.com/Flow-Indo/LAKOO/backend/shared/go/env"
 	"github.com/lpernett/godotenv"
 )
 

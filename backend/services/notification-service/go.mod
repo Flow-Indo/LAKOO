@@ -3,7 +3,7 @@ module github.com/Flow-Indo/LAKOO/backend/services/notification-service
 go 1.25.0
 
 require (
-	github.com/Flow-Indo/LAKOO/backend/shared v0.0.0-20260109082945-9c63e42ac69b
+	github.com/Flow-Indo/LAKOO/backend/shared/go v0.0.0-20260119151619-f06f49a17d9a
 	github.com/lpernett/godotenv v0.0.0-20230527005122-0de1d4c5ef5e
 	github.com/twilio/twilio-go v1.29.1
 	go.uber.org/zap v1.27.1

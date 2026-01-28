@@ -5,7 +5,7 @@ import (
 
 	"github.com/Flow-Indo/LAKOO/backend/services/order-service/internal/service"
 	"github.com/Flow-Indo/LAKOO/backend/services/order-service/types"
-	"github.com/Flow-Indo/LAKOO/backend/services/order-service/utils"
+	"github.com/Flow-Indo/LAKOO/backend/shared/go/utils"
 	"github.com/gorilla/mux"
 )
 
@@ -20,7 +20,6 @@ func NewHandler(orderService *service.OrderService) *OrderHandler {
 }
 
 func (h *OrderHandler) RegisterRoutes(orderRouter *mux.Router) {
-
 	orderRouter.HandleFunc("", h.getOrders).Methods("GET")
 	orderRouter.HandleFunc("", h.createOrder).Methods("POST")
 	// orderRouter.HandleFunc("/bulk", h.orderService.createBulkOrders).Methods("POST")

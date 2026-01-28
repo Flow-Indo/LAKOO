@@ -4,12 +4,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type CartItem struct {
-	ID       uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	CartID   uuid.UUID `gorm:"type:uuid;not null;index"`     // Foreign key to cart
-	ItemType string    `gorm:"type:cart_item_type;not null"` // Assuming USER-DEFINED type for cart_item_type enum
+	ID       uuid.UUID    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	CartID   uuid.UUID    `gorm:"type:uuid;not null;index"` // Foreign key to cart
+	ItemType CartItemType `gorm:"type:string;not null"`     // Assuming USER-DEFINED type for cart_item_type enum
 
 	// Product references (nullable foreign keys)
 	ProductID       *uuid.UUID `gorm:"type:uuid;index"`
@@ -25,6 +26,7 @@ type CartItem struct {
 	CurrentUnitPrice     float64   `gorm:"type:decimal(10,2);not null"`
 	PriceChanged         bool      `gorm:"not null;default:false"`
 	PriceLastCheckedAt   time.Time `gorm:"type:timestamptz;not null"`
+	Subtotal             float64   `gorm:"type:numeric(10,2);not null;default:0.0" json:"subtotal"`
 
 	// Availability
 	IsAvailable         bool    `gorm:"not null;default:true"`
@@ -43,3 +45,41 @@ type CartItem struct {
 	AddedAt   time.Time `gorm:"type:timestamptz;not null;autoCreateTime"`
 	UpdatedAt time.Time `gorm:"type:timestamptz;not null;autoUpdateTime"`
 }
+
+type Cart struct {
+	ID             uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	UserID         *uuid.UUID     `gorm:"type:uuid;index" json:"user_id"`
+	LastActivityAt time.Time      `gorm:"not null" json:"last_activity_at"`
+	CreatedAt      time.Time      `gorm:"not null" json:"created_at"`
+	UpdatedAt      time.Time      `gorm:"not null" json:"updated_at"`
+	Status         CartStatus     `gorm:"type:string;not null" json:"status"`
+	ItemCount      int            `gorm:"not null;default:0" json:"item_count"`
+	Total          float64        `gorm:"type:numeric(10,2);not null;default:0.0" json:"total"`
+	CouponID       *uuid.UUID     `gorm:"type:uuid" json:"coupon_id"`
+	DiscountAmount float64        `gorm:"type:numeric(10,2);not null;default:0.0" json:"discount_amount"`
+	ExpiresAt      *time.Time     `gorm:"index" json:"expires_at"`
+	SessionID      *string        `gorm:"type:varchar(255)" json:"session_id"`
+	CouponCode     *string        `gorm:"type:varchar(100)" json:"coupon_code"`
+	Currency       string         `gorm:"type:varchar(3);not null;default:'USD'" json:"currency"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
+
+	// Relationships
+	Items []CartItem `gorm:"foreignKey:CartID;constraint:OnDelete:CASCADE;" json:"items,omitempty"`
+	// User  *User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
+}
+
+type CartStatus string
+
+const (
+	CartStatusActive     CartStatus = "active"
+	CartStatusAbandoned  CartStatus = "abandoned"
+	CartStatusCheckedOut CartStatus = "checked_out"
+	CartStatusExpired    CartStatus = "expired"
+)
+
+type CartItemType string
+
+const (
+	BrandProduct  CartItemType = "brand_product"
+	SellerProduct CartItemType = "seller_product"
+)

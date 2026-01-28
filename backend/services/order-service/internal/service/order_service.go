@@ -8,9 +8,8 @@ import (
 	"github.com/Flow-Indo/LAKOO/backend/services/order-service/models"
 
 	"github.com/Flow-Indo/LAKOO/backend/services/order-service/types"
-	"github.com/Flow-Indo/LAKOO/backend/services/order-service/utils"
-	"github.com/Flow-Indo/LAKOO/backend/shared/kafka"
-	sharedTypes "github.com/Flow-Indo/LAKOO/backend/shared/types"
+	"github.com/Flow-Indo/LAKOO/backend/shared/go/kafka"
+	"github.com/Flow-Indo/LAKOO/backend/shared/go/utils"
 )
 
 type OrderService struct {
@@ -142,7 +141,7 @@ func (service *OrderService) toUserResponse(user models.User) types.UserResponse
 	return userResponse
 }
 
-func (s *OrderService) parseProductSnapshot(snapshot sharedTypes.JSONB) types.ProductSnapshot {
+func (s *OrderService) parseProductSnapshot(snapshot utils.JSONB) types.ProductSnapshot {
 
 	return types.ProductSnapshot{
 		Factory: types.ProductSnapshotFactory{
