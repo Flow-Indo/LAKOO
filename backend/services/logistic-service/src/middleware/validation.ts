@@ -64,6 +64,13 @@ export const createShipmentSchema = z.object({
   metadata: z.record(z.any()).optional()
 });
 
+/**
+ * Internal service calls must supply the userId explicitly (there is no gateway user context).
+ */
+export const createShipmentInternalSchema = createShipmentSchema.extend({
+  userId: z.string().uuid()
+});
+
 export const getRatesSchema = z.object({
   originPostalCode: z.string().min(1),
   destPostalCode: z.string().min(1),

@@ -2,25 +2,30 @@ import { z } from 'zod';
 
 //req params validation
 export const getUserParamsSchema = z.object({
-    phoneNumber: z.string()
-        .min(10, "Phone number must be at least 10 digits")
+    params: z.object({
+        phoneNumber: z.string()
+            .min(10, "Phone number must be at least 10 digits")
         //FIX: maybe regex for phone number format later
+    })
 })
 
 // req body validation
 export const getUserBodyLoginSchema = z.object({
-    phoneNumber: z.string()
-        .min(10, "Phone number must be at least 10 digits"),
-    password: z.string()
-        
+    body: z.object({
+        phoneNumber: z.string()
+            .min(10, "Phone number must be at least 10 digits"),
+        password: z.string(),
+    })
 })
 
 export const getUserBodySignInSchema = z.object({
-    phoneNumber: z.string()
-        .min(10, "Phone number must be at least 10 digits"),
-    firstName: z.string(),
-    lastName: z.string(),   
-    password: z.string(),
+    body: z.object({
+        phoneNumber: z.string()
+            .min(10, "Phone number must be at least 10 digits"),
+        firstName: z.string(),
+        lastName: z.string(),
+        password: z.string(),
+    })
 })
 
 

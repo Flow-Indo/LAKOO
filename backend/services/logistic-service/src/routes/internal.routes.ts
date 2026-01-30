@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { shipmentController } from '../controllers/shipment.controller';
 import { rateController } from '../controllers/rate.controller';
 import { requireInternalAuth } from '../middleware/auth';
-import { validate, createShipmentSchema, getRatesSchema } from '../middleware/validation';
+import { validate, createShipmentInternalSchema, getRatesSchema } from '../middleware/validation';
 
 const router: import('express').Router = Router();
 
@@ -14,7 +14,7 @@ router.use(requireInternalAuth);
 // =============================================================================
 
 // Create shipment for an order
-router.post('/shipments', validate(createShipmentSchema), shipmentController.createShipmentInternal);
+router.post('/shipments', validate(createShipmentInternalSchema), shipmentController.createShipmentInternal);
 
 // Book shipment with courier
 router.post('/shipments/:id/book', shipmentController.bookShipmentInternal);

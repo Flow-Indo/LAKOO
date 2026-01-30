@@ -21,73 +21,73 @@ datasource db {
 
 model Shipment {
   id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  shipmentNumber      String         @unique @db.VarChar(50) // SHP-20260115-XXXXX
-  orderId             String         @db.Uuid // Reference to Order Service
-  returnId            String?        @db.Uuid // For return shipments
-  userId              String         @db.Uuid
+  shipmentNumber      String         @unique @map(shipment_number) 
+  orderId             String         @map(order_id)
+  returnId            String?        @map(return_id)
+  userId              String         @map(user_id)
   // Courier info (Biteship integration)
-  courier             String         @db.VarChar(50) // jne, jnt, sicepat, etc.
-  courierName         String?        @db.VarChar(100)
-  serviceType         String?        @db.VarChar(50) // REG, YES, OKE
-  serviceName         String?        @db.VarChar(100)
-  trackingNumber      String?        @db.VarChar(100)
-  waybillId           String?        @db.VarChar(100) // Biteship waybill ID
+  courier             String         @map(courier)
+  courierName         String?        @map(courier_name)
+  serviceType         String?        @map(service_type)
+  serviceName         String?        @map(service_name)
+  trackingNumber      String?        @map(tracking_number)
+  waybillId           String?        @map(waybill_id)
   // Shipping details
-  shippingCost        Decimal        @db.Decimal(15, 2)
-  insuranceCost       Decimal        @default(0) @db.Decimal(15, 2)
-  codAmount           Decimal        @default(0) @db.Decimal(15, 2) // Cash on delivery
-  totalCost           Decimal        @db.Decimal(15, 2)
+  shippingCost        Decimal        @map(shipping_cost)
+  insuranceCost       Decimal        @default(0) @map(insurance_cost)
+  codAmount           Decimal        @default(0) @map(cod_amount) 
+  totalCost           Decimal        @map(total_cost)
   // Package info
-  weightGrams         Int
-  lengthCm            Decimal?       @db.Decimal(10, 2)
-  widthCm             Decimal?       @db.Decimal(10, 2)
-  heightCm            Decimal?       @db.Decimal(10, 2)
-  itemCount           Int            @default(1)
-  itemDescription     String?        @db.VarChar(255)
+  weightGrams         Int            @map(weight_grams)
+  lengthCm            Decimal?       @map(length_cm)
+  widthCm             Decimal?       @map(width_cm)
+  heightCm            Decimal?       @map(height_cm)
+  itemCount           Int            @default(1) @map(item_count)
+  itemDescription     String?        @map(item_description)
   // Origin address (warehouse)
-  originName          String         @db.VarChar(255)
-  originPhone         String         @db.VarChar(20)
-  originAddress       String
-  originDistrict      String?        @db.VarChar(100)
-  originCity          String         @db.VarChar(100)
-  originProvince      String         @db.VarChar(100)
-  originPostalCode    String         @db.VarChar(10)
-  originLatitude      Decimal?       @db.Decimal(10, 8)
-  originLongitude     Decimal?       @db.Decimal(11, 8)
+  originName          String         @map(origin_name)
+  originPhone         String         @map(origin_phone)
+  originAddress       String         @map(origin_address)
+  originDistrict      String?        @map(origin_district)
+  originCity          String         @map(origin_city)
+  originProvince      String         @map(origin_province)
+  originPostalCode    String         @map(origin_postal_code)
+  originLatitude      Decimal?       @map(origin_latitude)
+  originLongitude     Decimal?       @map(origin_longitude)
   // Destination address
-  destName            String         @db.VarChar(255)
-  destPhone           String         @db.VarChar(20)
-  destAddress         String
-  destDistrict        String?        @db.VarChar(100)
-  destCity            String         @db.VarChar(100)
-  destProvince        String         @db.VarChar(100)
-  destPostalCode      String         @db.VarChar(10)
-  destLatitude        Decimal?       @db.Decimal(10, 8)
-  destLongitude       Decimal?       @db.Decimal(11, 8)
+  destName            String         @map(dest_name)
+  destPhone           String         @map(dest_phone)
+  destAddress         String         @map(dest_address)
+  destDistrict        String?        @map(dest_district)
+  destCity            String         @map(dest_city)
+  destProvince        String         @map(dest_province)
+  destPostalCode      String         @map(dest_postal_code)
+  destLatitude        Decimal?       @map(dest_latitude)
+  destLongitude       Decimal?       @map(dest_longitude)
   // Timestamps
-  estimatedDelivery   DateTime?      @db.Timestamptz(6)
-  bookedAt            DateTime?      @db.Timestamptz(6)
-  pickedUpAt          DateTime?      @db.Timestamptz(6)
-  inTransitAt         DateTime?      @db.Timestamptz(6)
-  outForDeliveryAt    DateTime?      @db.Timestamptz(6)
-  deliveredAt         DateTime?      @db.Timestamptz(6)
-  failedAt            DateTime?      @db.Timestamptz(6)
-  returnedAt          DateTime?      @db.Timestamptz(6)
+  estimatedDelivery   DateTime?      @map(estimated_delivery)
+  bookedAt            DateTime?      @map(booked_at)
+  pickedUpAt          DateTime?      @map(picked_up_at)
+  inTransitAt         DateTime?      @map(in_transit_at)
+  outForDeliveryAt    DateTime?      @map(out_for_delivery_at)
+  deliveredAt         DateTime?      @map(delivered_at)
+  failedAt            DateTime?      @map(failed_at)
+  returnedAt          DateTime?      @map(returned_at)
   // Status
   status              ShipmentStatus @default(pending)
-  failureReason       String?        @db.VarChar(500)
+  failureReason       String?        @map(failure_reason)
   // Delivery confirmation
-  receiverName        String?        @db.VarChar(255)
-  proofOfDeliveryUrl  String?
-  signature           String?
+  receiverName        String?        @map(receiver_name)
+  proofOfDeliveryUrl  String?        @map(proof_of_delivery_url)
+  signature           String?        @map(signature)
   // Notes
-  instructions        String?        @db.VarChar(500)
-  internalNotes       String?
+  instructions        String?        @map(instructions)
+  internalNotes       String?        @map(internal_notes)
   // Metadata
-  biteshipOrderId     String?        @db.VarChar(100)
+  biteshipOrderId     String?        @map(biteship_order_id)
   metadata            Json?
-  createdAt           DateTime       @default(now()) @db.Timestamptz(6)
-  updatedAt           DateTime       @updatedAt @db.Timestamptz(6)
+  createdAt           DateTime       @default(now()) @map(created_at)
+  updatedAt           DateTime       @updatedAt @map(updated_at)
 
   trackingEvents TrackingEvent[]
 
@@ -105,21 +105,21 @@ model Shipment {
 
 model TrackingEvent {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  shipmentId    String    @db.Uuid
+  shipmentId    String    @map(shipment_id)
   // Event info
-  status        String    @db.VarChar(100) // Raw status from courier
-  statusCode    String?   @db.VarChar(50)
-  description   String?
-  location      String?   @db.VarChar(255)
-  city          String?   @db.VarChar(100)
+  status        String    @map(status)
+  statusCode    String?   @map(status_code)
+  description   String?   @map(description)
+  location      String?   @map(location)
+  city          String?   @map(city)
   // Courier info
-  courierStatus String?   @db.VarChar(100)
+  courierStatus String?   @map(courier_status)
   // Timestamp from courier
-  eventTime     DateTime  @db.Timestamptz(6)
+  eventTime     DateTime  @map(event_time)
   // Source
-  source        String    @default("webhook") @db.VarChar(50) // "webhook", "api_poll", "manual"
+  source        String    @default("webhook") @map(source)
   rawPayload    Json?
-  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map(created_at)
 
   shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
 
@@ -134,30 +134,30 @@ model TrackingEvent {
 
 model CourierIntegration {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  courierCode     String   @unique @db.VarChar(50) // jne, jnt, sicepat
-  courierName     String   @db.VarChar(100)
-  isActive        Boolean  @default(true)
+  courierCode     String   @unique @map(courier_code)
+  courierName     String   @map(courier_name)
+  isActive        Boolean  @default(true) @map(is_active)
   // API config (encrypted in practice)
-  apiEndpoint     String?  @db.VarChar(255)
-  apiKey          String?  @db.VarChar(255)
+  apiEndpoint     String?  @map(api_endpoint)
+  apiKey          String?  @map(api_key)
   // Features
-  supportsCod     Boolean  @default(false)
-  supportsInsurance Boolean @default(true)
-  supportsPickup  Boolean  @default(true)
-  supportsDropoff Boolean  @default(true)
-  supportsRealTimeTracking Boolean @default(true)
+  supportsCod     Boolean  @default(false) @map(supports_cod)
+  supportsInsurance Boolean @default(true) @map(supports_insurance)
+  supportsPickup  Boolean  @default(true) @map(supports_pickup)
+  supportsDropoff Boolean  @default(true) @map(supports_dropoff)
+  supportsRealTimeTracking Boolean @default(true) @map(supports_real_time_tracking)
   // Rate calculation
-  hasFixedRates   Boolean  @default(false)
+  hasFixedRates   Boolean  @default(false) @map(has_fixed_rates)
   rateMultiplier  Decimal  @default(1.00) @db.Decimal(5, 2) // For markup
   // Display
-  logoUrl         String?  @db.VarChar(255)
-  displayOrder    Int      @default(0)
+  logoUrl         String?  @map(logo_url)
+  displayOrder    Int      @default(0) @map(display_order)
   // Cutoff times
-  pickupCutoffTime String?  @db.VarChar(5) // "14:00"
+  pickupCutoffTime String?  @map(pickup_cutoff_time)
   // Settings
   settings        Json?
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+  createdAt       DateTime @default(now()) @map(created_at)
+  updatedAt       DateTime @updatedAt @map(updated_at)
 
   services CourierService[]
 
@@ -166,14 +166,14 @@ model CourierIntegration {
 
 model CourierService {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  courierId       String   @db.Uuid
-  serviceCode     String   @db.VarChar(50) // REG, YES, OKE
-  serviceName     String   @db.VarChar(100)
-  serviceType     String?  @db.VarChar(50) // standard, express, economy
-  estimatedDays   String?  @db.VarChar(20) // "1-2", "2-3"
-  isActive        Boolean  @default(true)
-  displayOrder    Int      @default(0)
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  courierId       String   @map(courier_id)
+  serviceCode     String   @map(service_code)
+  serviceName     String   @map(service_name)
+  serviceType     String?  @map(service_type)
+  estimatedDays   String?  @map(estimated_days)
+  isActive        Boolean  @default(true) @map(is_active)
+  displayOrder    Int      @default(0) @map(display_order)
+  createdAt       DateTime @default(now()) @map(created_at)
 
   courier CourierIntegration @relation(fields: [courierId], references: [id], onDelete: Cascade)
 
@@ -187,17 +187,17 @@ model CourierService {
 
 model ShippingRateCache {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  originPostalCode String  @db.VarChar(10)
-  destPostalCode  String   @db.VarChar(10)
-  weightGrams     Int
-  courier         String   @db.VarChar(50)
-  serviceCode     String   @db.VarChar(50)
+  originPostalCode String  @map(origin_postal_code)
+  destPostalCode  String   @map(dest_postal_code)
+  weightGrams     Int      @map(weight_grams)
+  courier         String   @map(courier)
+  serviceCode     String   @map(service_code)
   // Cached rate
-  rate            Decimal  @db.Decimal(15, 2)
-  estimatedDays   String?  @db.VarChar(20)
+  rate            Decimal  @map(rate)
+  estimatedDays   String?  @map(estimated_days)
   // Validity
-  expiresAt       DateTime @db.Timestamptz(6)
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
+  expiresAt       DateTime @map(expires_at)
+  createdAt       DateTime @default(now()) @map(created_at)
 
   @@unique([originPostalCode, destPostalCode, weightGrams, courier, serviceCode])
   @@index([expiresAt])
@@ -210,22 +210,22 @@ model ShippingRateCache {
 
 model WarehouseLocation {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code          String   @unique @db.VarChar(50)
-  name          String   @db.VarChar(255)
-  contactName   String   @db.VarChar(255)
-  contactPhone  String   @db.VarChar(20)
-  address       String
-  district      String?  @db.VarChar(100)
-  city          String   @db.VarChar(100)
-  province      String   @db.VarChar(100)
-  postalCode    String   @db.VarChar(10)
-  latitude      Decimal? @db.Decimal(10, 8)
-  longitude     Decimal? @db.Decimal(11, 8)
-  isDefault     Boolean  @default(false)
-  isActive      Boolean  @default(true)
-  operatingHours String?  @db.VarChar(100) // "Mon-Sat 08:00-17:00"
-  createdAt     DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime @updatedAt @db.Timestamptz(6)
+  code          String   @unique @map(code)
+  name          String   @map(name)
+  contactName   String   @map(contact_name)
+  contactPhone  String   @map(contact_phone)
+  address       String   @map(address)
+  district      String?  @map(district)
+  city          String   @map(city)
+  province      String   @map(province)
+  postalCode    String   @map(postal_code)
+  latitude      Decimal? @map(latitude)
+  longitude     Decimal? @map(longitude)
+  isDefault     Boolean  @default(false) @map(is_default)
+  isActive      Boolean  @default(true) @map(is_active)
+  operatingHours String?  @map(operating_hours)
+  createdAt     DateTime @default(now()) @map(created_at)
+  updatedAt     DateTime @updatedAt @map(updated_at)
 
   @@map("warehouse_location")
 }
@@ -236,16 +236,16 @@ model WarehouseLocation {
 
 model ServiceOutbox {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  aggregateType String    @db.VarChar(100)
-  aggregateId   String    @db.Uuid
-  eventType     String    @db.VarChar(100)
-  payload       Json
-  metadata      Json?
-  isPublished   Boolean   @default(false)
-  publishedAt   DateTime? @db.Timestamptz(6)
-  retryCount    Int       @default(0)
-  lastError     String?
-  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  aggregateType String    @map(aggregate_type)
+  aggregateId   String    @map(aggregate_id)
+  eventType     String    @map(event_type)
+  payload       Json      @map(payload)
+  metadata      Json?     @map(metadata)
+  isPublished   Boolean   @default(false) @map(is_published)
+  publishedAt   DateTime? @map(published_at)
+  retryCount    Int       @default(0) @map(retry_count)
+  lastError     String?   @map(last_error)
+  createdAt     DateTime  @default(now()) @map(created_at)
 
   @@index([isPublished, createdAt])
   @@index([aggregateType, aggregateId])

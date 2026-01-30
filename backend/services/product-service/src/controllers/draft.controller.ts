@@ -18,8 +18,9 @@ export class DraftController {
   createDraft = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
     const sellerId = req.user!.id;
     const draft = await productDraftService.createDraft({
-      sellerId,
-      ...req.body
+      ...req.body,
+      // Always take sellerId from auth; do not trust request body.
+      sellerId
     });
 
     res.status(201).json({

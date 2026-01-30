@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Flow-Indo/LAKOO/backend/services/order-service/internal/controller"
+	orderMiddleware "github.com/Flow-Indo/LAKOO/backend/services/order-service/internal/middleware"
 	"github.com/Flow-Indo/LAKOO/backend/services/order-service/internal/repository"
 	"github.com/Flow-Indo/LAKOO/backend/services/order-service/internal/service"
 	"github.com/gorilla/mux"
@@ -26,7 +27,15 @@ func NewAPIServer(addr string, db *gorm.DB) *APIServer {
 func (s *APIServer) Start() error {
 	router := mux.NewRouter()
 
+	// Health check endpoint
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"ok","service":"order-service"}`))
+	}).Methods("GET")
+
 	subrouter := router.PathPrefix("/api/orders").Subrouter()
+	subrouter.Use(orderMiddleware.GatewayAuth)
 
 	orderRepository := repository.NewOrderRepository(s.db)
 	orderService := service.NewService(orderRepository)

@@ -2,6 +2,7 @@ import axios from 'axios';
 import { getServiceAuthHeaders } from '../utils/serviceAuth';
 
 const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008';
+const OUTBOUND_HTTP_TIMEOUT_MS = Number.parseInt(process.env.OUTBOUND_HTTP_TIMEOUT_MS || '5000', 10);
 
 /**
  * Notification Service Client
@@ -29,7 +30,7 @@ export class NotificationServiceClient {
         input,
         {
           headers: getServiceAuthHeaders(),
-          timeout: 5000
+          timeout: OUTBOUND_HTTP_TIMEOUT_MS
         }
       );
 

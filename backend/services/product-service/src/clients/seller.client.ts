@@ -1,7 +1,16 @@
 import axios from 'axios';
 import { getServiceAuthHeaders } from '../utils/serviceAuth';
+import { withRetry } from '../lib/retry';
 
 const SELLER_SERVICE_URL = process.env.SELLER_SERVICE_URL || 'http://localhost:3015';
+const OUTBOUND_HTTP_TIMEOUT_MS = Number.parseInt(process.env.OUTBOUND_HTTP_TIMEOUT_MS || '5000', 10);
+
+function isRetryableAxiosError(err: unknown) {
+  if (!axios.isAxiosError(err)) return false;
+  const status = err.response?.status;
+  // retry network errors + 5xx; avoid retrying 4xx
+  return !status || status >= 500;
+}
 
 /**
  * Seller Service Client
@@ -20,11 +29,19 @@ export class SellerServiceClient {
     status: string;
   } | null> {
     try {
-      const response = await axios.get(
-        `${SELLER_SERVICE_URL}/api/sellers/${sellerId}`,
+      const response = await withRetry(
+        () =>
+          axios.get(`${SELLER_SERVICE_URL}/api/sellers/${sellerId}`, {
+            headers: getServiceAuthHeaders(),
+            timeout: OUTBOUND_HTTP_TIMEOUT_MS
+          }),
         {
-          headers: getServiceAuthHeaders(),
-          timeout: 5000
+          retries: 2,
+          minDelayMs: 200,
+          maxDelayMs: 1500,
+          factor: 2,
+          jitterRatio: 0.2,
+          isRetryable: isRetryableAxiosError
         }
       );
 
@@ -45,7 +62,7 @@ export class SellerServiceClient {
         {},
         {
           headers: getServiceAuthHeaders(),
-          timeout: 5000
+          timeout: OUTBOUND_HTTP_TIMEOUT_MS
         }
       );
 
@@ -66,7 +83,7 @@ export class SellerServiceClient {
         {},
         {
           headers: getServiceAuthHeaders(),
-          timeout: 5000
+          timeout: OUTBOUND_HTTP_TIMEOUT_MS
         }
       );
 
@@ -96,7 +113,7 @@ export class SellerServiceClient {
         },
         {
           headers: getServiceAuthHeaders(),
-          timeout: 5000
+          timeout: OUTBOUND_HTTP_TIMEOUT_MS
         }
       );
 

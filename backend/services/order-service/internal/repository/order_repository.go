@@ -1,6 +1,9 @@
 package repository
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/Flow-Indo/LAKOO/backend/services/order-service/models"
 	"gorm.io/gorm"
 )
@@ -19,17 +22,31 @@ func NewOrderRepository(db *gorm.DB) *OrderRepository {
 func (r *OrderRepository) GetOrders(jsonPayload map[string]interface{}) ([]models.Order, error) {
 	var orders []models.Order
 
+	// Preload order items with the order
 	results := r.db.Model(&models.Order{}).
-		Joins("User").
-		Joins("LEFT JOIN order_items ON orders.id = order_items.order_id").
-		Joins("LEFT JOIN factories ON order_items.factory_id = factories.id").
-		Joins("LEFT JOIN products ON order_items.product_id = products.id").
+		Preload("Items").
 		Where(jsonPayload).
-		Distinct("orders.*").
 		Find(&orders)
 	return orders, results.Error
 }
 
-func (r *OrderRepository) CreateOrder(jsonPayload map[string]interface{}) error {
-	return nil
+func (r *OrderRepository) CreateOrder(ctx context.Context, order *models.Order) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Create the order row first
+		if err := tx.Omit("Items").Create(order).Error; err != nil {
+			return fmt.Errorf("failed to create order: %w", err)
+		}
+
+		// Create order items (if any)
+		if len(order.Items) > 0 {
+			for i := range order.Items {
+				order.Items[i].OrderID = order.ID
+			}
+			if err := tx.Create(&order.Items).Error; err != nil {
+				return fmt.Errorf("failed to create order items: %w", err)
+			}
+		}
+
+		return nil
+	})
 }

@@ -35,9 +35,21 @@ function tryServiceAuth(req: AuthenticatedRequest): boolean {
     throw new UnauthorizedError('SERVICE_SECRET not configured');
   }
 
-  // Source-of-truth verification logic synced from backend/shared/typescript/utils/serviceAuth.ts
-  verifyServiceToken(tokenHeader, serviceSecret);
-  req.user = { id: serviceNameHeader, role: 'internal' };
+  try {
+    const { serviceName: tokenServiceName } = verifyServiceToken(tokenHeader, serviceSecret);
+
+    // Prevent header spoofing: the signed token serviceName must match x-service-name
+    if (tokenServiceName !== serviceNameHeader) {
+      throw new UnauthorizedError('Service name mismatch');
+    }
+
+    // Do not trust x-service-name beyond matching; use the signed token identity
+    req.user = { id: tokenServiceName, role: 'internal' };
+  } catch (err: any) {
+    if (err instanceof UnauthorizedError) throw err;
+    throw new UnauthorizedError('Invalid service authentication token');
+  }
+
   return true;
 }
 
@@ -137,8 +149,11 @@ export const requireRole = (...roles: string[]) => {
 };
 
 /**
- * Internal service authentication using API key
- * For service-to-service communication
+ * Internal service authentication (service-to-service HMAC)
+ *
+ * Requires:
+ * - `x-service-name`
+ * - `x-service-auth` = `${serviceName}:${timestamp}:${signature}`
  */
 export const internalServiceAuth = (
   req: Request,

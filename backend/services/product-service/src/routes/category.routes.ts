@@ -1,8 +1,45 @@
-import { Router } from 'express';
+import { Router, type Request, type Response } from 'express';
+import { body, param, query } from 'express-validator';
 import { prisma } from '../lib/prisma';
 import slugify from 'slugify';
+import { gatewayOrInternalAuth, requireRole } from '../middleware/auth';
+import { validateRequest } from '../middleware/validation';
 
 const router:Router = Router();
+
+// =============================================================================
+// Validators
+// =============================================================================
+
+const categoryIdParam = [param('id').isUUID().withMessage('Invalid category ID')];
+
+const listCategoriesValidators = [
+  query('parentId')
+    .optional()
+    .custom((value) => value === 'null' || /^[0-9a-fA-F-]{36}$/.test(String(value)))
+    .withMessage('parentId must be a UUID or "null"'),
+  query('isActive')
+    .optional()
+    .isIn(['true', 'false'])
+    .withMessage('isActive must be "true" or "false"')
+];
+
+const createCategoryValidators = [
+  body('name').isString().trim().isLength({ min: 2, max: 255 }).withMessage('name must be 2..255 chars'),
+  body('description').optional().isString().withMessage('description must be a string'),
+  body('parentId').optional({ nullable: true }).isUUID().withMessage('parentId must be a UUID or null'),
+  body('iconUrl').optional({ nullable: true }).isURL().withMessage('iconUrl must be a valid URL'),
+  body('displayOrder').optional().isInt({ min: 0 }).toInt().withMessage('displayOrder must be >= 0')
+];
+
+const updateCategoryValidators = [
+  ...categoryIdParam,
+  body('name').optional().isString().trim().isLength({ min: 2, max: 255 }).withMessage('name must be 2..255 chars'),
+  body('parentId').optional({ nullable: true }).isUUID().withMessage('parentId must be a UUID or null'),
+  body('iconUrl').optional({ nullable: true }).isURL().withMessage('iconUrl must be a valid URL'),
+  body('displayOrder').optional().isInt({ min: 0 }).toInt().withMessage('displayOrder must be >= 0'),
+  body('isActive').optional().isBoolean().toBoolean().withMessage('isActive must be boolean')
+];
 
 /**
  * @swagger
@@ -31,7 +68,7 @@ const router:Router = Router();
  *               items:
  *                 $ref: '#/components/schemas/Category'
  */
-router.get('/', async (req, res) => {
+router.get('/', listCategoriesValidators, validateRequest, async (req: Request, res: Response) => {
   try {
     const { parentId, isActive } = req.query;
     
@@ -91,7 +128,7 @@ router.get('/', async (req, res) => {
  *       404:
  *         description: Category not found
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', categoryIdParam, validateRequest, async (req: Request, res: Response) => {
   try {
     const category = await prisma.category.findUnique({
       where: { id: req.params.id },
@@ -161,14 +198,16 @@ router.get('/:id', async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Category'
  */
-router.post('/', async (req, res) => {
+router.post(
+  '/',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  createCategoryValidators,
+  validateRequest,
+  async (req: Request, res: Response) => {
   try {
     const { name, description, parentId, iconUrl, displayOrder } = req.body;
     
-    if (!name) {
-      return res.status(400).json({ error: 'Name is required' });
-    }
-
     const slug = slugify(name, { lower: true, strict: true });
 
     // Check if slug already exists
@@ -186,6 +225,7 @@ router.post('/', async (req, res) => {
       data: {
         name,
         slug,
+        description: description || null,
         parentId: parentId || null,
         iconUrl: iconUrl || null,
         displayOrder: displayOrder || 0,
@@ -235,7 +275,13 @@ router.post('/', async (req, res) => {
  *       404:
  *         description: Category not found
  */
-router.patch('/:id', async (req, res) => {
+router.patch(
+  '/:id',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  updateCategoryValidators,
+  validateRequest,
+  async (req: Request, res: Response) => {
   try {
     const { name, parentId, iconUrl, displayOrder, isActive } = req.body;
     
@@ -285,7 +331,13 @@ router.patch('/:id', async (req, res) => {
  *       404:
  *         description: Category not found
  */
-router.delete('/:id', async (req, res) => {
+router.delete(
+  '/:id',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  categoryIdParam,
+  validateRequest,
+  async (req: Request, res: Response) => {
   try {
     await prisma.category.update({
       where: { id: req.params.id },

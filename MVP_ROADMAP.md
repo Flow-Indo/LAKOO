@@ -1,7 +1,8 @@
 # 🚀 LAKOO Social Commerce - MVP Roadmap
 
-**Created:** 2026-01-27  
-**Target:** Production-Ready MVP  
+**Created:** 2026-01-27
+**Updated:** 2026-01-28
+**Target:** Production-Ready MVP
 **Platform:** Social Commerce (Xiaohongshu/Pinterest style)
 
 ---
@@ -10,9 +11,19 @@
 
 This roadmap outlines all remaining work to achieve a **deployable MVP** for LAKOO's social commerce platform.
 
-**Current Progress:** ~70% complete  
-**Estimated Remaining:** 2-3 weeks  
+**Current Progress:** ~85% complete
+**Current Phase:** Phase 2 - Seller Service
 **Core Features:** Product catalog, social posts, product tagging, feeds, payments
+
+### Phase Status
+| Phase | Status | Notes |
+|-------|--------|-------|
+| Phase 1: Service Integration | ✅ COMPLETE | All 4 services pulled, reviewed, P0 fixed |
+| Phase 2: Seller Service | 🔄 IN PROGRESS | Pull from friend, review |
+| Phase 3: Event-Driven Integration | ⏳ PENDING | |
+| Phase 4: Notification Service | ⏳ PENDING | |
+| Phase 5: End-to-End Testing | ⏳ PENDING | |
+| Phase 6: Deployment Preparation | ⏳ PENDING | |
 
 ---
 
@@ -30,7 +41,7 @@ This roadmap outlines all remaining work to achieve a **deployable MVP** for LAK
 ┌───────────────┐         ┌───────────────┐         ┌───────────────┐
 │  auth-service │         │ user-service  │         │seller-service │
 │   (3001)      │         │   (3004)      │         │   (3015)      │
-│   🔄 PULL     │         │   🔄 PULL     │         │   ⏳ TODO     │
+│   ✅ DONE     │         │   ✅ DONE     │         │   🔄 PULL     │
 └───────────────┘         └───────────────┘         └───────────────┘
         │                           │                           │
         └───────────────────────────┼───────────────────────────┘
@@ -52,7 +63,7 @@ This roadmap outlines all remaining work to achieve a **deployable MVP** for LAK
 ┌───────────────┐         ┌───────────────┐         ┌───────────────┐
 │ cart-service  │         │ order-service │         │payment-service│
 │   (3003)      │         │   (3006)      │         │   (3007)      │
-│   🔄 PULL     │         │   🔄 PULL     │         │   ✅ DONE     │
+│   ✅ DONE     │         │   ✅ DONE     │         │   ✅ DONE     │
 └───────────────┘         └───────────────┘         └───────────────┘
         │                           │                           │
         └───────────────────────────┼───────────────────────────┘
@@ -73,32 +84,32 @@ This roadmap outlines all remaining work to achieve a **deployable MVP** for LAK
 
 ### ✅ Completed Services (Ready for MVP)
 
-| Service | Port | Database | Status | Tests |
-|---------|------|----------|--------|-------|
-| payment-service | 3007 | payment_db | ✅ Complete | ⏳ Pending |
-| product-service | 3002 | product_db | ✅ Complete | ✅ Passed |
-| content-service | 3017 | content_db | ✅ Complete | ✅ Passed |
-| feed-service | 3018 | feed_db | ✅ Complete | ✅ Passed |
-| warehouse-service | 3012 | warehouse_db | ✅ Complete | ✅ Passed |
-| address-service | 3010 | address_db | ✅ Complete | ⏳ Pending |
-| logistic-service | 3009 | logistic_db | ✅ Complete | ⏳ Pending |
-| brand-service | 3005 | brand_db | ✅ Complete | ⏳ Pending |
-| review-service | 3016 | review_db | ✅ Complete | ⏳ Pending |
+| Service | Port | Language | Database | Status | Notes |
+|---------|------|----------|----------|--------|-------|
+| auth-service | 3001 | TypeScript | auth_db | ✅ Complete | P0 fixed (USER_SERVICE_URL) |
+| product-service | 3002 | TypeScript | product_db | ✅ Complete | Draft/moderation workflow |
+| cart-service | 3003 | **Go** | cart_db | ✅ Complete | P0 fixed (product contract) |
+| user-service | 3004 | TypeScript | user_db | ✅ Complete | P0 fixed (response + auth) |
+| brand-service | 3005 | TypeScript | brand_db | ✅ Complete | |
+| order-service | 3006 | **Go** | order_db | ✅ Complete | P0 fixed (gateway auth + cart clear) |
+| payment-service | 3007 | TypeScript | payment_db | ✅ Complete | |
+| logistic-service | 3009 | TypeScript | logistic_db | ✅ Complete | |
+| address-service | 3010 | TypeScript | address_db | ✅ Complete | |
+| warehouse-service | 3012 | TypeScript | warehouse_db | ✅ Complete | Full inventory management |
+| review-service | 3016 | TypeScript | review_db | ✅ Complete | |
+| content-service | 3017 | TypeScript | content_db | ✅ Complete | Social commerce content |
+| feed-service | 3018 | TypeScript | feed_db | ✅ Complete | Feed + trending |
 
-### 🔄 Services to Pull (User will provide)
+### 🔄 Services to Pull (Phase 2 - Current)
 
-| Service | Port | Database | Notes |
-|---------|------|----------|-------|
-| auth-service | 3001 | auth_db | User authentication, JWT |
-| user-service | 3004 | user_db | User profiles |
-| order-service | 3006 | order_db | Order management |
-| cart-service | 3003 | cart_db | Shopping cart |
+| Service | Port | Database | Priority | Notes |
+|---------|------|----------|----------|-------|
+| seller-service | 3015 | seller_db | HIGH | Pull from friend, review |
 
-### ⏳ Services to Create (After Pull)
+### ⏳ Services to Create (Future Phases)
 
 | Service | Port | Database | Priority |
 |---------|------|----------|----------|
-| seller-service | 3015 | seller_db | HIGH |
 | notification-service | 3008 | notification_db | MEDIUM |
 | wallet-service | 3011 | wallet_db | LOW (MVP optional) |
 | advertisement-service | 3013 | ad_db | LOW (Post-MVP) |
@@ -142,54 +153,64 @@ This roadmap outlines all remaining work to achieve a **deployable MVP** for LAK
 
 ## 📅 Implementation Phases
 
-### Phase 1: Service Integration (Week 1) 🔄
+### Phase 1: Service Integration ✅ COMPLETE
 
 **Goal:** Integrate pulled services with existing infrastructure
+**Completed:** 2026-01-28
 
-#### 1.1 Pull and Setup Services
+#### 1.1 Pull and Setup Services ✅
 ```bash
-# After pulling auth-service, user-service, order-service, cart-service
-# For each service:
-cd backend/services/<service-name>
-pnpm install
-npx prisma generate
-npx prisma db push
-npm run build
+# Completed for auth-service, user-service, order-service, cart-service
+# TypeScript services: auth-service, user-service
+# Go services: cart-service, order-service
 ```
 
-#### 1.2 Schema Standardization
-- [ ] Verify all pulled services use snake_case database columns
-- [ ] Add `@map` directives if missing
-- [ ] Push schemas to Neon
+#### 1.2 Comprehensive Service Review ✅
+- [x] Reviewed all 8 core services
+- [x] Identified P0/P1/P2 issues per service
+- [x] Documented in `SERVICE_REVIEW_RESULTS.md`
 
-#### 1.3 Integration Points to Verify
+#### 1.3 P0 Fixes Round 1 ✅
+- [x] auth↔user route mismatch
+- [x] user-service external route
+- [x] cart-service stubbed methods
+- [x] cart-service SQL query
+- [x] cart-service API routes
+- [x] order-service persistence
+- [x] order-service response
+- [x] order-service payment auth
+- [x] order-service Kafka config
 
-| From | To | Endpoint | Purpose |
-|------|-----|----------|---------|
-| API Gateway | auth-service | POST /api/auth/login | User login |
-| API Gateway | auth-service | POST /api/auth/register | User registration |
-| All services | auth-service | GET /api/auth/verify | Token verification |
-| content-service | user-service | GET /api/users/:id | Get user profile |
-| cart-service | product-service | GET /api/products/:id | Product details |
-| cart-service | warehouse-service | POST /api/inventory/check | Stock check |
-| order-service | cart-service | GET /api/cart/:userId | Get cart items |
-| order-service | payment-service | POST /api/payments | Create payment |
-| order-service | warehouse-service | POST /api/inventory/reserve | Reserve stock |
+#### 1.4 P0 Fixes Round 2 ✅
+- [x] Response field mapping (`id` vs `userId`) - user-service
+- [x] Broken error propagation - user-service
+- [x] Internal endpoints unprotected - user-service
+- [x] Wrong USER_SERVICE_URL default - auth-service
+- [x] No auth middleware - order-service
+- [x] Checkout incomplete (cart clear) - order-service
+- [x] Product contract mismatch - cart-service
+
+**Reference Files:**
+- `ORCHESTRATOR_STATUS_REPORT.md` - Final status
+- `SERVICE_REVIEW_RESULTS.md` - Detailed review
+- `P0_FIXES_COMPLETED.md` - Round 1 fixes
+- `P0_FIXES_ROUND2_COMPLETED.md` - Round 2 fixes
 
 ---
 
-### Phase 2: Seller Service (Week 1-2) ⏳
+### Phase 2: Seller Service 🔄 IN PROGRESS
 
 **Goal:** Enable seller product listings
+**Status:** Waiting for seller-service pull from friend
 
-#### 2.1 Create seller-service
-- [ ] Create `AGENT_PROMPT_SELLER_SERVICE.md`
-- [ ] Implement seller registration
-- [ ] Implement seller verification workflow
-- [ ] Implement seller inventory management
-- [ ] Connect to product-service drafts
+#### 2.1 Pull and Review seller-service
+- [ ] Pull seller-service from friend's repository
+- [ ] Perform comprehensive review (same as Phase 1)
+- [ ] Identify P0/P1/P2 issues
+- [ ] Fix P0 issues
+- [ ] Document in `SELLER_SERVICE_REVIEW.md`
 
-#### 2.2 Key Features
+#### 2.2 Expected Features
 ```
 seller-service/
 ├── Seller registration
@@ -200,7 +221,7 @@ seller-service/
 └── Connect to product drafts
 ```
 
-#### 2.3 Integration Points
+#### 2.3 Integration Points to Verify
 | From | To | Purpose |
 |------|-----|---------|
 | seller-service | auth-service | Verify seller identity |
@@ -208,6 +229,14 @@ seller-service/
 | product-service | seller-service | Update seller stats |
 | order-service | seller-service | Notify seller of orders |
 | payment-service | seller-service | Process seller payouts |
+
+#### 2.4 Review Checklist (after pull)
+- [ ] Schema uses snake_case with proper @map directives
+- [ ] Service-to-service auth implemented
+- [ ] Gateway auth middleware on external routes
+- [ ] Error handling and propagation
+- [ ] No stubbed/incomplete methods
+- [ ] Integration endpoints match contracts
 
 ---
 
@@ -448,25 +477,27 @@ Week 4 (Buffer):
 ## 📞 Service Ports Reference
 
 ```
-auth-service          : 3001 🔄
-product-service       : 3002 ✅
-cart-service          : 3003 🔄
-user-service          : 3004 🔄
-brand-service         : 3005 ✅
-order-service         : 3006 🔄
-payment-service       : 3007 ✅
+auth-service          : 3001 ✅ (TypeScript)
+product-service       : 3002 ✅ (TypeScript)
+cart-service          : 3003 ✅ (Go)
+user-service          : 3004 ✅ (TypeScript)
+brand-service         : 3005 ✅ (TypeScript)
+order-service         : 3006 ✅ (Go)
+payment-service       : 3007 ✅ (TypeScript)
 notification-service  : 3008 ⏳
-logistic-service      : 3009 ✅
-address-service       : 3010 ✅
+logistic-service      : 3009 ✅ (TypeScript)
+address-service       : 3010 ✅ (TypeScript)
 wallet-service        : 3011 ⏳
-warehouse-service     : 3012 ✅
+warehouse-service     : 3012 ✅ (TypeScript)
 advertisement-service : 3013 ⏳
 support-service       : 3014 ⏳
-seller-service        : 3015 ⏳
-review-service        : 3016 ✅
-content-service       : 3017 ✅
-feed-service          : 3018 ✅
+seller-service        : 3015 🔄 (Pull from friend)
+review-service        : 3016 ✅ (TypeScript)
+content-service       : 3017 ✅ (TypeScript)
+feed-service          : 3018 ✅ (TypeScript)
 ```
+
+**Summary:** 13/18 services ready, 1 in progress (seller-service), 4 post-MVP
 
 ---
 
@@ -497,17 +528,25 @@ feed-service          : 3018 ✅
 
 ## 📝 Next Immediate Actions
 
-1. **Pull the 4 services** (auth, user, cart, order)
-2. **Verify schema standardization** (snake_case)
-3. **Test service integrations**
-4. **Create seller-service prompt** (if needed)
-5. **Set up event bus** (for feed syndication)
+### Phase 2 Tasks (Current)
+1. **Pull seller-service** from friend's repository
+2. **Comprehensive review** of seller-service
+3. **Identify and fix P0 issues** in seller-service
+4. **Verify integration points** with existing services
+5. **Run integration test flow** (signup → login → create post → add to cart → checkout)
+
+### After Phase 2
+1. **Set up event bus** (for feed syndication)
+2. **Implement notification-service** (basic)
+3. **End-to-end testing** of all flows
+4. **Deployment preparation**
 
 ---
 
-**Document Status:** ✅ COMPLETE  
-**Last Updated:** 2026-01-27  
-**Maintained By:** Orchestrator Agent
+**Document Status:** ✅ COMPLETE
+**Last Updated:** 2026-01-28
+**Current Phase:** Phase 2 - Seller Service
+**Maintained By:** Orchestrator Agent (Claude Opus 4.5)
 
 ---
 

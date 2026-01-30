@@ -40,12 +40,20 @@ func (r *CartRepository) GetAllCartsByUserId(userId string) (*models.Cart, error
 func (r *CartRepository) GetActiveCartByUserId(userId string) (*models.Cart, error) {
 	var cart models.Cart
 
-	_, err := r.db.Model(&models.Cart{}).
-		Where("user_id = ? AND status = active", userId).
-		Find(&cart).Rows()
-
+	userUUID, err := uuid.Parse(userId)
 	if err != nil {
-		return nil, errors.New("failed to fetch cart items")
+		return nil, fmt.Errorf("invalid user ID format: %w", err)
+	}
+
+	err = r.db.
+		Preload("Items").
+		Where("user_id = ? AND status = ?", userUUID, models.CartStatusActive).
+		First(&cart).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to fetch active cart: %w", err)
 	}
 
 	return &cart, nil
@@ -83,7 +91,15 @@ func (r *CartRepository) GetCartItemByUserIdAndProductId(userId string, productI
 func (r *CartRepository) UpdateCartItem(userId string, cartId string, cartItem *models.CartItem) error {
 	//verify the cart belongs to the user
 	var cart models.Cart
-	if err := r.db.Where("id = ? AND user_id = ?", cartId, userId).First(&cart).Error; err != nil {
+	userUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return fmt.Errorf("invalid user ID format: %w", err)
+	}
+	cartUUID, err := uuid.Parse(cartId)
+	if err != nil {
+		return fmt.Errorf("invalid cart ID format: %w", err)
+	}
+	if err := r.db.Where("id = ? AND user_id = ?", cartUUID, userUUID).First(&cart).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("cart not found or doesn't belong to user")
 		}
@@ -92,7 +108,7 @@ func (r *CartRepository) UpdateCartItem(userId string, cartId string, cartItem *
 
 	//update the cart item
 	result := r.db.Model(&models.CartItem{}).
-		Where("id = ? AND cart_id = ?", cartItem.ID, cartId).
+		Where("id = ? AND cart_id = ?", cartItem.ID, cartUUID).
 		Updates(map[string]interface{}{
 			"quantity":              cartItem.Quantity,
 			"current_unit_price":    cartItem.CurrentUnitPrice,
@@ -118,7 +134,15 @@ func (r *CartRepository) UpdateCartItem(userId string, cartId string, cartItem *
 func (r *CartRepository) CreateCartItem(userId string, cartId string, cartItem *models.CartItem) error {
 	//verify the cart belongs to the user
 	var cart models.Cart
-	if err := r.db.Where("id = ? AND user_id = ?", cartId, userId).First(&cart).Error; err != nil {
+	userUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return fmt.Errorf("invalid user ID format: %w", err)
+	}
+	cartUUID, err := uuid.Parse(cartId)
+	if err != nil {
+		return fmt.Errorf("invalid cart ID format: %w", err)
+	}
+	if err := r.db.Where("id = ? AND user_id = ?", cartUUID, userUUID).First(&cart).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return fmt.Errorf("cart not found or doesn't belong to user")
 		}
@@ -126,10 +150,6 @@ func (r *CartRepository) CreateCartItem(userId string, cartId string, cartItem *
 	}
 
 	//set cart ID and timestamps
-	cartUUID, err := uuid.Parse(cartId)
-	if err != nil {
-		return fmt.Errorf("cannot parse cartID to uuid from string")
-	}
 	cartItem.CartID = cartUUID
 	cartItem.AddedAt = time.Now()
 	cartItem.UpdatedAt = time.Now()
@@ -142,6 +162,58 @@ func (r *CartRepository) CreateCartItem(userId string, cartId string, cartItem *
 			return fmt.Errorf("product already exists in cart")
 		}
 		return fmt.Errorf("failed to create cart item: %w", err)
+	}
+
+	return nil
+}
+
+func (r *CartRepository) CreateCart(cart *models.Cart) error {
+	if err := r.db.Create(cart).Error; err != nil {
+		return fmt.Errorf("failed to create cart: %w", err)
+	}
+	return nil
+}
+
+func (r *CartRepository) RemoveCartItem(cartID uuid.UUID, productID uuid.UUID) error {
+	result := r.db.Where("cart_id = ? AND product_id = ?", cartID, productID).Delete(&models.CartItem{})
+	if result.Error != nil {
+		return fmt.Errorf("failed to remove cart item: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("cart item not found")
+	}
+	return nil
+}
+
+func (r *CartRepository) DeleteAllCartItems(cartID uuid.UUID) error {
+	if err := r.db.Where("cart_id = ?", cartID).Delete(&models.CartItem{}).Error; err != nil {
+		return fmt.Errorf("failed to delete all cart items: %w", err)
+	}
+	return nil
+}
+
+func (r *CartRepository) RecalculateCartTotals(cartID uuid.UUID) error {
+	var agg struct {
+		ItemCount int64
+		Subtotal  float64
+	}
+
+	if err := r.db.Model(&models.CartItem{}).
+		Select("COALESCE(SUM(quantity), 0) as item_count, COALESCE(SUM(quantity * current_unit_price), 0) as subtotal").
+		Where("cart_id = ?", cartID).
+		Scan(&agg).Error; err != nil {
+		return fmt.Errorf("failed to recalculate cart totals: %w", err)
+	}
+
+	if err := r.db.Model(&models.Cart{}).
+		Where("id = ?", cartID).
+		Updates(map[string]interface{}{
+			"item_count":       int(agg.ItemCount),
+			"subtotal":         agg.Subtotal,
+			"last_activity_at": time.Now(),
+			"updated_at":       time.Now(),
+		}).Error; err != nil {
+		return fmt.Errorf("failed to update cart totals: %w", err)
 	}
 
 	return nil

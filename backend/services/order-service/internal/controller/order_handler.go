@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/Flow-Indo/LAKOO/backend/services/order-service/internal/service"
@@ -56,11 +57,20 @@ func (h *OrderHandler) createOrder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var createOrderPayload types.CreateOrderPayload
 	if err := utils.ParseJSONBody(r.Body, &createOrderPayload); err != nil {
-		utils.WriteError(w, http.StatusInternalServerError, err)
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
 	}
 
-	if err := h.orderService.CreateOrder(createOrderPayload, ctx); err != nil {
+	order, err := h.orderService.CreateOrder(createOrderPayload, ctx)
+	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    order,
+	})
 }

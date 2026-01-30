@@ -216,6 +216,76 @@ All require `gatewayAuth` + `requireRole('admin', 'moderator')`
 | POST | `/api/moderation/:id/priority` | Update priority | `low\|normal\|high\|urgent` |
 | GET | `/api/moderation/stats` | Get stats | - |
 
+### Product Endpoints (Public + Internal)
+
+**Public read endpoints (no auth):**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/products` | List products (pagination + filters) |
+| GET | `/api/products/id/:id` | Get product by UUID (avoids collision with `/:slug`) |
+| GET | `/api/products/:slug` | Get product by slug (catch-all; must stay last) |
+
+**Internal service endpoints (requires `internalServiceAuth`):**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/products/:id/taggable` | Contract for content/cart services (returns taggable summary) |
+| POST | `/api/products/batch-taggable` | Batch taggable check (max 50) |
+
+**Write/admin endpoints (requires `gatewayOrInternalAuth` + `requireRole('admin','internal')`):**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/products` | Create product (admin/internal) |
+| PATCH | `/api/products/:id` | Update product |
+| PATCH | `/api/products/:id/publish` | Publish product (sets status to `approved`) |
+| DELETE | `/api/products/:id` | Soft delete product (sets status to `inactive`) |
+| POST | `/api/products/:id/images` | Add product images |
+| POST | `/api/products/:id/variants` | Add product variant |
+| POST | `/api/products/:id/bundle-composition` | Configure grosir bundle composition (house brands only) |
+| POST | `/api/products/:id/warehouse-inventory-config` | Ensure warehouse inventory + thresholds (house brands only) |
+
+**Authenticated read endpoints (requires `gatewayOrInternalAuth`):**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/products/variants/:variantId` | Get variant by UUID |
+| GET | `/api/products/:id/grosir-config` | Get grosir status (house brands only) |
+
+### Category Endpoints (Public + Admin)
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/categories` | Public | List categories |
+| GET | `/api/categories/:id` | Public | Get category by ID (includes children) |
+| POST | `/api/categories` | Admin/Internal | Create category |
+| PATCH | `/api/categories/:id` | Admin/Internal | Update category |
+| DELETE | `/api/categories/:id` | Admin/Internal | Delete category |
+
+### Admin Endpoints (Admin/Internal)
+
+All require `gatewayOrInternalAuth` + `requireRole('admin','internal')`.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/admin/products` | Create product |
+| PUT | `/api/admin/products/:id` | Update product |
+| DELETE | `/api/admin/products/:id` | Delete product |
+| PUT | `/api/admin/products/:id/status` | Update product status (`draft`, `pending_approval`, `approved`, `rejected`, `inactive`, `out_of_stock`) |
+| POST | `/api/admin/products/:id/variants` | Create variant |
+| PUT | `/api/admin/products/:id/variants/:variantId` | Update variant |
+| DELETE | `/api/admin/products/:id/variants/:variantId` | Soft delete variant (`deletedAt` + `isActive=false`) |
+| POST | `/api/admin/products/:id/images` | Add images |
+| PUT | `/api/admin/products/:id/images/reorder` | Reorder images |
+| DELETE | `/api/admin/products/:id/images/:imageId` | Delete image |
+| POST | `/api/admin/products/bulk/update` | Bulk update products |
+| POST | `/api/admin/products/bulk/delete` | Bulk delete products (soft delete) |
+| POST | `/api/admin/products/bulk/import` | Bulk import (currently returns 501) |
+| POST | `/api/admin/categories` | Create category |
+| PUT | `/api/admin/categories/:id` | Update category |
+| DELETE | `/api/admin/categories/:id` | Delete category |
+
 ### Example Requests
 
 #### Create Draft
@@ -277,30 +347,44 @@ x-user-role: moderator
 }
 ```
 
+Dev note: if `NODE_ENV=development`, you can omit `x-user-id` (and even `x-gateway-key` when `GATEWAY_SECRET_KEY` is not set) and rely on `DEV_MODERATOR_ID` / `DEV_USER_ROLE`. See [Setup & Development](#setup--development).
+
 ---
 
 ## Database Schema
 
+Source of truth: `backend/services/product-service/prisma/schema.prisma` (the excerpts below are kept in sync for quick reference).
+
 ### ProductDraft Model
 ```prisma
 model ProductDraft {
-  id                String       @id @default(dbgenerated("gen_random_uuid()"))
-  sellerId          String       // Reference to Seller Service
-  categoryId        String
-  name              String       @db.VarChar(255)
-  description       String?
-  baseSellPrice     Decimal      @db.Decimal(15, 2)
-  images            Json[]       // Array of image URLs
-  variants          Json[]       // Array of variant data
-  status            DraftStatus  @default(draft)
-  submittedAt       DateTime?
-  reviewedAt        DateTime?
-  reviewedBy        String?      // Moderator ID
-  rejectionReason   String?      @db.VarChar(500)
-  moderationNotes   String?      // Internal notes
-  productId         String?      @unique // If approved
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  id               String      @id @default(dbgenerated("gen_random_uuid()"))
+  sellerId         String      // Reference to Seller Service
+  categoryId       String
+  name             String      @db.VarChar(255)
+  description      String?
+  shortDescription String?     @db.VarChar(500)
+  baseSellPrice    Decimal     @db.Decimal(15, 2)
+  images           Json[]      // Array of image URLs
+  variants         Json[]      // Array of variant data
+  weightGrams      Int?
+  lengthCm         Decimal?    @db.Decimal(10, 2)
+  widthCm          Decimal?    @db.Decimal(10, 2)
+  heightCm         Decimal?    @db.Decimal(10, 2)
+  material         String?
+  careInstructions String?
+  countryOfOrigin  String?     @db.VarChar(100)
+  tags             String[]
+
+  status           DraftStatus @default(draft)
+  submittedAt      DateTime?
+  reviewedAt       DateTime?
+  reviewedBy       String?     // Moderator ID
+  rejectionReason  String?     @db.VarChar(500)
+  moderationNotes  String?     // Internal notes
+  productId        String?     @unique // If approved
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 }
 
 enum DraftStatus {
@@ -335,11 +419,21 @@ enum ModerationPriority {
 ### Product Model (Updated)
 ```prisma
 model Product {
-  // ... existing fields
-  sellerId        String?       // null = house brand, UUID = seller
-  draftId         String?       @unique // Link to original draft
-  moderationNotes String?       // Internal notes from moderator
-  status          ProductStatus @default(draft)
+  id          String        @id @default(dbgenerated("gen_random_uuid()"))
+  categoryId  String
+  sellerId    String?       // null = house brand, UUID = seller
+  draftId     String?       @unique // Link to original draft
+  productCode String        @unique
+  name        String        @db.VarChar(255)
+  slug        String        @unique @db.VarChar(255)
+  baseCostPrice Decimal     @db.Decimal(15, 2)
+  baseSellPrice Decimal     @db.Decimal(15, 2)
+  status      ProductStatus @default(draft)
+  tags        String[]
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
 }
 
 enum ProductStatus {
@@ -359,6 +453,7 @@ enum ProductStatus {
 ### Published Events
 
 All events are written to `ServiceOutbox` table for eventual delivery to Kafka.
+Outbox writes are done inside the same Prisma transaction as the domain write (transactional outbox), so state changes and events are atomic.
 
 | Event | When | Consumers |
 |-------|------|-----------|
@@ -408,19 +503,21 @@ All events are written to `ServiceOutbox` table for eventual delivery to Kafka.
 - `POST /api/notifications/send` - Send notification to seller about draft decision
 
 #### warehouse-service (house brands only)
-- `GET /api/inventory/product/:id` - Check inventory availability
-- `POST /api/inventory/check-bundle-overflow` - Check grosir bundle constraints
-- `POST /api/inventory/products` - Create inventory for new product
+- `GET /api/warehouse/inventory/status?productId=:id&variantId=:variantId` - Check inventory availability
+- `GET /api/warehouse/check-bundle-overflow?productId=:id&variantId=:variantId` - Check grosir overflow/locking
+- `GET /api/warehouse/check-all-variants?productId=:id` - Get per-variant bundle status (UI/config verification)
+- `POST /api/admin/inventory` - Create inventory records (admin endpoint; called by product-service via internal auth)
+- `POST /api/admin/bundle-config` - Create/update grosir bundle config (admin endpoint; called by product-service via internal auth)
 
 ### Called By Other Services
 
 #### content-service
 - `GET /api/products/:id/taggable` - Check if product can be tagged in posts
-  - Returns: `{ id, name, sellerId, status: 'approved', imageUrl }`
+  - Returns: `{ success: true, data: { id, name, sellerId, status, isTaggable, price, primaryImageUrl, productSource } }`
+- `POST /api/products/batch-taggable` - Batch taggable check (internal)
 
 #### cart-service
-- `GET /api/products/:id` - Get product details
-- `GET /api/products/:id/variants/:variantId` - Get variant details
+- `GET /api/products/:id/taggable` - MVP contract for product snapshot (id, name, price, etc.)
 
 ---
 
@@ -488,26 +585,43 @@ if (product.sellerId === null) {
 ```env
 PORT=3002
 NODE_ENV=development
+ALLOWED_ORIGINS=http://localhost:3000
 
 # Database
-PRODUCT_DATABASE_URL="postgresql://user:pass@localhost:5432/product_db"
+DATABASE_URL="postgresql://user:pass@localhost:5432/product_db"
+# Back-compat (optional): if you already use PRODUCT_DATABASE_URL, product-service maps it to DATABASE_URL on startup.
+# PRODUCT_DATABASE_URL="postgresql://user:pass@localhost:5432/product_db"
 
 # Authentication
 GATEWAY_SECRET_KEY=your-gateway-secret
 SERVICE_SECRET=your-service-secret
 SERVICE_NAME=product-service
 
+# Dev-only auth fallbacks (local testing)
+# Used when NODE_ENV=development and gateway auth is not configured (or for gatewayOrInternalAuth's dev fallback).
+# Tip: set DEV_USER_ROLE=admin or DEV_USER_ROLE=moderator to test protected routes without any headers.
+DEV_USER_ROLE=user
+DEV_USER_ID=00000000-0000-0000-0000-000000000000
+DEV_SELLER_ID=11111111-1111-1111-1111-111111111111
+DEV_MODERATOR_ID=22222222-2222-2222-2222-222222222222
+DEV_ADMIN_ID=33333333-3333-3333-3333-333333333333
+
+# Internal service auth headers (when calling protected internal endpoints)
+# x-service-auth: <serviceName>:<timestamp>:<signature>
+# x-service-name: <serviceName>
+
+# Outbound HTTP
+OUTBOUND_HTTP_TIMEOUT_MS=5000
+
 # Inter-service URLs
 SELLER_SERVICE_URL=http://localhost:3015
 WAREHOUSE_SERVICE_URL=http://localhost:3012
 NOTIFICATION_SERVICE_URL=http://localhost:3008
-
-# AWS S3
-AWS_ACCESS_KEY_ID=your-key
-AWS_SECRET_ACCESS_KEY=your-secret
-AWS_REGION=ap-southeast-1
-AWS_S3_BUCKET=lakoo-product-images
 ```
+
+Notes:
+- This service stores image URLs only; it does not upload to S3 directly.
+- Dev auth fallback: if `NODE_ENV=development` and `GATEWAY_SECRET_KEY` is not set, `gatewayAuth` will infer a role from the route prefix (`/api/drafts` → `seller`, `/api/moderation` → `moderator`, `/api/admin` → `admin`) unless you explicitly set `x-user-role` or `DEV_USER_ROLE`.
 
 ### Installation
 ```bash
@@ -567,7 +681,7 @@ Visit `http://localhost:3002/api-docs` for Swagger documentation.
 
 4. **Verify Product Created**
    ```bash
-   GET /api/products/:productId
+   GET /api/products/id/:productId
    ```
 
 5. **Check Events**

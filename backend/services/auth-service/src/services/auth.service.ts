@@ -13,7 +13,7 @@ export default class AuthService {
         this.otp_repository = new OTPRepository();
         this.userServiceClient = new UserHTTPClient({
             gatewayURL:  process.env.GATEWAY_URL ?? 'http://localhost:8080',
-            userServiceURL: process.env.USER_SERVICE_URL ?? 'http://localhost:8018', 
+            userServiceURL: process.env.USER_SERVICE_URL ?? 'http://localhost:3004', 
             timeout: 5000,
             serviceName: "AUTH_SERVICE",
             serviceSecret: process.env.SERVICE_SECRET ?? 'secret',
@@ -70,7 +70,7 @@ export default class AuthService {
                 throw new Error("The OTP for this phonenumber is not available");
             }
 
-            const createdAt = new Date(OTP.createdAt);
+            const createdAt = OTP.createdAt ? new Date(OTP.createdAt) : new Date();
             const expiry = new Date(createdAt.getTime() + (5 * 60 * 1000));
 
             if(new Date() > expiry) {
@@ -84,7 +84,7 @@ export default class AuthService {
             return { success : true, message: "Correct OTP"};
 
         } catch(error: any)  {
-            return { success : false, message: error.mesage};
+            return { success : false, message: error.message};
         }
     }
 

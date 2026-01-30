@@ -24,7 +24,7 @@ func initConfig() *Config {
 	godotenv.Load("../.env")
 
 	return &Config{
-		ORDER_SERVICE_PORT: getEnv("ORDER_SERVICE_PORT", "3002"),
+		ORDER_SERVICE_PORT: getEnv("ORDER_SERVICE_PORT", "3006"),
 		DB_HOST:            getEnv("DB_HOST", "localhost"),
 		DB_USER:            getEnv("DB_USER", "postgres"),
 		DB_PASSWORD:        getEnv("DB_PASSWORD", "password"),

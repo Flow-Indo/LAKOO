@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "NODE_OPTIONS='--require tsconfig-paths/register' tsx watch src/index.ts"
+    "dev": "tsx watch --tsconfig tsconfig.json src/index.ts",
+    "dev:linux": "NODE_OPTIONS='--require tsconfig-paths/register' tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +17,9 @@
   "devDependencies": {
     "@types/axios": "^0.14.4",
     "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/helmet": "^4.0.0",
     "@types/node": "^25.0.9",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.21.0",
@@ -24,8 +29,10 @@
     "@prisma/client": "^6.19.2",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "helmet": "^8.0.0",
     "prisma": "^6.19.2",
     "zod": "^4.3.5"
   }

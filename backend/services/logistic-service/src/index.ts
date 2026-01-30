@@ -7,6 +7,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
+import { prisma } from './lib/prisma';
 import {
   shipmentRoutes,
   rateRoutes,
@@ -87,18 +88,40 @@ app.use(errorHandler);
 
 // Graceful shutdown
 let server: ReturnType<typeof app.listen> | undefined;
-const gracefulShutdown = () => {
-  console.log('Received shutdown signal, closing server gracefully...');
-
-  server?.close(() => {
-    console.log('Server closed');
-    process.exit(0);
+const closeServer = () =>
+  new Promise<void>((resolve, reject) => {
+    if (!server) return resolve();
+    server.close((err?: Error) => {
+      if (err) return reject(err);
+      resolve();
+    });
   });
 
-  setTimeout(() => {
+const gracefulShutdown = async () => {
+  console.log('Received shutdown signal, closing server gracefully...');
+
+  const forcedExitTimer = setTimeout(() => {
     console.error('Forced shutdown after timeout');
     process.exit(1);
   }, 10000);
+
+  try {
+    await closeServer();
+    console.log('HTTP server closed');
+  } catch (err) {
+    console.error('Error closing HTTP server:', err);
+  }
+
+  try {
+    await prisma.$disconnect();
+    console.log('Prisma disconnected');
+  } catch (err) {
+    console.error('Error disconnecting Prisma:', err);
+  } finally {
+    clearTimeout(forcedExitTimer);
+  }
+
+  process.exit(0);
 };
 
 process.on('SIGTERM', gracefulShutdown);

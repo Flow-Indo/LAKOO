@@ -1,5 +1,10 @@
 import { PrismaClient } from '../generated/prisma';
 
+// Back-compat: older docs/configs used PRODUCT_DATABASE_URL, but Prisma expects DATABASE_URL.
+if (!process.env.DATABASE_URL && process.env.PRODUCT_DATABASE_URL) {
+  process.env.DATABASE_URL = process.env.PRODUCT_DATABASE_URL;
+}
+
 declare global {
   // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined;

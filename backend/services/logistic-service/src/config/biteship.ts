@@ -1,4 +1,37 @@
 import axios, { AxiosInstance } from 'axios';
+import { withRetry } from '../lib/retry';
+
+const BITESHIP_TIMEOUT_MS = (() => {
+  const raw = process.env.BITESHIP_TIMEOUT_MS;
+  const parsed = raw ? Number.parseInt(raw, 10) : 15000;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 15000;
+})();
+
+const BITESHIP_RETRIES = (() => {
+  const raw = process.env.BITESHIP_RETRIES;
+  const parsed = raw ? Number.parseInt(raw, 10) : 2;
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 2;
+})();
+
+function isRetryableAxiosError(err: any) {
+  const code = err?.code as string | undefined;
+  const retryableCodes = new Set([
+    'ECONNABORTED',
+    'ETIMEDOUT',
+    'ECONNRESET',
+    'ENOTFOUND',
+    'EAI_AGAIN',
+    'ECONNREFUSED'
+  ]);
+  if (code && retryableCodes.has(code)) return true;
+
+  const status = err?.response?.status as number | undefined;
+  if (typeof status === 'number' && status >= 500) return true;
+
+  if (err?.isAxiosError && err?.response === undefined) return true;
+
+  return false;
+}
 
 interface BiteshipRateRequest {
   originPostalCode: string;
@@ -71,15 +104,17 @@ interface BiteshipTrackingResponse {
 
 class BiteshipClient {
   private client: AxiosInstance;
+  private apiKey?: string;
 
   constructor() {
     const baseURL = process.env.BITESHIP_BASE_URL || 'https://api.biteship.com/v1';
-    const apiKey = process.env.BITESHIP_API_KEY;
+    this.apiKey = process.env.BITESHIP_API_KEY;
 
     this.client = axios.create({
       baseURL,
+      timeout: BITESHIP_TIMEOUT_MS,
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        ...(this.apiKey ? { 'Authorization': `Bearer ${this.apiKey}` } : {}),
         'Content-Type': 'application/json'
       }
     });
@@ -89,6 +124,9 @@ class BiteshipClient {
    * Get shipping rates from Biteship
    */
   async getRates(request: BiteshipRateRequest): Promise<BiteshipRateResponse[]> {
+    if (!this.apiKey) {
+      throw new Error('BITESHIP_API_KEY not configured');
+    }
     try {
       // Build request payload
       const payload = {
@@ -104,7 +142,23 @@ class BiteshipClient {
         couriers: request.couriers?.join(',') || 'jne,jnt,sicepat,anteraja'
       };
 
-      const response = await this.client.post('/rates/couriers', payload);
+      const response = await withRetry(
+        () => this.client.post('/rates/couriers', payload),
+        {
+          retries: BITESHIP_RETRIES,
+          minDelayMs: 200,
+          maxDelayMs: 2000,
+          factor: 2,
+          jitterRatio: 0.2,
+          isRetryable: isRetryableAxiosError,
+          onRetry: ({ attempt, delayMs, error }) => {
+            console.warn(
+              `Retrying Biteship getRates (attempt ${attempt}, delay ${delayMs}ms):`,
+              (error as any)?.message || error
+            );
+          }
+        }
+      );
 
       if (!response.data?.pricing) {
         return [];
@@ -129,6 +183,9 @@ class BiteshipClient {
    * Create a shipping order with Biteship
    */
   async createOrder(request: BiteshipCreateOrderRequest): Promise<BiteshipCreateOrderResponse> {
+    if (!this.apiKey) {
+      throw new Error('BITESHIP_API_KEY not configured');
+    }
     try {
       const payload = {
         shipper_contact_name: request.origin.name,
@@ -180,8 +237,27 @@ class BiteshipClient {
    * Get tracking info from Biteship
    */
   async getTracking(waybillId: string): Promise<BiteshipTrackingResponse[]> {
+    if (!this.apiKey) {
+      throw new Error('BITESHIP_API_KEY not configured');
+    }
     try {
-      const response = await this.client.get(`/trackings/${waybillId}`);
+      const response = await withRetry(
+        () => this.client.get(`/trackings/${waybillId}`),
+        {
+          retries: BITESHIP_RETRIES,
+          minDelayMs: 200,
+          maxDelayMs: 2000,
+          factor: 2,
+          jitterRatio: 0.2,
+          isRetryable: isRetryableAxiosError,
+          onRetry: ({ attempt, delayMs, error }) => {
+            console.warn(
+              `Retrying Biteship getTracking (attempt ${attempt}, delay ${delayMs}ms):`,
+              (error as any)?.message || error
+            );
+          }
+        }
+      );
 
       if (!response.data?.history) {
         return [];
@@ -205,6 +281,9 @@ class BiteshipClient {
    * Cancel a Biteship order
    */
   async cancelOrder(orderId: string, reason: string): Promise<boolean> {
+    if (!this.apiKey) {
+      throw new Error('BITESHIP_API_KEY not configured');
+    }
     try {
       await this.client.delete(`/orders/${orderId}`, {
         data: { reason }
@@ -214,21 +293,6 @@ class BiteshipClient {
       console.error('Biteship cancelOrder error:', error.response?.data || error.message);
       return false;
     }
-  }
-
-  /**
-   * Verify webhook signature
-   */
-  verifyWebhookSignature(payload: string, signature: string): boolean {
-    const secret = process.env.BITESHIP_WEBHOOK_SECRET;
-    if (!secret) {
-      console.warn('BITESHIP_WEBHOOK_SECRET not configured');
-      return process.env.NODE_ENV === 'development';
-    }
-
-    // In production, implement proper HMAC verification
-    // This is a placeholder - Biteship uses different verification methods
-    return true;
   }
 }
 

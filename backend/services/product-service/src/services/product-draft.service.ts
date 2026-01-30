@@ -94,6 +94,7 @@ export class ProductDraftService {
     // Create draft
     const draft = await prisma.productDraft.create({
       data: {
+        // Must come from auth (DraftController uses gatewayAuth). For local testing, set `x-user-id` to the seller UUID.
         sellerId: data.sellerId,
         categoryId: data.categoryId,
         name: data.name,
@@ -232,11 +233,11 @@ export class ProductDraftService {
         }
       });
 
+      // Transactional outbox: publish inside the same transaction
+      await outboxService.draftSubmitted(updated, tx);
+
       return [updated, queue];
     });
-
-    // Publish event
-    await outboxService.draftSubmitted(submittedDraft);
 
     return submittedDraft;
   }
@@ -411,14 +412,14 @@ export class ProductDraftService {
         });
       }
 
+      // Transactional outbox: publish inside the same transaction
+      await Promise.all([
+        outboxService.productApproved(updated, tx),
+        outboxService.productCreated(newProduct, tx)
+      ]);
+
       return [newProduct, updated];
     });
-
-    // Publish events
-    await Promise.all([
-      outboxService.productApproved(approvedDraft),
-      outboxService.productCreated(product)
-    ]);
 
     // Call seller-service to increment product count
     await sellerServiceClient.incrementProductCount(draft.sellerId);
@@ -477,11 +478,11 @@ export class ProductDraftService {
         });
       }
 
+      // Transactional outbox: publish inside the same transaction
+      await outboxService.productRejected(updated, tx);
+
       return [updated, null];
     });
-
-    // Publish event
-    await outboxService.productRejected(rejectedDraft);
 
     // Send notification to seller
     await notificationServiceClient.notifyDraftRejected(
@@ -538,11 +539,11 @@ export class ProductDraftService {
         });
       }
 
+      // Transactional outbox: publish inside the same transaction
+      await outboxService.changesRequested(updated, tx);
+
       return [updated, null];
     });
-
-    // Publish event
-    await outboxService.changesRequested(updatedDraft);
 
     // Send notification to seller
     await notificationServiceClient.notifyChangesRequested(

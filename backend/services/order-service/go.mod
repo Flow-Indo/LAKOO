@@ -2,8 +2,11 @@ module github.com/Flow-Indo/LAKOO/backend/services/order-service
 
 go 1.25.0
 
+replace github.com/Flow-Indo/LAKOO/backend/shared/go => ../../shared/go
+
 require (
 	github.com/Flow-Indo/LAKOO/backend/shared/go v0.0.0-20260119151619-f06f49a17d9a
+	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/lpernett/godotenv v0.0.0-20230527005122-0de1d4c5ef5e
 	github.com/shopspring/decimal v1.4.0

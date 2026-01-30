@@ -1,5 +1,6 @@
 import { ProductRepository  } from "../repositories/product.repository"; 
 import { CreateProductDTO, UpdateProductDTO, ProductQuery, CreateVariantDTO } from "../types"; 
+import { warehouseServiceClient } from "../clients/warehouse.client";
 
 export class ProductService {
     private repository : ProductRepository;
@@ -70,13 +71,16 @@ export class ProductService {
 
     // ============= Grosir Config Management (Simplified) =============
 
-    /**
-     * Set bundle composition for grosir - defines units per bundle for each variant
-     */
+     /**
+      * Set bundle composition for grosir - defines units per bundle for each variant
+      */
     async setBundleComposition(productId: string, compositions: { variantId: string | null; unitsInBundle: number }[]) {
         const product = await this.repository.findById(productId);
         if (!product) {
             throw new Error('Product not found');
+        }
+        if (product.sellerId) {
+            throw new Error('Grosir configuration is only supported for house brand products');
         }
 
         // Validate units in bundle
@@ -86,7 +90,40 @@ export class ProductService {
             }
         }
 
-        return this.repository.setBundleComposition(productId, compositions);
+        const sizeBreakdown: Record<string, number> = {};
+        let totalUnits = 0;
+        let bundleCost = 0;
+
+        for (const comp of compositions) {
+            const units = comp.unitsInBundle;
+            totalUnits += units;
+
+            if (comp.variantId) {
+                const variant = product.variants?.find(v => v.id === comp.variantId);
+                if (!variant) {
+                    throw new Error(`Variant not found: ${comp.variantId}`);
+                }
+                const sizeKey = variant.size || 'default';
+                sizeBreakdown[sizeKey] = (sizeBreakdown[sizeKey] || 0) + units;
+
+                const cost = (variant.costPrice as any)?.toNumber?.() ?? Number(variant.costPrice as any);
+                bundleCost += cost * units;
+            } else {
+                sizeBreakdown['default'] = (sizeBreakdown['default'] || 0) + units;
+                const cost = (product.baseCostPrice as any)?.toNumber?.() ?? Number(product.baseCostPrice as any);
+                bundleCost += cost * units;
+            }
+        }
+
+        await this.repository.update(productId, { grosirUnitSize: totalUnits });
+
+        return warehouseServiceClient.updateBundleConfig({
+            productId,
+            bundleName: `${product.name} Bundle`,
+            totalUnits,
+            sizeBreakdown,
+            bundleCost: bundleCost.toString()
+        });
     }
 
     /**
@@ -96,6 +133,9 @@ export class ProductService {
         const product = await this.repository.findById(productId);
         if (!product) {
             throw new Error('Product not found');
+        }
+        if (product.sellerId) {
+            throw new Error('Warehouse inventory configuration is only supported for house brand products');
         }
 
         // Validate config values
@@ -111,7 +151,45 @@ export class ProductService {
             }
         }
 
-        return this.repository.setWarehouseInventoryConfig(productId, configs);
+        const variants = product.variants || [];
+        const requestedVariantIds = new Set<string>();
+        const applyToAll = configs.some(c => c.variantId === null);
+
+        for (const cfg of configs) {
+            if (cfg.variantId) requestedVariantIds.add(cfg.variantId);
+        }
+
+        const targets = applyToAll
+            ? variants
+            : variants.filter(v => requestedVariantIds.has(v.id));
+
+        const existingInventory = await warehouseServiceClient.getAllInventory(productId);
+        const existingVariantIds = new Set(existingInventory.map(row => row.variantId).filter((id): id is string => Boolean(id)));
+
+        const createResults: Array<{ variantId: string; created: boolean; reason?: string }> = [];
+        for (const target of targets) {
+            const cfg = configs.find(c => c.variantId === null || c.variantId === target.id);
+            if (!cfg) continue;
+
+            if (existingVariantIds.has(target.id)) {
+                createResults.push({ variantId: target.id, created: false });
+                continue;
+            }
+
+            await warehouseServiceClient.ensureInventoryRecord({
+                productId,
+                variantId: target.id,
+                sku: target.sku,
+                maxStockLevel: cfg.maxStockLevel,
+                reorderPoint: cfg.reorderThreshold,
+                skipCheck: true
+            });
+            existingVariantIds.add(target.id);
+
+            createResults.push({ variantId: target.id, created: true });
+        }
+
+        return { productId, results: createResults };
     }
 
     /**
@@ -122,7 +200,15 @@ export class ProductService {
         if (!product) {
             throw new Error('Product not found');
         }
+        if (product.sellerId) {
+            throw new Error('Grosir configuration is only supported for house brand products');
+        }
 
-        return this.repository.getGrosirConfig(productId);
+        const status = await warehouseServiceClient.checkAllVariantsOverflow(productId);
+        return {
+            productId,
+            grosirUnitSize: product.grosirUnitSize ?? null,
+            warehouse: status
+        };
     }
 }

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/Flow-Indo/LAKOO/backend/services/cart-service/domain/services"
@@ -21,11 +22,15 @@ func NewCartHandler(service services.CartServiceInterface) *CartHandler {
 }
 
 func (h *CartHandler) RegisterRoutes(cartExternalRouter *mux.Router, cartInternalRouter *mux.Router) {
-	// cartRouter.HandleFunc("/", h.GetCart).Methods("GET")
-	//for external
-	cartExternalRouter.Use(middleware.UserIDMiddleware)
-	cartExternalRouter.HandleFunc("/addToCart", h.AddToCart).Methods("POST")
-	cartExternalRouter.HandleFunc("/", h.GetActiveCart).Methods("GET")
+	// Header-auth user-facing routes
+	userFacing := cartExternalRouter.PathPrefix("").Subrouter()
+	userFacing.Use(middleware.UserIDMiddleware)
+	userFacing.HandleFunc("/addToCart", h.AddToCart).Methods("POST")
+	userFacing.HandleFunc("/", h.GetActiveCart).Methods("GET")
+
+	// Path-based routes for order-service compatibility
+	cartExternalRouter.HandleFunc("/{userId}", h.GetCartByUserID).Methods("GET")
+	cartExternalRouter.HandleFunc("/{userId}", h.ClearCartByUserID).Methods("DELETE")
 
 	//for internal
 	cartInternalRouter.Use(middleware.ServiceAuthMiddleware)
@@ -37,23 +42,30 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 	userId, err := middleware.GetUserIdFromContext(r.Context())
 	if err != nil {
 		utils.WriteJSONResponse(w, http.StatusUnauthorized, err)
+		return
 	}
 
 	var cartItemRequest types.CartItemRequest
 	if err := utils.ParseJSONBody(r.Body, &cartItemRequest); err != nil {
 		utils.WriteJSONResponse(w, http.StatusBadRequest, err)
+		return
 	}
 
 	//validate if align with struct
 
 	if err := utils.ValidatePayload(cartItemRequest); err != nil {
 		utils.WriteJSONResponse(w, http.StatusBadRequest, err)
+		return
 	}
 
 	if err := h.service.AddToCart(r.Context(), userId, cartItemRequest); err != nil {
 		utils.WriteJSONResponse(w, http.StatusInternalServerError, err)
+		return
 	}
 
+	utils.WriteJSONResponse(w, http.StatusOK, map[string]any{
+		"success": true,
+	})
 }
 
 func (h *CartHandler) GetActiveCart(w http.ResponseWriter, r *http.Request) {
@@ -68,4 +80,37 @@ func (h *CartHandler) GetActiveCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSONResponse(w, http.StatusOK, cart)
+}
+
+func (h *CartHandler) GetCartByUserID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userId"]
+	if userID == "" {
+		utils.WriteError(w, http.StatusBadRequest, errors.New("missing userId path parameter"))
+		return
+	}
+
+	cart, err := h.service.GetActiveCart(userID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSONResponse(w, http.StatusOK, cart)
+}
+
+func (h *CartHandler) ClearCartByUserID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userId"]
+	if userID == "" {
+		utils.WriteError(w, http.StatusBadRequest, errors.New("missing userId path parameter"))
+		return
+	}
+
+	if err := h.service.ClearCart(userID); err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

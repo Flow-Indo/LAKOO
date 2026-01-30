@@ -83,11 +83,10 @@ export class AdminController {
       const { id } = req.params;
       const { status } = req.body;
 
-      const product = await prisma.products.update({
+      const product = await prisma.product.update({
         where: { id },
         data: {
-          status,
-          updated_at: new Date()
+          status
         }
       });
 
@@ -140,14 +139,25 @@ export class AdminController {
 
       const { variantId } = req.params;
 
-      const variant = await prisma.product_variants.update({
+      const variant = await prisma.productVariant.update({
         where: { id: variantId },
         data: {
           sku: req.body.sku,
-          variant_name: req.body.variantName,
-          price_adjustment: req.body.priceAdjustment,
-          stock_quantity: req.body.stockQuantity,
-          updated_at: new Date()
+          color: req.body.color,
+          colorHex: req.body.colorHex,
+          colorName: req.body.colorName,
+          size: req.body.size,
+          sizeName: req.body.sizeName,
+          material: req.body.material,
+          style: req.body.style,
+          costPrice: req.body.costPrice,
+          sellPrice: req.body.sellPrice,
+          weightGrams: req.body.weightGrams,
+          imageUrl: req.body.imageUrl,
+          barcode: req.body.barcode,
+          sortOrder: req.body.sortOrder,
+          isDefault: req.body.isDefault,
+          isActive: req.body.isActive
         }
       });
 
@@ -167,8 +177,12 @@ export class AdminController {
     try {
       const { variantId } = req.params;
 
-      await prisma.product_variants.delete({
-        where: { id: variantId }
+      await prisma.productVariant.update({
+        where: { id: variantId },
+        data: {
+          isActive: false,
+          deletedAt: new Date()
+        }
       });
 
       res.json({
@@ -193,12 +207,13 @@ export class AdminController {
       const { id } = req.params;
       const { images } = req.body;
 
-      const createdImages = await prisma.product_images.createMany({
+      const createdImages = await prisma.productImage.createMany({
         data: images.map((img: any, index: number) => ({
-          product_id: id,
-          image_url: img.imageUrl,
-          alt_text: img.altText || null,
-          display_order: img.displayOrder || index + 1
+          productId: id,
+          imageUrl: img.imageUrl,
+          altText: img.altText || null,
+          displayOrder: img.displayOrder ?? index,
+          isPrimary: index === 0
         }))
       });
 
@@ -222,9 +237,9 @@ export class AdminController {
 
       // Update each image's display order
       const updates = imageOrder.map((item: { imageId: string; displayOrder: number }) =>
-        prisma.product_images.update({
+        prisma.productImage.update({
           where: { id: item.imageId },
-          data: { display_order: item.displayOrder }
+          data: { displayOrder: item.displayOrder }
         })
       );
 
@@ -242,7 +257,7 @@ export class AdminController {
     try {
       const { imageId } = req.params;
 
-      await prisma.product_images.delete({
+      await prisma.productImage.delete({
         where: { id: imageId }
       });
 
@@ -268,11 +283,10 @@ export class AdminController {
       const { products } = req.body;
 
       const updates = products.map((product: { id: string; data: any }) =>
-        prisma.products.update({
+        prisma.product.update({
           where: { id: product.id },
           data: {
-            ...product.data,
-            updated_at: new Date()
+            ...product.data
           }
         })
       );
@@ -298,11 +312,10 @@ export class AdminController {
       const { productIds } = req.body;
 
       // Soft delete - set status to archived
-      const result = await prisma.products.updateMany({
+      const result = await prisma.product.updateMany({
         where: { id: { in: productIds } },
         data: {
-          status: 'inactive',
-          updated_at: new Date()
+          status: 'inactive'
         }
       });
 
@@ -338,13 +351,14 @@ export class AdminController {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
 
-      const category = await prisma.categories.create({
+      const category = await prisma.category.create({
         data: {
           name,
           slug,
-          parent_id: parentId || null,
-          icon_url: iconUrl || null,
-          display_order: displayOrder || 0
+          description,
+          parentId: parentId || null,
+          iconUrl: iconUrl || null,
+          displayOrder: displayOrder || 0
         }
       });
 
@@ -371,7 +385,7 @@ export class AdminController {
       const { name, description, parentId, iconUrl, displayOrder } = req.body;
 
       const updateData: any = {
-        updated_at: new Date()
+        updatedAt: new Date()
       };
 
       if (name !== undefined) {
@@ -382,11 +396,11 @@ export class AdminController {
           .replace(/(^-|-$)/g, '');
       }
       if (description !== undefined) updateData.description = description;
-      if (parentId !== undefined) updateData.parent_id = parentId;
-      if (iconUrl !== undefined) updateData.icon_url = iconUrl;
-      if (displayOrder !== undefined) updateData.display_order = displayOrder;
+      if (parentId !== undefined) updateData.parentId = parentId;
+      if (iconUrl !== undefined) updateData.iconUrl = iconUrl;
+      if (displayOrder !== undefined) updateData.displayOrder = displayOrder;
 
-      const category = await prisma.categories.update({
+      const category = await prisma.category.update({
         where: { id },
         data: updateData
       });
@@ -408,8 +422,8 @@ export class AdminController {
       const { id } = req.params;
 
       // Check if category has products
-      const productCount = await prisma.products.count({
-        where: { category_id: id }
+      const productCount = await prisma.product.count({
+        where: { categoryId: id }
       });
 
       if (productCount > 0) {
@@ -420,8 +434,8 @@ export class AdminController {
       }
 
       // Check if category has children
-      const childCount = await prisma.categories.count({
-        where: { parent_id: id }
+      const childCount = await prisma.category.count({
+        where: { parentId: id }
       });
 
       if (childCount > 0) {
@@ -431,7 +445,7 @@ export class AdminController {
         });
       }
 
-      await prisma.categories.delete({
+      await prisma.category.delete({
         where: { id }
       });
 

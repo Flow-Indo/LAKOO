@@ -21,8 +21,8 @@ services:
       - ALLOWED_ORIGINS=http://localhost:3000
       - GATEWAY_SECRET_KEY=${GATEWAY_SECRET_KEY:-dev-gateway-key}
       - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
-      - ORDER_SERVICE_URL=${ORDER_SERVICE_URL:-http://order-service:3005}
-      - NOTIFICATION_SERVICE_URL=${NOTIFICATION_SERVICE_URL:-http://notification-service:3003}
+      - ORDER_SERVICE_URL=${ORDER_SERVICE_URL:-http://order-service:3006}
+      - NOTIFICATION_SERVICE_URL=${NOTIFICATION_SERVICE_URL:-http://notification-service:3008}
       - BITESHIP_BASE_URL=${BITESHIP_BASE_URL:-https://api.biteship.com/v1}
       - BITESHIP_API_KEY=${BITESHIP_API_KEY:-}
       - BITESHIP_WEBHOOK_SECRET=${BITESHIP_WEBHOOK_SECRET:-}
@@ -65,8 +65,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: builder
     container_name: logistic-migrate
-    command: sh -lc "pnpm dlx prisma db push"
+    command: sh -lc "pnpm -s run db:push"
     environment:
       - LOGISTICS_DATABASE_URL=postgresql://postgres:postgres@logistic-db:5432/logistics_db?schema=public
     depends_on:

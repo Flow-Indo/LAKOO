@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma';
+import type { Prisma } from '../generated/prisma';
 
 /**
  * Outbox Service
@@ -110,7 +111,8 @@ export class OutboxService {
     aggregateId: string,
     eventType: EventType,
     payload: Record<string, any>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    tx?: Prisma.TransactionClient
   ): Promise<void> {
     const data: any = {
       aggregateType,
@@ -124,7 +126,8 @@ export class OutboxService {
       data.metadata = metadata;
     }
 
-    await prisma.serviceOutbox.create({
+    const client = tx ?? prisma;
+    await client.serviceOutbox.create({
       data: {
         ...data
       }
@@ -145,7 +148,7 @@ export class OutboxService {
     status: string;
     draftId: string | null;
     createdAt: Date;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: ProductCreatedPayload = {
       productId: product.id,
       productCode: product.productCode,
@@ -158,7 +161,7 @@ export class OutboxService {
       createdAt: product.createdAt.toISOString()
     };
 
-    await this.publish('Product', product.id, 'product.created', payload);
+    await this.publish('Product', product.id, 'product.created', payload, undefined, tx);
   }
 
   async productUpdated(product: {
@@ -170,7 +173,7 @@ export class OutboxService {
     baseSellPrice: any;
     status: string;
     updatedAt: Date;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: ProductUpdatedPayload = {
       productId: product.id,
       productCode: product.productCode,
@@ -182,7 +185,7 @@ export class OutboxService {
       updatedAt: product.updatedAt.toISOString()
     };
 
-    await this.publish('Product', product.id, 'product.updated', payload);
+    await this.publish('Product', product.id, 'product.updated', payload, undefined, tx);
   }
 
   async productDeleted(product: {
@@ -190,7 +193,7 @@ export class OutboxService {
     productCode: string;
     name: string;
     sellerId: string | null;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: ProductDeletedPayload = {
       productId: product.id,
       productCode: product.productCode,
@@ -199,7 +202,7 @@ export class OutboxService {
       deletedAt: new Date().toISOString()
     };
 
-    await this.publish('Product', product.id, 'product.deleted', payload);
+    await this.publish('Product', product.id, 'product.deleted', payload, undefined, tx);
   }
 
   // =============================================================================
@@ -213,7 +216,7 @@ export class OutboxService {
     name: string;
     baseSellPrice: any;
     submittedAt: Date | null;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: DraftSubmittedPayload = {
       draftId: draft.id,
       sellerId: draft.sellerId,
@@ -223,7 +226,7 @@ export class OutboxService {
       submittedAt: draft.submittedAt?.toISOString() || new Date().toISOString()
     };
 
-    await this.publish('ProductDraft', draft.id, 'product.draft_submitted', payload);
+    await this.publish('ProductDraft', draft.id, 'product.draft_submitted', payload, undefined, tx);
   }
 
   async productApproved(draft: {
@@ -235,7 +238,7 @@ export class OutboxService {
     baseSellPrice: any;
     reviewedBy: string | null;
     reviewedAt: Date | null;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: ProductApprovedPayload = {
       draftId: draft.id,
       productId: draft.productId!,
@@ -247,7 +250,7 @@ export class OutboxService {
       reviewedAt: draft.reviewedAt?.toISOString() || new Date().toISOString()
     };
 
-    await this.publish('ProductDraft', draft.id, 'product.approved', payload);
+    await this.publish('ProductDraft', draft.id, 'product.approved', payload, undefined, tx);
   }
 
   async productRejected(draft: {
@@ -258,7 +261,7 @@ export class OutboxService {
     rejectionReason: string | null;
     reviewedBy: string | null;
     reviewedAt: Date | null;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: ProductRejectedPayload = {
       draftId: draft.id,
       sellerId: draft.sellerId,
@@ -269,7 +272,7 @@ export class OutboxService {
       reviewedAt: draft.reviewedAt?.toISOString() || new Date().toISOString()
     };
 
-    await this.publish('ProductDraft', draft.id, 'product.rejected', payload);
+    await this.publish('ProductDraft', draft.id, 'product.rejected', payload, undefined, tx);
   }
 
   async changesRequested(draft: {
@@ -280,7 +283,7 @@ export class OutboxService {
     moderationNotes: string | null;
     reviewedBy: string | null;
     reviewedAt: Date | null;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: ChangesRequestedPayload = {
       draftId: draft.id,
       sellerId: draft.sellerId,
@@ -291,7 +294,7 @@ export class OutboxService {
       reviewedAt: draft.reviewedAt?.toISOString() || new Date().toISOString()
     };
 
-    await this.publish('ProductDraft', draft.id, 'product.changes_requested', payload);
+    await this.publish('ProductDraft', draft.id, 'product.changes_requested', payload, undefined, tx);
   }
 }
 

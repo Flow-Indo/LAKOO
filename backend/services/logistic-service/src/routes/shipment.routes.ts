@@ -27,11 +27,11 @@ router.post(
 // Get user's shipments
 router.get('/user', authenticate, shipmentController.getUserShipments);
 
-// Get shipment by ID
-router.get('/:id', authenticate, shipmentController.getShipmentById);
-
 // Get shipment by order ID
 router.get('/order/:orderId', authenticate, shipmentController.getShipmentByOrderId);
+
+// Get shipment by ID
+router.get('/:id', authenticate, shipmentController.getShipmentById);
 
 // Get tracking history
 router.get('/:id/tracking', authenticate, shipmentController.getTrackingHistory);

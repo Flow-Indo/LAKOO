@@ -29,6 +29,9 @@ func main() {
 		APIPrefix:   "cart",
 	})
 
+	// Add health check endpoint
+	apiServer.AddHealthCheck()
+
 	productClient := clients.NewProductHTTPClient(clients.ProductHTTPClientConfig{
 		GatewayURL:    config.Envs.GATEWAY_URL,
 		Timeout:       5 * time.Second,

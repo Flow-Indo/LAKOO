@@ -31,9 +31,15 @@ External services:
 - **`BITESHIP_BASE_URL`**, **`BITESHIP_API_KEY`**, **`BITESHIP_WEBHOOK_SECRET`**
 - **`ORDER_SERVICE_URL`** (default `http://localhost:3006`)
 - **`NOTIFICATION_SERVICE_URL`** (default `http://localhost:3008`)
+- **`OUTBOUND_HTTP_TIMEOUT_MS`** (default `5000`) - timeout for service-to-service HTTP calls
+- **`OUTBOUND_HTTP_RETRIES`** (default `2`) - retry count for idempotent service-to-service calls
 
 Caching:
 - **`RATE_CACHE_TTL_HOURS`**
+
+Biteship client:
+- **`BITESHIP_TIMEOUT_MS`** (default `15000`) - timeout for Biteship API calls
+- **`BITESHIP_RETRIES`** (default `2`) - retries for idempotent Biteship calls (rates, tracking)
 
 ### Authentication & authorization (gateway + service-to-service)
 Gateway-trust:
@@ -97,6 +103,9 @@ Writer: `src/services/outbox.service.ts`
 Examples:
 - Shipment lifecycle: `shipment.created`, `shipment.cancelled`, `shipment.delivered`, etc.
 - Tracking: `tracking.updated`
+
+Outbox correctness:
+- Outbox inserts are written in the **same DB transaction** as the domain write (`prisma.$transaction(...)`) for shipment create/status changes and tracking events.
 
 ## 8) Local development & scripts
 - Install: `pnpm -C backend/services/logistic-service install`

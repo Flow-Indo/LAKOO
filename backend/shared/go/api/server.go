@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -28,9 +29,18 @@ func NewServer(config ServerConfig) *Server {
 	}
 }
 
+func (s *Server) AddHealthCheck() {
+	s.router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, `{"status":"ok","service":"%s"}`, s.config.ServiceName)
+	}).Methods("GET")
+}
+
 func (s *Server) RegisterRoutes(registerFunc func(*mux.Router, *mux.Router)) {
-	external_subrouter := s.router.PathPrefix(fmt.Sprintf("/api%s", s.config.APIPrefix)).Subrouter()
-	internal_subrouter := s.router.PathPrefix(fmt.Sprintf("/internal%s", s.config.APIPrefix)).Subrouter()
+	prefix := strings.Trim(s.config.APIPrefix, "/")
+	external_subrouter := s.router.PathPrefix(fmt.Sprintf("/api/%s", prefix)).Subrouter()
+	internal_subrouter := s.router.PathPrefix(fmt.Sprintf("/internal/%s", prefix)).Subrouter()
 
 	registerFunc(external_subrouter, internal_subrouter)
 }

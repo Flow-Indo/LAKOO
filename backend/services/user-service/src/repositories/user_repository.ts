@@ -1,6 +1,5 @@
 import { prisma } from '@src/lib/prisma';
 import bcrypt from 'bcrypt';
-import { error } from 'console';
 import { UserRole } from '@src/models/models';
 
 
@@ -19,8 +18,9 @@ export class UserRepository {
                     passwordHash: true
                 }
             })
-        } catch(error) {
-            throw error;
+        } catch (err) {
+            console.error('UserRepository.findByPhoneNumber error:', err);
+            throw err;
         }
         
     }
@@ -46,8 +46,9 @@ export class UserRepository {
             }
 
             return user;
-        } catch {
-            throw error;
+        } catch (err) {
+            console.error('UserRepository.createUser error:', err);
+            throw err;
         }
     }
 

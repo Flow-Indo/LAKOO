@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import { errorHandler } from './middleware/error-handler';
+import { prisma } from './lib/prisma';
 
 // Import routes
 import productRoutes from './routes/product.routes';
@@ -78,11 +79,15 @@ const server = app.listen(PORT, () => {
 });
 
 // Handle graceful shutdown
-const shutdown = () => {
-  console.log('\n⏳ Shutting down gracefully...');
-  server.close(() => {
-    console.log('✅ Server closed');
-    process.exit(0);
+const shutdown = (signal: string) => {
+  console.log(`\n⏳ Shutting down gracefully (${signal})...`);
+  server.close(async () => {
+    try {
+      await prisma.$disconnect();
+    } finally {
+      console.log('✅ Server closed');
+      process.exit(0);
+    }
   });
 
   // Force shutdown after 10 seconds
@@ -92,5 +97,5 @@ const shutdown = () => {
   }, 10000);
 };
 
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

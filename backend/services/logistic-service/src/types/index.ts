@@ -58,7 +58,7 @@ export interface CreateShipmentDTO {
   itemCount?: number;
   itemDescription?: string;
   // Addresses
-  origin: AddressDTO;
+  origin?: AddressDTO;
   destination: AddressDTO;
   // Optional
   instructions?: string;

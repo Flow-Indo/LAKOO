@@ -9,6 +9,7 @@ type Config struct {
 	CART_SERVICE_PORT string
 	GATEWAY_URL       string
 	SERVICE_SECRET    string
+	DATABASE_URL      string
 	DB_USER           string
 	DB_PASSWORD       string
 	DB_NAME           string
@@ -23,6 +24,7 @@ func initConfig() *Config {
 		CART_SERVICE_PORT: env.GetEnv("CART_SERVICE_PORT", "3003"),
 		GATEWAY_URL:       env.GetEnv("GATEWAY_URL", "http://localhost:3000"),
 		SERVICE_SECRET:    env.GetEnv("SERVICE_SECRET", "secret"),
+		DATABASE_URL:      env.GetEnv("DATABASE_URL", ""),
 		DB_USER:           env.GetEnv("DB_USER", "user"),
 		DB_PASSWORD:       env.GetEnv("DB_PASSWORD", "password"),
 		DB_NAME:           env.GetEnv("DB_NAME", "dbname"),

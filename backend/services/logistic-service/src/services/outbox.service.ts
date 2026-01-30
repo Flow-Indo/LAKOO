@@ -1,6 +1,7 @@
 import { prisma } from '../lib/prisma';
 import { ShipmentStatus } from '../types';
 import { Decimal } from '@prisma/client/runtime/library';
+import { Prisma } from '../generated/prisma';
 
 /**
  * Outbox Service
@@ -48,16 +49,6 @@ export interface ShipmentCreatedPayload {
   createdAt: string;
 }
 
-export interface ShipmentBookedPayload {
-  shipmentId: string;
-  shipmentNumber: string;
-  orderId: string;
-  trackingNumber: string | null;
-  waybillId: string | null;
-  estimatedDelivery: string | null;
-  bookedAt: string;
-}
-
 export interface ShipmentStatusPayload {
   shipmentId: string;
   shipmentNumber: string;
@@ -66,6 +57,10 @@ export interface ShipmentStatusPayload {
   status: ShipmentStatus;
   previousStatus?: ShipmentStatus;
   trackingNumber: string | null;
+  waybillId?: string | null;
+  biteshipOrderId?: string | null;
+  estimatedDelivery?: string | null;
+  proofOfDeliveryUrl?: string | null;
   timestamp: string;
   failureReason?: string | null;
   receiverName?: string | null;
@@ -87,6 +82,10 @@ export interface TrackingUpdatedPayload {
 // =============================================================================
 
 export class OutboxService {
+  private getDb(tx?: Prisma.TransactionClient) {
+    return tx ?? prisma;
+  }
+
   /**
    * Publish an event to the outbox
    */
@@ -95,9 +94,10 @@ export class OutboxService {
     aggregateId: string,
     eventType: EventType,
     payload: Record<string, any>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    tx?: Prisma.TransactionClient
   ): Promise<void> {
-    await prisma.serviceOutbox.create({
+    await this.getDb(tx).serviceOutbox.create({
       data: {
         aggregateType,
         aggregateId,
@@ -124,7 +124,7 @@ export class OutboxService {
     originCity: string;
     destCity: string;
     createdAt: Date;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: ShipmentCreatedPayload = {
       shipmentId: shipment.id,
       shipmentNumber: shipment.shipmentNumber,
@@ -139,29 +139,7 @@ export class OutboxService {
       createdAt: shipment.createdAt.toISOString()
     };
 
-    await this.publish('Shipment', shipment.id, 'shipment.created', payload);
-  }
-
-  async shipmentBooked(shipment: {
-    id: string;
-    shipmentNumber: string;
-    orderId: string;
-    trackingNumber: string | null;
-    waybillId: string | null;
-    estimatedDelivery: Date | null;
-    bookedAt: Date | null;
-  }): Promise<void> {
-    const payload: ShipmentBookedPayload = {
-      shipmentId: shipment.id,
-      shipmentNumber: shipment.shipmentNumber,
-      orderId: shipment.orderId,
-      trackingNumber: shipment.trackingNumber,
-      waybillId: shipment.waybillId,
-      estimatedDelivery: shipment.estimatedDelivery?.toISOString() || null,
-      bookedAt: shipment.bookedAt?.toISOString() || new Date().toISOString()
-    };
-
-    await this.publish('Shipment', shipment.id, 'shipment.booked', payload);
+    await this.publish('Shipment', shipment.id, 'shipment.created', payload, undefined, tx);
   }
 
   async shipmentStatusChanged(
@@ -172,10 +150,15 @@ export class OutboxService {
       userId: string;
       status: ShipmentStatus;
       trackingNumber: string | null;
+      waybillId?: string | null;
+      biteshipOrderId?: string | null;
+      estimatedDelivery?: Date | null;
+      proofOfDeliveryUrl?: string | null;
       failureReason?: string | null;
       receiverName?: string | null;
     },
-    previousStatus?: ShipmentStatus
+    previousStatus?: ShipmentStatus,
+    tx?: Prisma.TransactionClient
   ): Promise<void> {
     const payload: ShipmentStatusPayload = {
       shipmentId: shipment.id,
@@ -185,6 +168,10 @@ export class OutboxService {
       status: shipment.status,
       previousStatus,
       trackingNumber: shipment.trackingNumber,
+      waybillId: shipment.waybillId,
+      biteshipOrderId: shipment.biteshipOrderId,
+      estimatedDelivery: shipment.estimatedDelivery ? shipment.estimatedDelivery.toISOString() : null,
+      proofOfDeliveryUrl: shipment.proofOfDeliveryUrl,
       timestamp: new Date().toISOString(),
       failureReason: shipment.failureReason,
       receiverName: shipment.receiverName
@@ -192,52 +179,7 @@ export class OutboxService {
 
     // Map status to event type
     const eventType = `shipment.${shipment.status}` as ShipmentEventType;
-    await this.publish('Shipment', shipment.id, eventType, payload);
-  }
-
-  async shipmentDelivered(shipment: {
-    id: string;
-    shipmentNumber: string;
-    orderId: string;
-    userId: string;
-    trackingNumber: string | null;
-    receiverName: string | null;
-    deliveredAt: Date | null;
-  }): Promise<void> {
-    const payload: ShipmentStatusPayload = {
-      shipmentId: shipment.id,
-      shipmentNumber: shipment.shipmentNumber,
-      orderId: shipment.orderId,
-      userId: shipment.userId,
-      status: 'delivered',
-      trackingNumber: shipment.trackingNumber,
-      timestamp: shipment.deliveredAt?.toISOString() || new Date().toISOString(),
-      receiverName: shipment.receiverName
-    };
-
-    await this.publish('Shipment', shipment.id, 'shipment.delivered', payload);
-  }
-
-  async shipmentFailed(shipment: {
-    id: string;
-    shipmentNumber: string;
-    orderId: string;
-    userId: string;
-    trackingNumber: string | null;
-    failureReason: string | null;
-  }): Promise<void> {
-    const payload: ShipmentStatusPayload = {
-      shipmentId: shipment.id,
-      shipmentNumber: shipment.shipmentNumber,
-      orderId: shipment.orderId,
-      userId: shipment.userId,
-      status: 'failed',
-      trackingNumber: shipment.trackingNumber,
-      timestamp: new Date().toISOString(),
-      failureReason: shipment.failureReason
-    };
-
-    await this.publish('Shipment', shipment.id, 'shipment.failed', payload);
+    await this.publish('Shipment', shipment.id, eventType, payload, undefined, tx);
   }
 
   // =============================================================================
@@ -256,7 +198,8 @@ export class OutboxService {
       description: string | null;
       location: string | null;
       eventTime: Date;
-    }
+    },
+    tx?: Prisma.TransactionClient
   ): Promise<void> {
     const payload: TrackingUpdatedPayload = {
       shipmentId: shipment.id,
@@ -269,7 +212,7 @@ export class OutboxService {
       eventTime: trackingEvent.eventTime.toISOString()
     };
 
-    await this.publish('Tracking', shipment.id, 'tracking.updated', payload);
+    await this.publish('Tracking', shipment.id, 'tracking.updated', payload, undefined, tx);
   }
 }
 

@@ -1,9 +1,14 @@
 import { Router } from 'express';
 import { body, param } from 'express-validator';
 import { AdminController } from '../controllers/admin.controller';
+import { gatewayOrInternalAuth, requireRole } from '../middleware/auth';
 
 const router:Router = Router();
 const controller = new AdminController();
+
+// All admin routes require authentication and admin/internal role
+router.use(gatewayOrInternalAuth);
+router.use(requireRole('admin', 'internal'));
 
 /**
  * @swagger
@@ -16,34 +21,14 @@ const controller = new AdminController();
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [factoryId, categoryId, sku, name, basePrice, moq]
- *             properties:
- *               factoryId:
- *                 type: string
- *                 format: uuid
- *               categoryId:
- *                 type: string
- *                 format: uuid
- *               sku:
- *                 type: string
- *               name:
- *                 type: string
- *               description:
- *                 type: string
- *               basePrice:
- *                 type: number
- *               costPrice:
- *                 type: number
- *               moq:
- *                 type: integer
+ *             $ref: '#/components/schemas/CreateProduct'
  *     responses:
  *       201:
  *         description: Product created successfully
  *       400:
  *         description: Validation error
  *       409:
- *         description: Product with this SKU already exists
+ *         description: Conflict (e.g., slug/productCode unique constraint)
  */
 router.post('/products', [
   body('categoryId').isUUID().withMessage('Invalid category ID'),
@@ -127,7 +112,7 @@ router.delete('/products/:id', [
  *             properties:
  *               status:
  *                 type: string
- *                 enum: [draft, active, archived]
+ *                 enum: [draft, pending_approval, approved, rejected, inactive, out_of_stock]
  *     responses:
  *       200:
  *         description: Status updated successfully
@@ -136,7 +121,9 @@ router.delete('/products/:id', [
  */
 router.put('/products/:id/status', [
   param('id').isUUID().withMessage('Invalid product ID'),
-  body('status').isIn(['draft', 'active', 'archived']).withMessage('Invalid status')
+  body('status')
+    .isIn(['draft', 'pending_approval', 'approved', 'rejected', 'inactive', 'out_of_stock'])
+    .withMessage('Invalid status')
 ], controller.updateProductStatus);
 
 // Variant Routes
@@ -158,17 +145,7 @@ router.put('/products/:id/status', [
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required: [sku, variantName]
- *             properties:
- *               sku:
- *                 type: string
- *               variantName:
- *                 type: string
- *               priceAdjustment:
- *                 type: number
- *               stockQuantity:
- *                 type: integer
+ *             $ref: '#/components/schemas/CreateVariant'
  *     responses:
  *       201:
  *         description: Variant created successfully
@@ -178,7 +155,10 @@ router.put('/products/:id/status', [
 router.post('/products/:id/variants', [
   param('id').isUUID().withMessage('Invalid product ID'),
   body('sku').notEmpty().withMessage('SKU is required'),
-  body('variantName').notEmpty().withMessage('Variant name is required')
+  body('color').notEmpty().withMessage('Color is required'),
+  body('size').notEmpty().withMessage('Size is required'),
+  body('costPrice').isNumeric().withMessage('Cost price must be a number'),
+  body('sellPrice').isNumeric().withMessage('Sell price must be a number')
 ], controller.createVariant);
 
 /**

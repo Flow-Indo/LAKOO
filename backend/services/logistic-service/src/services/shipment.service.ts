@@ -11,12 +11,48 @@ import {
 } from '../types';
 import { outboxService } from './outbox.service';
 import { NotFoundError, BadRequestError, ShipmentError } from '../middleware/error-handler';
+import { prisma } from '../lib/prisma';
 import axios from 'axios';
 import { getServiceAuthHeaders } from '../utils/serviceAuth';
+import { Prisma } from '../generated/prisma';
+import { withRetry } from '../lib/retry';
 
 // Defaults aligned with MICROSERVICE_ARCHITECTURE_PLAN.md (order-service: 3006, notification-service: 3008)
 const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3006';
 const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008';
+
+const OUTBOUND_HTTP_TIMEOUT_MS = (() => {
+  const raw = process.env.OUTBOUND_HTTP_TIMEOUT_MS;
+  const parsed = raw ? Number.parseInt(raw, 10) : 5000;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 5000;
+})();
+
+const OUTBOUND_HTTP_RETRIES = (() => {
+  const raw = process.env.OUTBOUND_HTTP_RETRIES;
+  const parsed = raw ? Number.parseInt(raw, 10) : 2;
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 2;
+})();
+
+function isRetryableAxiosError(err: any) {
+  const code = err?.code as string | undefined;
+  const retryableCodes = new Set([
+    'ECONNABORTED',
+    'ETIMEDOUT',
+    'ECONNRESET',
+    'ENOTFOUND',
+    'EAI_AGAIN',
+    'ECONNREFUSED'
+  ]);
+  if (code && retryableCodes.has(code)) return true;
+
+  const status = err?.response?.status as number | undefined;
+  if (typeof status === 'number' && status >= 500) return true;
+
+  // If Axios never got a response (network error), allow retry
+  if (err?.isAxiosError && err?.response === undefined) return true;
+
+  return false;
+}
 
 export class ShipmentService {
   private shipmentRepository: ShipmentRepository;
@@ -34,13 +70,15 @@ export class ShipmentService {
   // =============================================================================
 
   async createShipment(data: CreateShipmentDTO) {
+    let origin = data.origin;
+
     // If no origin provided, use default warehouse
-    if (!data.origin) {
+    if (!origin) {
       const defaultWarehouse = await this.warehouseRepository.findDefault();
       if (!defaultWarehouse) {
         throw new BadRequestError('No default warehouse configured and no origin address provided');
       }
-      data.origin = {
+      origin = {
         name: defaultWarehouse.contactName,
         phone: defaultWarehouse.contactPhone,
         address: defaultWarehouse.address,
@@ -53,12 +91,11 @@ export class ShipmentService {
       };
     }
 
-    const shipment = await this.shipmentRepository.create(data);
-
-    // Publish shipment.created event
-    await outboxService.shipmentCreated(shipment);
-
-    return shipment;
+    return prisma.$transaction(async (tx) => {
+      const shipment = await this.shipmentRepository.create({ ...data, origin }, tx);
+      await outboxService.shipmentCreated(shipment, tx);
+      return shipment;
+    });
   }
 
   async getShipmentById(id: string) {
@@ -110,31 +147,59 @@ export class ShipmentService {
   // Shipment Status Management
   // =============================================================================
 
-  async bookShipment(data: BookShipmentDTO) {
-    const shipment = await this.shipmentRepository.findById(data.shipmentId);
-    if (!shipment) {
+  private async publishStatusChange(
+    tx: Prisma.TransactionClient,
+    shipmentId: string,
+    status: ShipmentStatus,
+    additionalData?: Partial<UpdateShipmentDTO>
+  ) {
+    const before = await this.shipmentRepository.findById(shipmentId, tx);
+    if (!before) {
       throw new NotFoundError('Shipment not found');
     }
 
-    if (shipment.status !== 'pending') {
-      throw new ShipmentError(`Cannot book shipment with status: ${shipment.status}`);
-    }
-
-    const estimatedDelivery = data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined;
-    const updatedShipment = await this.shipmentRepository.markBooked(
-      data.shipmentId,
-      data.trackingNumber || '',
-      data.waybillId,
-      data.biteshipOrderId,
-      estimatedDelivery
+    const previousStatus = before.status;
+    const updatedShipment = await this.shipmentRepository.updateStatus(
+      shipmentId,
+      status,
+      additionalData,
+      tx
     );
 
-    // Publish shipment.booked event
-    await outboxService.shipmentBooked(updatedShipment);
+    await outboxService.shipmentStatusChanged(
+      {
+        ...updatedShipment,
+        failureReason: additionalData?.failureReason,
+        receiverName: additionalData?.receiverName
+      },
+      previousStatus,
+      tx
+    );
 
-    // Notify order service
-    await this.updateOrderShipmentStatus(shipment.orderId, 'booked', data.trackingNumber);
+    return { before, updatedShipment, previousStatus };
+  }
 
+  async bookShipment(data: BookShipmentDTO) {
+    const { before, updatedShipment } = await prisma.$transaction(async (tx) => {
+      const shipment = await this.shipmentRepository.findById(data.shipmentId, tx);
+      if (!shipment) {
+        throw new NotFoundError('Shipment not found');
+      }
+      if (shipment.status !== 'pending') {
+        throw new ShipmentError(`Cannot book shipment with status: ${shipment.status}`);
+      }
+
+      const { before, updatedShipment } = await this.publishStatusChange(tx, data.shipmentId, 'booked', {
+        ...(data.trackingNumber !== undefined && { trackingNumber: data.trackingNumber }),
+        ...(data.waybillId !== undefined && { waybillId: data.waybillId }),
+        ...(data.biteshipOrderId !== undefined && { biteshipOrderId: data.biteshipOrderId }),
+        ...(data.estimatedDelivery !== undefined && { estimatedDelivery: data.estimatedDelivery })
+      });
+
+      return { before, updatedShipment };
+    });
+
+    await this.updateOrderShipmentStatus(before.orderId, 'booked', updatedShipment.trackingNumber);
     return updatedShipment;
   }
 
@@ -143,37 +208,17 @@ export class ShipmentService {
     status: ShipmentStatus,
     additionalData?: Partial<UpdateShipmentDTO>
   ) {
-    const shipment = await this.shipmentRepository.findById(shipmentId);
-    if (!shipment) {
-      throw new NotFoundError('Shipment not found');
-    }
+    const { before, updatedShipment } = await prisma.$transaction(async (tx) => {
+      return this.publishStatusChange(tx, shipmentId, status, additionalData);
+    });
 
-    const previousStatus = shipment.status;
-    const updatedShipment = await this.shipmentRepository.updateStatus(
-      shipmentId,
-      status,
-      additionalData
-    );
+    await this.updateOrderShipmentStatus(before.orderId, status, updatedShipment.trackingNumber);
 
-    // Publish status change event
-    await outboxService.shipmentStatusChanged(
-      {
-        ...updatedShipment,
-        failureReason: additionalData?.failureReason,
-        receiverName: additionalData?.receiverName
-      },
-      previousStatus
-    );
-
-    // Notify order service
-    await this.updateOrderShipmentStatus(shipment.orderId, status);
-
-    // Send notification to user for key status changes
     if (['delivered', 'failed', 'out_for_delivery'].includes(status)) {
       await this.sendShipmentNotification(
-        shipment.userId,
-        shipment.orderId,
-        shipment.shipmentNumber,
+        updatedShipment.userId,
+        updatedShipment.orderId,
+        updatedShipment.shipmentNumber,
         status
       );
     }
@@ -187,78 +232,32 @@ export class ShipmentService {
     proofOfDeliveryUrl?: string,
     signature?: string
   ) {
-    const shipment = await this.shipmentRepository.findById(shipmentId);
-    if (!shipment) {
-      throw new NotFoundError('Shipment not found');
-    }
-
-    const updatedShipment = await this.shipmentRepository.markDelivered(
-      shipmentId,
+    return this.updateShipmentStatus(shipmentId, 'delivered', {
       receiverName,
       proofOfDeliveryUrl,
       signature
-    );
-
-    // Publish delivery event
-    await outboxService.shipmentDelivered(updatedShipment);
-
-    // Notify order service
-    await this.updateOrderShipmentStatus(shipment.orderId, 'delivered');
-
-    // Send delivery notification
-    await this.sendShipmentNotification(
-      shipment.userId,
-      shipment.orderId,
-      shipment.shipmentNumber,
-      'delivered'
-    );
-
-    return updatedShipment;
+    });
   }
 
   async markFailed(shipmentId: string, failureReason: string) {
-    const shipment = await this.shipmentRepository.findById(shipmentId);
-    if (!shipment) {
-      throw new NotFoundError('Shipment not found');
-    }
-
-    const updatedShipment = await this.shipmentRepository.markFailed(shipmentId, failureReason);
-
-    // Publish failure event
-    await outboxService.shipmentFailed(updatedShipment);
-
-    // Notify order service
-    await this.updateOrderShipmentStatus(shipment.orderId, 'failed');
-
-    // Send failure notification
-    await this.sendShipmentNotification(
-      shipment.userId,
-      shipment.orderId,
-      shipment.shipmentNumber,
-      'failed'
-    );
-
-    return updatedShipment;
+    return this.updateShipmentStatus(shipmentId, 'failed', { failureReason });
   }
 
   async cancelShipment(shipmentId: string) {
-    const shipment = await this.shipmentRepository.findById(shipmentId);
-    if (!shipment) {
-      throw new NotFoundError('Shipment not found');
-    }
+    const { before, updatedShipment } = await prisma.$transaction(async (tx) => {
+      const shipment = await this.shipmentRepository.findById(shipmentId, tx);
+      if (!shipment) {
+        throw new NotFoundError('Shipment not found');
+      }
+      if (!['pending', 'booked'].includes(shipment.status)) {
+        throw new ShipmentError(`Cannot cancel shipment with status: ${shipment.status}`);
+      }
 
-    if (!['pending', 'booked'].includes(shipment.status)) {
-      throw new ShipmentError(`Cannot cancel shipment with status: ${shipment.status}`);
-    }
+      const { before, updatedShipment } = await this.publishStatusChange(tx, shipmentId, 'cancelled');
+      return { before, updatedShipment };
+    });
 
-    const updatedShipment = await this.shipmentRepository.markCancelled(shipmentId);
-
-    // Publish cancellation event
-    await outboxService.shipmentStatusChanged(
-      { ...updatedShipment, status: 'cancelled' },
-      shipment.status
-    );
-
+    await this.updateOrderShipmentStatus(before.orderId, 'cancelled', updatedShipment.trackingNumber);
     return updatedShipment;
   }
 
@@ -267,20 +266,37 @@ export class ShipmentService {
   // =============================================================================
 
   async addTrackingEvent(data: CreateTrackingEventDTO) {
-    const shipment = await this.shipmentRepository.findById(data.shipmentId);
-    if (!shipment) {
-      throw new NotFoundError('Shipment not found');
-    }
+    type ShipmentWithTracking = NonNullable<Awaited<ReturnType<ShipmentRepository['findById']>>>;
+    type StatusChange = { before: ShipmentWithTracking; updatedShipment: ShipmentWithTracking; newStatus: ShipmentStatus };
 
-    const trackingEvent = await this.trackingRepository.create(data);
+    const { trackingEvent, statusChange } = await prisma.$transaction(async (tx) => {
+      const shipment = await this.shipmentRepository.findById(data.shipmentId, tx);
+      if (!shipment) {
+        throw new NotFoundError('Shipment not found');
+      }
 
-    // Publish tracking update event
-    await outboxService.trackingUpdated(shipment, trackingEvent);
+      const trackingEvent = await this.trackingRepository.create(data, tx);
+      await outboxService.trackingUpdated(shipment, trackingEvent, tx);
 
-    // Auto-update shipment status based on tracking event
-    const newStatus = this.mapTrackingStatusToShipmentStatus(data.status);
-    if (newStatus && newStatus !== shipment.status) {
-      await this.updateShipmentStatus(data.shipmentId, newStatus);
+      const newStatus = this.mapTrackingStatusToShipmentStatus(data.status);
+      if (newStatus && newStatus !== shipment.status) {
+        const { before, updatedShipment } = await this.publishStatusChange(tx, data.shipmentId, newStatus);
+        return { trackingEvent, statusChange: { before, updatedShipment, newStatus } satisfies StatusChange };
+      }
+
+      return { trackingEvent, statusChange: null as StatusChange | null };
+    });
+
+    if (statusChange) {
+      await this.updateOrderShipmentStatus(statusChange.before.orderId, statusChange.newStatus, statusChange.updatedShipment.trackingNumber);
+      if (['delivered', 'failed', 'out_for_delivery'].includes(statusChange.newStatus)) {
+        await this.sendShipmentNotification(
+          statusChange.updatedShipment.userId,
+          statusChange.updatedShipment.orderId,
+          statusChange.updatedShipment.shipmentNumber,
+          statusChange.newStatus
+        );
+      }
     }
 
     return trackingEvent;
@@ -337,15 +353,34 @@ export class ShipmentService {
     trackingNumber?: string | null
   ) {
     try {
-      await axios.put(
-        `${ORDER_SERVICE_URL}/api/orders/${orderId}/shipment-status`,
-        {
-          shipmentStatus: status,
-          ...(trackingNumber && { trackingNumber })
+      await withRetry(
+        async () => {
+          await axios.put(
+            `${ORDER_SERVICE_URL}/api/orders/${orderId}/shipment-status`,
+            {
+              shipmentStatus: status,
+              ...(trackingNumber && { trackingNumber })
+            },
+            {
+              headers: {
+                ...getServiceAuthHeaders()
+              },
+              timeout: OUTBOUND_HTTP_TIMEOUT_MS
+            }
+          );
         },
         {
-          headers: {
-            ...getServiceAuthHeaders()
+          retries: OUTBOUND_HTTP_RETRIES,
+          minDelayMs: 200,
+          maxDelayMs: 2000,
+          factor: 2,
+          jitterRatio: 0.2,
+          isRetryable: isRetryableAxiosError,
+          onRetry: ({ attempt, delayMs, error }) => {
+            console.warn(
+              `Retrying order-service shipment status update (attempt ${attempt}, delay ${delayMs}ms):`,
+              (error as any)?.message || error
+            );
           }
         }
       );
@@ -393,7 +428,8 @@ export class ShipmentService {
         {
           headers: {
             ...getServiceAuthHeaders()
-          }
+          },
+          timeout: OUTBOUND_HTTP_TIMEOUT_MS
         }
       );
     } catch (error: any) {

@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { body } from 'express-validator';
 import { gatewayAuth } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 import { draftController } from '../controllers/draft.controller';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // All draft routes require gateway authentication
 router.use(gatewayAuth);
@@ -107,9 +107,24 @@ const updateDraftValidators = [
 // =============================================================================
 
 /**
- * @route   POST /api/drafts
- * @desc    Create a new product draft
- * @access  Seller (authenticated)
+ * @swagger
+ * /api/drafts:
+ *   post:
+ *     summary: Create a new product draft
+ *     tags: [Drafts]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateDraft'
+ *     responses:
+ *       201:
+ *         description: Draft created
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
  */
 router.post(
   '/',
@@ -119,10 +134,23 @@ router.post(
 );
 
 /**
- * @route   GET /api/drafts/my-drafts
- * @desc    Get my drafts (optionally filter by status)
- * @access  Seller (authenticated)
- * @query   status?: 'draft' | 'pending' | 'approved' | 'rejected' | 'changes_requested'
+ * @swagger
+ * /api/drafts/my-drafts:
+ *   get:
+ *     summary: Get my drafts
+ *     tags: [Drafts]
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [draft, pending, approved, rejected, changes_requested]
+ *     responses:
+ *       200:
+ *         description: List of drafts
+ *       401:
+ *         description: Unauthorized
  */
 router.get(
   '/my-drafts',
@@ -130,9 +158,25 @@ router.get(
 );
 
 /**
- * @route   GET /api/drafts/:id
- * @desc    Get draft by ID (own drafts only)
- * @access  Seller (authenticated)
+ * @swagger
+ * /api/drafts/{id}:
+ *   get:
+ *     summary: Get draft by ID (own drafts only)
+ *     tags: [Drafts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Draft details
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Draft not found
  */
 router.get(
   '/:id',
@@ -140,9 +184,33 @@ router.get(
 );
 
 /**
- * @route   PUT /api/drafts/:id
- * @desc    Update draft (only if status is 'draft' or 'changes_requested')
- * @access  Seller (authenticated)
+ * @swagger
+ * /api/drafts/{id}:
+ *   put:
+ *     summary: Update draft (only if status is draft/changes_requested)
+ *     tags: [Drafts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateDraft'
+ *     responses:
+ *       200:
+ *         description: Draft updated
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Draft not found
  */
 router.put(
   '/:id',
@@ -152,9 +220,25 @@ router.put(
 );
 
 /**
- * @route   POST /api/drafts/:id/submit
- * @desc    Submit draft for review
- * @access  Seller (authenticated)
+ * @swagger
+ * /api/drafts/{id}/submit:
+ *   post:
+ *     summary: Submit draft for review
+ *     tags: [Drafts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Draft submitted
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Draft not found
  */
 router.post(
   '/:id/submit',
@@ -162,9 +246,25 @@ router.post(
 );
 
 /**
- * @route   DELETE /api/drafts/:id
- * @desc    Delete draft (only if status is 'draft', 'rejected', or 'changes_requested')
- * @access  Seller (authenticated)
+ * @swagger
+ * /api/drafts/{id}:
+ *   delete:
+ *     summary: Delete draft (only if status is draft/rejected/changes_requested)
+ *     tags: [Drafts]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       204:
+ *         description: Draft deleted
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Draft not found
  */
 router.delete(
   '/:id',

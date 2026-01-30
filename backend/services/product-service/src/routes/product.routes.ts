@@ -1,7 +1,136 @@
 import { Router } from 'express';
+import { body, param, query } from 'express-validator';
 import { ProductController } from '../controllers/product.controller';
+import { gatewayOrInternalAuth, internalServiceAuth, requireRole } from '../middleware/auth';
+import { validateRequest } from '../middleware/validation';
 const router: Router = Router();
 const controller = new ProductController();
+
+// =============================================================================
+// Validators
+// =============================================================================
+
+const productIdParam = [param('id').isUUID().withMessage('Invalid product ID')];
+
+const variantIdParam = [param('variantId').isUUID().withMessage('Invalid variant ID')];
+
+const listProductsValidators = [
+  query('sellerId').optional().isUUID().withMessage('Invalid sellerId'),
+  query('categoryId').optional().isUUID().withMessage('Invalid categoryId'),
+  query('status')
+    .optional()
+    .isIn(['draft', 'pending_approval', 'approved', 'rejected', 'inactive', 'out_of_stock'])
+    .withMessage('Invalid status'),
+  query('search').optional().isString().withMessage('search must be a string'),
+  query('page').optional().isInt({ min: 1 }).toInt().withMessage('page must be an integer >= 1'),
+  query('limit').optional().isInt({ min: 1, max: 100 }).toInt().withMessage('limit must be an integer 1..100')
+];
+
+const createProductValidators = [
+  body('categoryId').isUUID().withMessage('Invalid categoryId'),
+  body('sellerId').optional({ nullable: true }).isUUID().withMessage('Invalid sellerId'),
+  body('name').isString().trim().isLength({ min: 3, max: 255 }).withMessage('name must be 3..255 chars'),
+  body('baseSellPrice').isNumeric().withMessage('baseSellPrice must be a number'),
+  body('baseCostPrice').optional().isNumeric().withMessage('baseCostPrice must be a number'),
+  body('description').optional().isString().withMessage('description must be a string'),
+  body('shortDescription').optional().isString().isLength({ max: 500 }).withMessage('shortDescription max 500 chars'),
+  body('primaryImageUrl').optional().isURL().withMessage('primaryImageUrl must be a valid URL'),
+  body('weightGrams').optional().isInt({ min: 0 }).toInt().withMessage('weightGrams must be a non-negative integer'),
+  body('lengthCm').optional().isNumeric().withMessage('lengthCm must be a number'),
+  body('widthCm').optional().isNumeric().withMessage('widthCm must be a number'),
+  body('heightCm').optional().isNumeric().withMessage('heightCm must be a number'),
+  body('tags').optional().isArray().withMessage('tags must be an array'),
+  body('tags.*').optional().isString().withMessage('tags must be strings'),
+  body('grosirUnitSize').optional().isInt({ min: 1 }).toInt().withMessage('grosirUnitSize must be >= 1')
+];
+
+const updateProductValidators = [
+  ...productIdParam,
+  body('categoryId').optional().isUUID().withMessage('Invalid categoryId'),
+  body('name').optional().isString().trim().isLength({ min: 3, max: 255 }).withMessage('name must be 3..255 chars'),
+  body('description').optional().isString().withMessage('description must be a string'),
+  body('shortDescription').optional().isString().isLength({ max: 500 }).withMessage('shortDescription max 500 chars'),
+  body('baseSellPrice').optional().isNumeric().withMessage('baseSellPrice must be a number'),
+  body('baseCostPrice').optional().isNumeric().withMessage('baseCostPrice must be a number'),
+  body('weightGrams').optional().isInt({ min: 0 }).toInt().withMessage('weightGrams must be a non-negative integer'),
+  body('lengthCm').optional().isNumeric().withMessage('lengthCm must be a number'),
+  body('widthCm').optional().isNumeric().withMessage('widthCm must be a number'),
+  body('heightCm').optional().isNumeric().withMessage('heightCm must be a number'),
+  body('status')
+    .optional()
+    .isIn(['draft', 'pending_approval', 'approved', 'rejected', 'inactive', 'out_of_stock'])
+    .withMessage('Invalid status'),
+  body('primaryImageUrl').optional().isURL().withMessage('primaryImageUrl must be a valid URL'),
+  body('material').optional().isString().withMessage('material must be a string'),
+  body('careInstructions').optional().isString().withMessage('careInstructions must be a string'),
+  body('countryOfOrigin').optional().isString().withMessage('countryOfOrigin must be a string'),
+  body('tags').optional().isArray().withMessage('tags must be an array'),
+  body('tags.*').optional().isString().withMessage('tags must be strings'),
+  body('grosirUnitSize').optional().isInt({ min: 1 }).toInt().withMessage('grosirUnitSize must be >= 1')
+];
+
+const addImagesValidators = [
+  ...productIdParam,
+  body('images').isArray({ min: 1 }).withMessage('images must be a non-empty array'),
+  body('images.*.imageUrl').isURL().withMessage('images[].imageUrl must be a valid URL'),
+  body('images.*.sortOrder').optional().isInt({ min: 0 }).toInt().withMessage('images[].sortOrder must be >= 0'),
+  body('images.*.altText')
+    .optional()
+    .isString()
+    .trim()
+    .isLength({ max: 255 })
+    .withMessage('images[].altText max 255 chars')
+];
+
+const createVariantValidators = [
+  ...productIdParam,
+  body('sku').isString().notEmpty().withMessage('sku is required'),
+  body('color').isString().notEmpty().withMessage('color is required'),
+  body('size').isString().notEmpty().withMessage('size is required'),
+  body('costPrice').isNumeric().withMessage('costPrice must be a number'),
+  body('sellPrice').isNumeric().withMessage('sellPrice must be a number'),
+  body('barcode').optional().isString().withMessage('barcode must be a string'),
+  body('sortOrder').optional().isInt({ min: 0 }).toInt().withMessage('sortOrder must be >= 0'),
+  body('isDefault').optional().isBoolean().toBoolean().withMessage('isDefault must be boolean'),
+  body('isActive').optional().isBoolean().toBoolean().withMessage('isActive must be boolean')
+];
+
+const batchTaggableValidators = [
+  body('productIds')
+    .isArray({ min: 1, max: 50 })
+    .withMessage('productIds must be an array of 1..50 UUIDs'),
+  body('productIds.*').isUUID().withMessage('productIds must be UUIDs')
+];
+
+const bundleCompositionValidators = [
+  ...productIdParam,
+  body('compositions').isArray({ min: 1 }).withMessage('compositions must be a non-empty array'),
+  body('compositions.*.variantId')
+    .optional({ nullable: true })
+    .isUUID()
+    .withMessage('compositions[].variantId must be a UUID or null'),
+  body('compositions.*.unitsInBundle')
+    .isInt({ min: 1 })
+    .toInt()
+    .withMessage('compositions[].unitsInBundle must be an integer >= 1')
+];
+
+const warehouseInventoryConfigValidators = [
+  ...productIdParam,
+  body('configs').isArray({ min: 1 }).withMessage('configs must be a non-empty array'),
+  body('configs.*.variantId')
+    .optional({ nullable: true })
+    .isUUID()
+    .withMessage('configs[].variantId must be a UUID or null'),
+  body('configs.*.maxStockLevel')
+    .isInt({ min: 0 })
+    .toInt()
+    .withMessage('configs[].maxStockLevel must be an integer >= 0'),
+  body('configs.*.reorderThreshold')
+    .isInt({ min: 0 })
+    .toInt()
+    .withMessage('configs[].reorderThreshold must be an integer >= 0')
+];
 
 /**
  * @swagger
@@ -29,7 +158,14 @@ const controller = new ProductController();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', controller.createProduct);
+router.post(
+  '/',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  createProductValidators,
+  validateRequest,
+  controller.createProduct
+);
 
 /**
  * @swagger
@@ -95,32 +231,7 @@ router.post('/', controller.createProduct);
  *                     totalPages:
  *                       type: integer
  */
-router.get('/', controller.getProducts);
-
-/**
- * @swagger
- * /api/products/{slug}:
- *   get:
- *     summary: Get product by slug
- *     tags: [Products]
- *     parameters:
- *       - in: path
- *         name: slug
- *         required: true
- *         schema:
- *           type: string
- *         description: Product slug
- *     responses:
- *       200:
- *         description: Product details
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Product'
- *       404:
- *         description: Product not found
- */
-router.get('/:slug', controller.getProductBySlug);
+router.get('/', listProductsValidators, validateRequest, controller.getProducts);
 
 /**
  * @swagger
@@ -146,7 +257,7 @@ router.get('/:slug', controller.getProductBySlug);
  *       404:
  *         description: Product not found
  */
-router.get('/id/:id', controller.getProductById);
+router.get('/id/:id', productIdParam, validateRequest, controller.getProductById);
 
 /**
  * @swagger
@@ -169,7 +280,7 @@ router.get('/id/:id', controller.getProductById);
  *       404:
  *         description: Product not found
  */
-router.get('/:id/taggable', controller.checkTaggable);
+router.get('/:id/taggable', internalServiceAuth, productIdParam, validateRequest, controller.checkTaggable);
 
 /**
  * @swagger
@@ -193,8 +304,31 @@ router.get('/:id/taggable', controller.checkTaggable);
  *       200:
  *         description: Products taggability info
  */
-router.post('/batch-taggable', controller.batchCheckTaggable);
+router.post('/batch-taggable', internalServiceAuth, batchTaggableValidators, validateRequest, controller.batchCheckTaggable);
 
+/**
+ * @swagger
+ * /api/products/{slug}:
+ *   get:
+ *     summary: Get product by slug
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product slug
+ *     responses:
+ *       200:
+ *         description: Product details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Product'
+ *       404:
+ *         description: Product not found
+ */
 /**
  * @swagger
  * /api/products/{id}:
@@ -225,7 +359,14 @@ router.post('/batch-taggable', controller.batchCheckTaggable);
  *       404:
  *         description: Product not found
  */
-router.patch('/:id', controller.updateProduct);
+router.patch(
+  '/:id',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  updateProductValidators,
+  validateRequest,
+  controller.updateProduct
+);
 
 /**
  * @swagger
@@ -251,7 +392,14 @@ router.patch('/:id', controller.updateProduct);
  *       404:
  *         description: Product not found
  */
-router.patch('/:id/publish', controller.publishProduct);
+router.patch(
+  '/:id/publish',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  productIdParam,
+  validateRequest,
+  controller.publishProduct
+);
 
 /**
  * @swagger
@@ -273,7 +421,14 @@ router.patch('/:id/publish', controller.publishProduct);
  *       404:
  *         description: Product not found
  */
-router.delete('/:id', controller.deleteProduct);
+router.delete(
+  '/:id',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  productIdParam,
+  validateRequest,
+  controller.deleteProduct
+);
 
 /**
  * @swagger
@@ -313,7 +468,14 @@ router.delete('/:id', controller.deleteProduct);
  *       404:
  *         description: Product not found
  */
-router.post('/:id/images', controller.addImages);
+router.post(
+  '/:id/images',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  addImagesValidators,
+  validateRequest,
+  controller.addImages
+);
 
 /**
  * @swagger
@@ -345,8 +507,15 @@ router.post('/:id/images', controller.addImages);
  *       404:
  *         description: Product not found
  */
-router.post('/:id/variants', controller.createVariant);
-router.get('/variants/:variantId', controller.getVariantById);
+router.post(
+  '/:id/variants',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  createVariantValidators,
+  validateRequest,
+  controller.createVariant
+);
+router.get('/variants/:variantId', gatewayOrInternalAuth, variantIdParam, validateRequest, controller.getVariantById);
 
 // ============= Grosir Config Management =============
 
@@ -370,7 +539,7 @@ router.get('/variants/:variantId', controller.getVariantById);
  *       404:
  *         description: Product not found
  */
-router.get('/:id/grosir-config', controller.getGrosirConfig);
+router.get('/:id/grosir-config', gatewayOrInternalAuth, productIdParam, validateRequest, controller.getGrosirConfig);
 
 /**
  * @swagger
@@ -428,7 +597,14 @@ router.get('/:id/grosir-config', controller.getGrosirConfig);
  *       404:
  *         description: Product not found
  */
-router.post('/:id/bundle-composition', controller.setBundleComposition);
+router.post(
+  '/:id/bundle-composition',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  bundleCompositionValidators,
+  validateRequest,
+  controller.setBundleComposition
+);
 
 /**
  * @swagger
@@ -494,6 +670,16 @@ router.post('/:id/bundle-composition', controller.setBundleComposition);
  *       404:
  *         description: Product not found
  */
-router.post('/:id/warehouse-inventory-config', controller.setWarehouseInventoryConfig);
+router.post(
+  '/:id/warehouse-inventory-config',
+  gatewayOrInternalAuth,
+  requireRole('admin', 'internal'),
+  warehouseInventoryConfigValidators,
+  validateRequest,
+  controller.setWarehouseInventoryConfig
+);
+
+// Keep catch-all slug route LAST to avoid collisions with more specific routes
+router.get('/:slug', controller.getProductBySlug);
 
 export default router;

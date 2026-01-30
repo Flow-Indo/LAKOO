@@ -1,9 +1,14 @@
 import { prisma } from '../lib/prisma';
 import { CreateTrackingEventDTO } from '../types';
+import { Prisma } from '../generated/prisma';
 
 export class TrackingRepository {
-  async create(data: CreateTrackingEventDTO) {
-    return prisma.trackingEvent.create({
+  private getDb(tx?: Prisma.TransactionClient) {
+    return tx ?? prisma;
+  }
+
+  async create(data: CreateTrackingEventDTO, tx?: Prisma.TransactionClient) {
+    return this.getDb(tx).trackingEvent.create({
       data: {
         shipmentId: data.shipmentId,
         status: data.status,

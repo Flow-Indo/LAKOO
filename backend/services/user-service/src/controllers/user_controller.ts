@@ -16,18 +16,18 @@ export class UserController {
             const user : UserResponseDTO | null = await this.userService.findUser(phoneNumber as string);
 
             if(!user) {
-                res.status(404).json({
+                return res.status(404).json({
                     error: "user not found"
                 })
             }
             return res.json({
-                success: user,
-                user: user
+                success: true,
+                user
             })
 
         } catch (error) {
-            return res.status(404).json({
-                error: error
+            return res.status(500).json({
+                error: error instanceof Error ? error.message : String(error)
             })
         }
 
@@ -60,9 +60,25 @@ export class UserController {
             const { phoneNumber, firstName , lastName, password } = req.body;
 
             const user : UserResponseDTO = await this.userService.createUser(phoneNumber, firstName, lastName, password);
-            
-        } catch (error) {
+            if (!user) {
+                return res.status(400).json({ success: false, error: 'Failed to create user' });
+            }
 
+            return res.status(201).json({
+                success: true,
+                data: {
+                    // UserResponseDTO uses `userId`; include both for compatibility
+                    id: user.userId,
+                    userId: user.userId,
+                    phoneNumber: user.phoneNumber,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    role: user.role
+                }
+            });
+        } catch (error) {
+            console.error('Create user error:', error);
+            return res.status(500).json({ success: false, error: 'Internal server error' });
         }
    }
 

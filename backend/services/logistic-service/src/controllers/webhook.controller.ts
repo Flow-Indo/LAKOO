@@ -94,7 +94,14 @@ export class WebhookController {
       }
 
       const payload: BiteshipWebhookPayload = req.body;
-      console.log(`Received Biteship webhook: ${payload.event}`, JSON.stringify(payload, null, 2));
+      console.log('Received Biteship webhook', {
+        event: payload.event,
+        orderId: payload.order_id,
+        trackingId: payload.courier_tracking_id
+      });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Biteship webhook payload (dev only):', JSON.stringify(payload, null, 2));
+      }
 
       // Find shipment by Biteship order ID or tracking number
       let shipment = null;

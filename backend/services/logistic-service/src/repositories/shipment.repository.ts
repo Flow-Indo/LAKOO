@@ -3,6 +3,10 @@ import { CreateShipmentDTO, UpdateShipmentDTO, ShipmentStatus, PaginationOptions
 import { Prisma } from '../generated/prisma';
 
 export class ShipmentRepository {
+  private getDb(tx?: Prisma.TransactionClient) {
+    return tx ?? prisma;
+  }
+
   private generateShipmentNumber(): string {
     const date = new Date();
     const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
@@ -10,11 +14,14 @@ export class ShipmentRepository {
     return `SHP-${dateStr}-${random}`;
   }
 
-  async create(data: CreateShipmentDTO) {
+  async create(
+    data: CreateShipmentDTO & { origin: NonNullable<CreateShipmentDTO['origin']> },
+    tx?: Prisma.TransactionClient
+  ) {
     const shipmentNumber = this.generateShipmentNumber();
     const totalCost = data.shippingCost + (data.insuranceCost || 0);
 
-    return prisma.shipment.create({
+    return this.getDb(tx).shipment.create({
       data: {
         shipmentNumber,
         orderId: data.orderId,
@@ -68,8 +75,8 @@ export class ShipmentRepository {
     });
   }
 
-  async findById(id: string) {
-    return prisma.shipment.findUnique({
+  async findById(id: string, tx?: Prisma.TransactionClient) {
+    return this.getDb(tx).shipment.findUnique({
       where: { id },
       include: {
         trackingEvents: {
@@ -212,7 +219,12 @@ export class ShipmentRepository {
     });
   }
 
-  async updateStatus(id: string, status: ShipmentStatus, additionalData?: Partial<UpdateShipmentDTO>) {
+  async updateStatus(
+    id: string,
+    status: ShipmentStatus,
+    additionalData?: Partial<UpdateShipmentDTO>,
+    tx?: Prisma.TransactionClient
+  ) {
     const now = new Date();
     const updateData: Prisma.ShipmentUpdateInput = {
       status,
@@ -244,7 +256,7 @@ export class ShipmentRepository {
         break;
     }
 
-    return prisma.shipment.update({
+    return this.getDb(tx).shipment.update({
       where: { id },
       data: updateData,
       include: {
@@ -255,29 +267,42 @@ export class ShipmentRepository {
     });
   }
 
-  async markBooked(id: string, trackingNumber: string, waybillId?: string, biteshipOrderId?: string, estimatedDelivery?: Date) {
+  async markBooked(
+    id: string,
+    trackingNumber: string,
+    waybillId?: string,
+    biteshipOrderId?: string,
+    estimatedDelivery?: Date,
+    tx?: Prisma.TransactionClient
+  ) {
     return this.updateStatus(id, 'booked', {
       trackingNumber,
       waybillId,
       biteshipOrderId,
       estimatedDelivery: estimatedDelivery?.toISOString()
-    });
+    }, tx);
   }
 
-  async markDelivered(id: string, receiverName?: string, proofOfDeliveryUrl?: string, signature?: string) {
+  async markDelivered(
+    id: string,
+    receiverName?: string,
+    proofOfDeliveryUrl?: string,
+    signature?: string,
+    tx?: Prisma.TransactionClient
+  ) {
     return this.updateStatus(id, 'delivered', {
       receiverName,
       proofOfDeliveryUrl,
       signature
-    });
+    }, tx);
   }
 
-  async markFailed(id: string, failureReason: string) {
-    return this.updateStatus(id, 'failed', { failureReason });
+  async markFailed(id: string, failureReason: string, tx?: Prisma.TransactionClient) {
+    return this.updateStatus(id, 'failed', { failureReason }, tx);
   }
 
-  async markCancelled(id: string) {
-    return this.updateStatus(id, 'cancelled');
+  async markCancelled(id: string, tx?: Prisma.TransactionClient) {
+    return this.updateStatus(id, 'cancelled', undefined, tx);
   }
 
   async getShipmentStats(startDate: Date, endDate: Date) {

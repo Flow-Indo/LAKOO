@@ -14,6 +14,51 @@ export interface AuthenticatedRequest extends Request {
 
 const SERVICE_AUTH_HEADER = 'x-service-auth';
 const SERVICE_NAME_HEADER = 'x-service-name';
+const DEV_DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
+const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+function normalizeUuid(value?: string): string | undefined {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  const withoutPrefix = trimmed.toLowerCase().startsWith('urn:uuid:') ? trimmed.slice('urn:uuid:'.length) : trimmed;
+  return UUID_REGEX.test(withoutPrefix) ? withoutPrefix : undefined;
+}
+
+function devUserFromHeaders(req: AuthenticatedRequest): { id: string; role: string } {
+  const headerRoleHeader = req.headers['x-user-role'];
+  const headerRoleRaw = Array.isArray(headerRoleHeader) ? undefined : (headerRoleHeader as string | undefined);
+
+  const inferRoleFromPath = () => {
+    const path = (req.originalUrl || req.path || '').toLowerCase();
+    if (path.startsWith('/api/moderation')) return 'moderator';
+    if (path.startsWith('/api/admin')) return 'admin';
+    if (path.startsWith('/api/drafts')) return 'seller';
+    return 'user';
+  };
+
+  const role = (headerRoleRaw || process.env.DEV_USER_ROLE || inferRoleFromPath()).trim().toLowerCase();
+
+  const headerIdHeader = req.headers['x-user-id'];
+  const headerIdRaw = Array.isArray(headerIdHeader) ? undefined : (headerIdHeader as string | undefined);
+  const headerId = normalizeUuid(headerIdRaw);
+
+  const roleEnvIdRaw =
+    role === 'admin'
+      ? process.env.DEV_ADMIN_ID
+      : role === 'moderator'
+        ? process.env.DEV_MODERATOR_ID
+        : role === 'seller'
+          ? process.env.DEV_SELLER_ID
+          : undefined;
+
+  const id =
+    headerId ||
+    normalizeUuid(roleEnvIdRaw) ||
+    normalizeUuid(process.env.DEV_USER_ID) ||
+    DEV_DEFAULT_USER_ID;
+
+  return { id, role };
+}
 
 function tryServiceAuth(req: AuthenticatedRequest): boolean {
   const tokenHeader = req.headers[SERVICE_AUTH_HEADER];
@@ -36,9 +81,21 @@ function tryServiceAuth(req: AuthenticatedRequest): boolean {
     throw new UnauthorizedError('SERVICE_SECRET not configured');
   }
 
-  // Source-of-truth verification logic
-  verifyServiceToken(tokenHeader, serviceSecret);
-  req.user = { id: serviceNameHeader, role: 'internal' };
+  try {
+    const { serviceName: tokenServiceName } = verifyServiceToken(tokenHeader, serviceSecret);
+
+    // Prevent header spoofing: the signed token serviceName must match x-service-name
+    if (tokenServiceName !== serviceNameHeader) {
+      throw new UnauthorizedError('Service name mismatch');
+    }
+
+    // Do not trust x-service-name beyond matching; use the signed token identity
+    req.user = { id: tokenServiceName, role: 'internal' };
+  } catch (err: any) {
+    if (err instanceof UnauthorizedError) throw err;
+    throw new UnauthorizedError('Invalid service authentication token');
+  }
+
   return true;
 }
 
@@ -63,10 +120,7 @@ export const gatewayAuth = (
 
   // In development, allow requests without gateway key
   if (process.env.NODE_ENV === 'development' && !expectedKey) {
-    req.user = {
-      id: (req.headers['x-user-id'] as string) || 'dev-user',
-      role: (req.headers['x-user-role'] as string) || 'user'
-    };
+    req.user = devUserFromHeaders(req);
     return next();
   }
 
@@ -195,10 +249,7 @@ export const gatewayOrInternalAuth = (
 
   // Development mode fallback
   if (process.env.NODE_ENV === 'development') {
-    req.user = {
-      id: (req.headers['x-user-id'] as string) || 'dev-user',
-      role: 'user'
-    };
+    req.user = devUserFromHeaders(req);
     return next();
   }
 
