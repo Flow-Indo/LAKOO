@@ -1,8 +1,10 @@
-export function CartHeader() {
+export function CartHeader({ count = 0 }: { count?: number }) {
   return (
-    <div className="bg-white shadow-sm">
+    <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 py-4">
-        <h1 className="text-2xl font-medium text-gray-900">Keranjang Belanja</h1>
+        <h1 className="text-xl font-medium text-gray-900">
+          Keranjang Belanja <span className="text-sm text-gray-600">({count})</span>
+        </h1>
       </div>
 
       {/* Table Header - Desktop Only */}

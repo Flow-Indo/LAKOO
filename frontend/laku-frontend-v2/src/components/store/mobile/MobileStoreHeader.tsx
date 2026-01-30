@@ -36,7 +36,7 @@ export function MobileStoreHeader({ store }: MobileStoreHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+    <header className="sticky top-0 z-50 bg-white px-4 py-3 flex items-center justify-between">
       {/* Back Button */}
       <button
         onClick={handleBack}
@@ -51,7 +51,7 @@ export function MobileStoreHeader({ store }: MobileStoreHeaderProps) {
           <input
             type="text"
             placeholder={`Cari di ${store.name}...`}
-            className="w-full h-10 pl-4 pr-10 rounded-full bg-gray-50 border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            className="w-full h-10 pl-4 pr-10 rounded-xl bg-gray-50 border border-[#C93020] text-sm focus:outline-none focus:ring-0 focus:border-[#C93020]"
             readOnly // For now, make it readonly since search functionality isn't implemented
           />
           <button className="absolute right-3 top-1/2 transform -translate-y-1/2">

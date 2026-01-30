@@ -3,20 +3,19 @@
 import { useState } from 'react';
 import { Store, StoreTab, StoreFilter, StoreSortOption } from '@/types/store';
 import { MobileStoreHeader } from './MobileStoreHeader';
-import { MobileStoreBanner } from './MobileStoreBanner';
 import { MobileStoreInfoCard } from './MobileStoreInfoCard';
+import { MobileStoreBody } from './MobileStoreBody';
 import { MobileStoreTabs } from './MobileStoreTabs';
 import { MobileStoreProducts } from './MobileStoreProducts';
-import { MobileStoreCategories } from './MobileStoreCategories';
 import { MobileStoreReviews } from './MobileStoreReviews';
-import { MobileStoreAbout } from './MobileStoreAbout';
-import { MobileStoreRecommend } from './MobileStoreRecommend';
+
 
 interface MobileStorePageProps {
   store: Store;
+  showBottomNav?: boolean;
 }
 
-export function MobileStorePage({ store }: MobileStorePageProps) {
+export function MobileStorePage({ store, showBottomNav = true }: MobileStorePageProps) {
   const [activeTab, setActiveTab] = useState<StoreTab>('products');
   const [filters, setFilters] = useState<StoreFilter>({});
   const [sortBy, setSortBy] = useState<StoreSortOption>('recommended');
@@ -36,18 +35,35 @@ export function MobileStorePage({ store }: MobileStorePageProps) {
   return (
     <div className="min-h-screen bg-white">
       <MobileStoreHeader store={store} />
-      <MobileStoreBanner store={store} />
-      <MobileStoreInfoCard store={store} />
 
-      <MobileStoreTabs
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        store={store}
-      />
+      {showBottomNav && (
+        <MobileStoreTabs
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          store={store}
+        />
+      )}
 
       {/* Tab Content */}
-      <div className="pb-20"> {/* Add padding bottom for mobile nav */}
+      <div className="pt-0 pb-0"> {/* padding reset per preview changes */}
+        {activeTab === 'home' && (
+          <>
+            <MobileStoreInfoCard store={store} />
+            <MobileStoreBody />
+            <MobileStoreProducts
+              store={store}
+              filters={filters}
+              sortBy={sortBy}
+              onFiltersChange={handleFiltersChange}
+              onSortChange={handleSortChange}
+              showDivision={false}
+            />
+          </>
+        )}
+
         {activeTab === 'products' && (
+          <>
+            <MobileStoreInfoCard store={store} />
           <MobileStoreProducts
             store={store}
             filters={filters}
@@ -55,22 +71,15 @@ export function MobileStorePage({ store }: MobileStorePageProps) {
             onFiltersChange={handleFiltersChange}
             onSortChange={handleSortChange}
           />
-        )}
-
-        {activeTab === 'categories' && (
-          <MobileStoreCategories store={store} />
+          </>
         )}
 
         {activeTab === 'reviews' && (
           <MobileStoreReviews store={store} />
         )}
 
-        {activeTab === 'about' && (
-          <MobileStoreAbout store={store} />
-        )}
-
-        {activeTab === 'recommend' && (
-          <MobileStoreRecommend store={store} />
+        {activeTab === 'chat' && (
+          <div className="p-4 text-center text-gray-600">Chat room coming soon</div>
         )}
       </div>
     </div>

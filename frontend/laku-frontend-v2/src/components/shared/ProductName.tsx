@@ -6,7 +6,7 @@ interface ProductNameProps {
 export function ProductName({ name, badge }: ProductNameProps) {
   return (
     <h3
-      className="text-sm font-medium text-gray-900"
+      className="text-sm font-bold text-gray-900"
       style={{
         display: '-webkit-box',
         WebkitLineClamp: 2,
@@ -17,6 +17,7 @@ export function ProductName({ name, badge }: ProductNameProps) {
         margin: 0,
         padding: 0,
         minHeight: 0,
+        fontWeight: 600,
       }}
     >
       {badge && (

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
+import { StoreWrapper } from './StoreWrapper';
 import { CartHeader } from './CartHeader';
-import { StoreSection } from './StoreSection';
-import { PlatformVoucher } from './PlatformVoucher';
-import { CartSummary } from './CartSummary';
-import { RecommendedProducts } from './RecommendedProducts';
+import CartTotalSticky from './CartTotalSticky';
 import type { StoreCart, CartSummary as CartSummaryType } from '@/types/cart';
 
 interface Props {
@@ -41,6 +41,15 @@ export function CartPageClient({ initialCart }: Props) {
     })));
   };
 
+  // Keep `selectAll` in sync with individual product selections:
+  // - If every product across all stores is selected, `selectAll` becomes true.
+  // - If any single product is unselected, `selectAll` becomes false.
+  useEffect(() => {
+    const hasProducts = stores.some(s => s.products.length > 0);
+    const allSelected = hasProducts && stores.every(s => s.products.every(p => p.isSelected));
+    setSelectAll(allSelected);
+  }, [stores]);
+
   const handleDeleteSelected = () => {
     setStores(stores.map(store => ({
       ...store,
@@ -48,48 +57,72 @@ export function CartPageClient({ initialCart }: Props) {
     })).filter(store => store.products.length > 0));
   };
 
+  // total number of product rows in cart (count of product entries)
+  const totalItemCount = stores.reduce((acc, store) => acc + store.products.length, 0);
+
   return (
     <div className="min-h-screen bg-white-50">
-      <CartHeader />
+      <CartHeader count={totalItemCount} />
+      <div className="max-w-7xl mx-auto px-0 py-6 flex flex-col gap-[10px]">
+        {/* Quick link to Virtual Fitting Room */}
+        <div className="px-4">
+          <Link
+            href="/fitting-room"
+            className="text-black text-base font-medium inline-flex items-center"
+            aria-label="Coba Virtual Fitting Room"
+          >
+            <span>Coba Virtual Fitting Room</span>
+            <ChevronRight className="w-4 h-4 ml-3 text-black" />
+          </Link>
+        </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-
-        {/* Store Sections */}
+        {/* Store Sections simplified to use CartStoreBio and CartProductBody */}
         {stores.length === 0 ? (
           <div className="bg-white rounded-lg p-12 text-center">
             <p className="text-xl text-gray-600">Keranjang Anda kosong</p>
           </div>
         ) : (
           stores.map((store) => (
-            <StoreSection
+            <StoreWrapper
               key={store.storeId}
               store={store}
-              onUpdate={(updatedStore) => {
+              onSelectAll={(checked: boolean) => {
                 setStores(stores.map(s =>
-                  s.storeId === updatedStore.storeId ? updatedStore : s
+                  s.storeId === store.storeId
+                    ? { ...s, products: s.products.map(p => ({ ...p, isSelected: checked })) }
+                    : s
+                ));
+              }}
+              onToggle={(productId: string) => {
+                setStores(stores.map(s =>
+                  s.storeId === store.storeId
+                    ? { ...s, products: s.products.map(p => p.id === productId ? { ...p, isSelected: !p.isSelected } : p) }
+                    : s
+                ));
+              }}
+              onDelete={(productId: string) => {
+                setStores(stores
+                  .map(s =>
+                    s.storeId === store.storeId
+                      ? { ...s, products: s.products.filter(p => p.id !== productId) }
+                      : s
+                  )
+                  .filter(s => s.products.length > 0)
+                );
+              }}
+              onQuantityChange={(productId: string, quantity: number) => {
+                setStores(stores.map(s =>
+                  s.storeId === store.storeId
+                    ? { ...s, products: s.products.map(p => p.id === productId ? { ...p, quantity } : p) }
+                    : s
                 ));
               }}
             />
           ))
         )}
 
-        {/* Platform Voucher */}
-        {stores.length > 0 && <PlatformVoucher />}
-
-        {/* Recommended Products */}
-        <RecommendedProducts />
-
       </div>
-
-      {/* Bottom Summary Bar - Sticky */}
-      {stores.length > 0 && (
-        <CartSummary
-          summary={summary}
-          selectAll={selectAll}
-          onSelectAll={handleSelectAll}
-          onDelete={handleDeleteSelected}
-        />
-      )}
+      <CartTotalSticky selectAll={selectAll} onSelectAll={handleSelectAll} summary={summary} />
     </div>
   );
 }

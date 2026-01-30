@@ -10,7 +10,7 @@ export const mockStoreProducts: StoreProduct[] = [
     discount: 31,
     rating: 4.8,
     reviewCount: 234,
-    sold: '1.2k+',
+    sold: 1200,
     category: 'T-Shirts',
     tags: ['Cotton', 'Casual', 'Basic'],
     isBestSeller: true,
@@ -23,7 +23,7 @@ export const mockStoreProducts: StoreProduct[] = [
     price: 299000,
     rating: 4.6,
     reviewCount: 156,
-    sold: '800+',
+    sold: 800,
     category: 'Jeans',
     tags: ['Denim', 'Slim Fit', 'Dark Blue'],
     shipping: { free: true, express: false }
@@ -37,7 +37,7 @@ export const mockStoreProducts: StoreProduct[] = [
     discount: 18,
     rating: 4.9,
     reviewCount: 89,
-    sold: '450+',
+    sold: 450,
     category: 'Shoes',
     tags: ['Running', 'Athletic', 'Performance'],
     isNew: true,
@@ -50,7 +50,7 @@ export const mockStoreProducts: StoreProduct[] = [
     price: 165000,
     rating: 4.7,
     reviewCount: 312,
-    sold: '2.1k+',
+    sold: 2100,
     category: 'Accessories',
     tags: ['Leather', 'RFID', 'Classic'],
     isBestSeller: true,
@@ -65,7 +65,7 @@ export const mockStoreProducts: StoreProduct[] = [
     discount: 25,
     rating: 4.5,
     reviewCount: 178,
-    sold: '950+',
+    sold: 950,
     category: 'Hoodies',
     tags: ['Winter', 'Fleece', 'Warm'],
     shipping: { free: true, express: true }
@@ -77,7 +77,7 @@ export const mockStoreProducts: StoreProduct[] = [
     price: 195000,
     rating: 4.4,
     reviewCount: 267,
-    sold: '1.5k+',
+    sold: 1.5,
     category: 'Accessories',
     tags: ['Sunglasses', 'UV Protection', 'Stylish'],
     shipping: { free: false, express: false }
@@ -215,9 +215,57 @@ export const mockStoreCollections: StoreCollection[] = [
   }
 ];
 
+// Store-scoped assets for store-specific UI images
+export const storeAssets: Record<
+  string,
+  {
+    carouselImages: string[];
+    detailCarousel: { background: string; images: { src: string; height?: string; y?: string }[] };
+    productShowImages: { src: string; y?: string; x?: string; scale?: number }[];
+    shirts: string[];
+    pants: string[];
+  }
+> = {
+  'store-001': {
+    carouselImages: [
+      '/jeans/jean_mock_images/IMG_9976.JPG',
+      '/jeans/jean_mock_images/IMG_9977.JPG',
+      '/jeans/jean_mock_images/IMG_9978.JPG',
+      '/jeans/jean_mock_images/IMG_9979.JPG',
+    ],
+    detailCarousel: {
+      background: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/bgrb.png',
+      images: [
+        { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb1.png', height: '500px', y: '0%' },
+        { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb2.png', height: '500px', y: '0%' },
+        { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb3.png', height: '550px', y: '0%' },
+      ],
+    },
+    productShowImages: [
+      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb1.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb2.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb3.png', y: '-5%', x: '0%', scale: 120 },
+      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb1.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb2.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb3.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb1.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb2.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb3.png', y: '0%', x: '0%', scale: 120 },
+    ],
+    shirts: [
+      '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/atasan1-removebg-preview.png',
+      '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/atasan2-removebg-preview.png',
+    ],
+    pants: [
+      '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/celana1-removebg-preview.png',
+      '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/celana2-removebg-preview.png',
+    ],
+  },
+};
+
 export const mockStore: Store = {
   id: 'store-001',
-  name: 'FashionForward',
+  name: 'PYNKI SWEAR STORE',
   logo: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=200&h=200&fit=crop&crop=center',
   banner: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop',
   verified: true,

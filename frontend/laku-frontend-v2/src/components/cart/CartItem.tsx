@@ -1,7 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Plus, Trash2 } from 'lucide-react';
+import { CartPlusMinus } from './CartPlusMinus';
 import type { CartProduct } from '@/types/cart';
 
 interface Props {
@@ -21,7 +22,7 @@ export function CartItem({ product, onUpdate, onDelete }: Props) {
       <div className="grid grid-cols-12 gap-4 items-center">
 
         {/* Checkbox + Product Info */}
-        <div className="col-span-12 md:col-span-6 flex items-center gap-4">
+        <div className="col-span-12 md:col-span-6 flex items-start gap-4">
           <input
             type="checkbox"
             checked={product.isSelected}
@@ -38,19 +39,38 @@ export function CartItem({ product, onUpdate, onDelete }: Props) {
           />
 
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm text-gray-900 font-medium line-clamp-2 mb-1">
-              {product.name}
-            </h3>
-            {product.variations && (
-              <p className="text-xs text-gray-600">{product.variations}</p>
-            )}
-            {product.originalPrice && (
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-xs text-gray-600 line-through">
-                  Rp{product.originalPrice.toLocaleString()}
-                </span>
+            <div className="flex w-full">
+              <div className="flex-1 min-w-0 relative">
+                <h3 className="text-sm text-gray-900 font-light line-clamp-1 mb-1 w-[150px]">
+                  {product.name}
+                </h3>
+                {product.variations && (
+                  <p className="text-xs text-gray-600 w-[300px]">{product.variations}</p>
+                )}
+
+                <div className="absolute top-0 right-0">
+                  <button
+                    onClick={onDelete}
+                    aria-label="Hapus"
+                    title="Hapus"
+                    className="text-sm text-gray-900 hover:text-red-500 h-[53px]"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <div className="absolute right-2 bottom-2 md:right-0 md:bottom-0 flex items-center gap-2">
+                  {/* extracted to CartPlusMinus component */}
+                  <CartPlusMinus
+                    quantity={product.quantity}
+                    onDecrease={() => handleQuantityChange(product.quantity - 1)}
+                    onIncrease={() => handleQuantityChange(product.quantity + 1)}
+                    disableDecrease={product.quantity <= 1}
+                    disableIncrease={product.quantity >= product.stock}
+                  />
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -62,30 +82,7 @@ export function CartItem({ product, onUpdate, onDelete }: Props) {
         </div>
 
         {/* Quantity Controls */}
-        <div className="col-span-4 md:col-span-2 flex items-center justify-center gap-2">
-          <button
-            onClick={() => handleQuantityChange(product.quantity - 1)}
-            disabled={product.quantity <= 1}
-            className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50 disabled:opacity-30"
-          >
-            <Minus className="w-4 h-4 text-gray-600" />
-          </button>
-
-          <input
-            type="text"
-            value={product.quantity}
-            readOnly
-            className="w-12 h-8 text-center border border-gray-200 rounded text-sm"
-          />
-
-          <button
-            onClick={() => handleQuantityChange(product.quantity + 1)}
-            disabled={product.quantity >= product.stock}
-            className="w-8 h-8 border border-gray-200 rounded flex items-center justify-center hover:bg-gray-50 disabled:opacity-30"
-          >
-            <Plus className="w-4 h-4 text-gray-600" />
-          </button>
-        </div>
+        {/* Quantity controls moved into product info box */}
 
         {/* Total Price */}
         <div className="col-span-3 md:col-span-1 text-center">
@@ -96,12 +93,6 @@ export function CartItem({ product, onUpdate, onDelete }: Props) {
 
         {/* Actions */}
         <div className="col-span-2 md:col-span-1 flex flex-col items-center gap-2">
-          <button
-            onClick={onDelete}
-            className="text-sm text-gray-900 hover:text-red-500"
-          >
-            Hapus
-          </button>
           <button className="text-sm text-red-500 hover:underline">
             Cari Serupa
           </button>

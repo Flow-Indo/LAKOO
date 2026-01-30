@@ -10,17 +10,16 @@ interface MobileStoreTabsProps {
 }
 
 const tabs: { id: StoreTab; label: string; getCount?: (store: Store) => number | undefined }[] = [
+  { id: 'home', label: 'Home' },
   { id: 'products', label: 'Products' },
-  { id: 'categories', label: 'Categories' },
   { id: 'reviews', label: 'Reviews', getCount: (store) => store.reviews.length },
-  { id: 'about', label: 'About' },
-  { id: 'recommend', label: 'Recommend' },
+  { id: 'chat', label: 'Chat' },
 ];
 
 export function MobileStoreTabs({ activeTab, onTabChange, store }: MobileStoreTabsProps) {
   return (
-    <div className="sticky top-[73px] z-30 bg-white border-b border-gray-200">
-      <div className="flex overflow-x-auto scrollbar-hide px-4">
+    <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 pb-safe-bottom">
+      <div className="flex w-full overflow-hidden">
         {tabs.map((tab) => {
           const count = tab.getCount?.(store);
           const isActive = activeTab === tab.id;
@@ -30,18 +29,20 @@ export function MobileStoreTabs({ activeTab, onTabChange, store }: MobileStoreTa
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex-shrink-0 px-4 py-3 text-sm font-medium transition-colors relative",
+                "flex-1 text-center py-3 text-sm font-medium transition-colors relative",
                 isActive
-                  ? "text-red-600 border-b-2 border-red-600"
-                  : "text-gray-600 hover:text-gray-900"
+                  ? "text-orange-600"
+                  : "text-black-600"
               )}
             >
+              <span className="inline-flex items-center justify-center">
               <span>{tab.label}</span>
               {count !== undefined && (
-                <span className="ml-1 text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                  <span className="ml-2 text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
                   {count}
                 </span>
               )}
+              </span>
             </button>
           );
         })}

@@ -1,12 +1,77 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Store, StoreFilter, StoreSortOption, StoreProduct } from '@/types/store';
-import { ChevronDown, Filter, Grid, List } from 'lucide-react';
+import { ChevronDown, Filter, Grid, List, ArrowUp, ArrowDown } from 'lucide-react';
 import { formatPrice } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
+import { MobileStoreFilters } from './MobileStoreFilters';
+ 
+function ProductDivisionInner({ active, onChange }: { active: 'produk' | 'kategori'; onChange?: (v: 'produk' | 'kategori') => void }) {
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+  const minSwipeDistance = 50; // px
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchEndX.current = null;
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return;
+    const distance = touchStartX.current - touchEndX.current;
+    if (Math.abs(distance) < minSwipeDistance) return;
+    if (distance > 0) {
+      // swiped left -> go to 'produk'
+      if (active !== 'produk') onChange?.('produk');
+    } else {
+      // swiped right -> go to 'kategori'
+      if (active !== 'kategori') onChange?.('kategori');
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
+  return (
+    <div className="bg-white">
+      <div
+        className="flex border-b border-gray-200"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <button
+          onClick={() => onChange?.('produk')}
+          className={`flex-1 py-[1px] h-[50px] text-center transition-colors ${
+            active === 'produk'
+              ? 'text-black-600 border-b-2 border-black font-semibold'
+              : 'text-gray-600/50'
+          }`}
+        >
+          Produk
+        </button>
+
+        <button
+          onClick={() => onChange?.('kategori')}
+          className={`flex-1 py-[1px] h-[50px] text-center transition-colors ${
+            active === 'kategori'
+              ? 'text-black-600 border-b-2 border-black font-semibold'
+              : 'text-gray-600/50'
+          }`}
+        >
+          Kategori
+        </button>
+      </div>
+    </div>
+  );
+}
 
 interface MobileStoreProductsProps {
   store: Store;
@@ -14,6 +79,7 @@ interface MobileStoreProductsProps {
   sortBy: StoreSortOption;
   onFiltersChange: (filters: StoreFilter) => void;
   onSortChange: (sort: StoreSortOption) => void;
+  showDivision?: boolean;
 }
 
 const sortOptions: { value: StoreSortOption; label: string }[] = [
@@ -30,10 +96,33 @@ export function MobileStoreProducts({
   filters,
   sortBy,
   onFiltersChange,
-  onSortChange
+  onSortChange,
+  showDivision = true,
 }: MobileStoreProductsProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [activeDivision, setActiveDivision] = useState<'produk' | 'kategori'>('produk');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const SWIPE_THRESHOLD = 50;
+
+  const onTouchStart = (e: any) => {
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    touchStartX.current = x;
+  };
+
+  const onTouchEnd = (e: any) => {
+    const x = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    if (touchStartX.current === null) return;
+    const delta = x - touchStartX.current;
+    touchStartX.current = null;
+    if (delta > SWIPE_THRESHOLD) {
+      // swipe right -> go to 'produk'
+      if (activeDivision === 'kategori') setActiveDivision('produk');
+    } else if (delta < -SWIPE_THRESHOLD) {
+      // swipe left -> go to 'kategori'
+      if (activeDivision === 'produk') setActiveDivision('kategori');
+    }
+  };
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
@@ -47,12 +136,9 @@ export function MobileStoreProducts({
     }
 
     if (filters.priceRange) {
-      const { min, max } = filters.priceRange;
-      products = products.filter(product => {
-        const meetsMin = min === undefined || product.price >= min;
-        const meetsMax = max === undefined || product.price <= max;
-        return meetsMin && meetsMax;
-      });
+      products = products.filter(product =>
+        product.price >= filters.priceRange!.min && product.price <= filters.priceRange!.max
+      );
     }
 
     if (filters.rating) {
@@ -81,8 +167,10 @@ export function MobileStoreProducts({
       case 'best-selling':
         // Sort by sold count (mock data)
         products.sort((a, b) => {
-          const aSold = parseInt(a.sold.replace(/[+,k]/g, '')) * (a.sold.includes('k') ? 1000 : 1);
-          const bSold = parseInt(b.sold.replace(/[+,k]/g, '')) * (b.sold.includes('k') ? 1000 : 1);
+          const aSoldStr = String(a.sold);
+          const bSoldStr = String(b.sold);
+          const aSold = parseInt(aSoldStr.replace(/[+,k]/g, '')) * (aSoldStr.includes('k') ? 1000 : 1);
+          const bSold = parseInt(bSoldStr.replace(/[+,k]/g, '')) * (bSoldStr.includes('k') ? 1000 : 1);
           return bSold - aSold;
         });
         break;
@@ -101,113 +189,145 @@ export function MobileStoreProducts({
 
   return (
     <div className="bg-white">
-      {/* Quick Filters Bar */}
-      <div className="px-4 py-3 border-b border-gray-100">
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          <button
-            onClick={handleFilterClick}
-            className="flex-shrink-0 flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium"
+      {/* Product division (Produk / Kategori) - only show when requested */}
+      {showDivision && <ProductDivisionInner active={activeDivision} onChange={setActiveDivision} />}
+
+      {/* Swipeable content: left = kategori, right = produk */}
+      <div
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onPointerDown={onTouchStart}
+        onPointerUp={onTouchEnd}
+        style={{ touchAction: 'pan-y' }}
+      >
+        <div className="overflow-hidden">
+          <div
+            className="flex"
+            style={{
+              width: '200%',
+              transition: 'transform 320ms ease',
+              transform: activeDivision === 'produk' ? 'translateX(0%)' : 'translateX(-50%)',
+            }}
           >
-            <Filter className="w-4 h-4" />
-            Filter
-          </button>
-          <button className="flex-shrink-0 px-3 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium">
-            Official Discount
-          </button>
-          <button className="flex-shrink-0 px-3 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium">
-            Best Deals
-          </button>
-          <button className="flex-shrink-0 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
-            New Arrivals
-          </button>
-        </div>
-      </div>
+            {/* Produk pane */}
+            <div style={{ width: '50%' }} className="flex-1">
+              {/* Toolbar (no bottom border, buttons wrap instead of horizontally scrolling) */}
+              <div className="px-2.5 py-[5px] flex items-center justify-between">
+                <div className="flex items-center gap-2 h-[30px] leading-[30px] flex-wrap">
+                  <div className="flex items-center gap-2 h-[30px] leading-[30px]">
+                    <button
+                      onClick={() => onSortChange('recommended')}
+                      className={cn(
+                        'px-2 py-1 rounded-md text-xs font-light',
+                        sortBy === 'recommended' ? 'text-orange-600' : 'text-gray-700'
+                      )}
+                    >
+                      Populer
+                    </button>
 
-      {/* Toolbar */}
-      <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100">
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">
-            Showing {filteredProducts.length} items
-          </span>
-        </div>
+                    <button
+                      onClick={() => onSortChange('newest')}
+                      className={cn(
+                        'px-2 py-1 rounded-md text-xs font-light',
+                        sortBy === 'newest' ? 'text-orange-600' : 'text-gray-700'
+                      )}
+                    >
+                      Terbaru
+                    </button>
 
-        <div className="flex items-center gap-2">
-          {/* Sort Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setShowSortDropdown(!showSortDropdown)}
-              className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium"
-            >
-              {sortOptions.find(option => option.value === sortBy)?.label}
-              <ChevronDown className="w-4 h-4" />
-            </button>
+                    <button
+                      onClick={() => onSortChange('best-selling')}
+                      className={cn(
+                        'px-2 py-1 rounded-md text-xs font-light',
+                        sortBy === 'best-selling' ? 'text-orange-600' : 'text-gray-700'
+                      )}
+                    >
+                      Terlaris
+                    </button>
 
-            {showSortDropdown && (
-              <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                {sortOptions.map(option => (
+                    <button
+                      onClick={() => {
+                        const next = sortBy === 'price-low-to-high' ? 'price-high-to-low' : 'price-low-to-high';
+                        onSortChange(next as any);
+                      }}
+                      className={cn(
+                        'px-2 py-1 rounded-md text-xs font-light inline-flex items-center',
+                        (sortBy === 'price-low-to-high' || sortBy === 'price-high-to-low') ? 'text-orange-600' : 'text-gray-700'
+                      )}
+                    >
+                      <span>Harga</span>
+                      {sortBy === 'price-high-to-low' && <ArrowDown className="w-3 h-3 ml-1 inline-block" />}
+                      {sortBy === 'price-low-to-high' && <ArrowUp className="w-3 h-3 ml-1 inline-block" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Products Grid */}
+              <div className="pt-0.5 px-4 pb-4">
+                {viewMode === 'grid' ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {filteredProducts.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredProducts.map((product) => (
+                      <ProductListItem key={product.id} product={product} />
+                    ))}
+                  </div>
+                )}
+
+                {filteredProducts.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No products found matching your filters.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Kategori pane */}
+            <div style={{ width: '50%' }} className="pr-3 bg-gray-50">
+              <div className="space-y-2">
+                {store.categories.map((cat) => (
                   <button
-                    key={option.value}
-                    onClick={() => {
-                      onSortChange(option.value);
-                      setShowSortDropdown(false);
-                    }}
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
                     className={cn(
-                      "w-full text-left px-4 py-3 text-sm hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg",
-                      sortBy === option.value ? "bg-red-50 text-red-600 font-medium" : "text-gray-700"
+                      'w-full text-left px-3 py-3 text-sm transition-colors',
+                      selectedCategory === cat.id ? 'bg-white text-red-600 font-semibold' : 'text-gray-700'
                     )}
                   >
-                    {option.label}
+                    {cat.name}
                   </button>
                 ))}
               </div>
-            )}
-          </div>
 
-          {/* View Toggle */}
-          <div className="flex border border-gray-200 rounded-lg">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={cn(
-                "p-2 rounded-l-lg transition-colors",
-                viewMode === 'grid' ? "bg-red-600 text-white" : "text-gray-600 hover:bg-gray-50"
-              )}
-            >
-              <Grid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={cn(
-                "p-2 rounded-r-lg transition-colors",
-                viewMode === 'list' ? "bg-red-600 text-white" : "text-gray-600 hover:bg-gray-50"
-              )}
-            >
-              <List className="w-4 h-4" />
-            </button>
+              <div className="pt-0.5 px-4 pb-4">
+                {viewMode === 'grid' ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    {filteredProducts.map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredProducts.map((product) => (
+                      <ProductListItem key={product.id} product={product} />
+                    ))}
+                  </div>
+                )}
+
+                {filteredProducts.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No products found matching your filters.</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Products Grid */}
-      <div className="p-4">
-        {viewMode === 'grid' ? (
-          <div className="grid grid-cols-2 gap-3">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredProducts.map((product) => (
-              <ProductListItem key={product.id} product={product} />
-            ))}
-          </div>
-        )}
-
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No products found matching your filters.</p>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -329,7 +449,7 @@ function ProductListItem({ product }: { product: StoreProduct }) {
             <span className="text-xs text-gray-600">• {product.sold} terjual</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 h-5 leading-5">
             <span className="text-base font-bold text-red-600">
               {formatPrice(product.price)}
             </span>

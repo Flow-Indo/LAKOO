@@ -1,75 +1,135 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useChat } from '@/contexts/ChatContext';
-import { useCartStore } from '@/stores/cart-store';
-import { MAIN_NAV_ITEMS } from '@/lib/navigation';
-import { cn } from '@/lib/utils';
+import { Home, Video, Plus, ShoppingCart, User } from 'lucide-react';
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { t } = useLanguage();
-  const { isInChat } = useChat();
-  const cartCount = useCartStore(state => state.getTotalItems());
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-
-  // Filter out "more" item from mobile navigation
-  const mobileNavItems = MAIN_NAV_ITEMS.filter(item => item.id !== 'more');
-
-  // Hide bottom nav only when in chat conversation
-  if (isInChat) {
-    return null;
-  }
+  // Mock cart count - replace with real cart state
+  const cartItemCount = 3;
 
   return (
-    <nav className="flex md:hidden fixed bottom-0 left-0 right-0 w-full bg-white border-t border-gray-200 z-50 pb-safe-bottom">
-      <div className="grid grid-cols-5 py-2 w-full">
-        {mobileNavItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = pathname === item.href;
-          const badgeCount = item.id === 'cart' ? cartCount : 0;
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200">
+        <div className="flex items-center justify-around h-16 px-2">
+          {/* Beranda */}
+          <Link
+            href="/explore"
+            className="flex flex-col items-center gap-1 flex-1"
+          >
+            <Home
+              className={`w-6 h-6 ${
+                pathname === '/explore' || pathname === '/'
+                  ? 'text-gray-900'
+                  : 'text-gray-500'
+              }`}
+            />
+            <span className="text-xs text-gray-600">Beranda</span>
+          </Link>
 
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={cn(
-                "flex flex-col items-center justify-center py-2 relative transition-transform duration-200",
-                isActive && "scale-105"
-              )}
-            >
-              <div className="relative">
-                <Icon
-                  className={cn(
-                    "w-6 h-6",
-                    isActive ? "text-red-600 stroke-[2.5]" : "text-gray-600"
-                  )}
-                />
-                {item.badge && isHydrated && badgeCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {badgeCount}
-                  </span>
-                )}
+          {/* Video */}
+          <Link
+            href="/video"
+            className="flex flex-col items-center gap-1 flex-1"
+          >
+            <Video
+              className={`w-6 h-6 ${
+                pathname === '/video' ? 'text-gray-900' : 'text-gray-500'
+              }`}
+            />
+            <span className="text-xs text-gray-600">Video</span>
+          </Link>
+
+          {/* Create Button */}
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex flex-col items-center gap-1 flex-1"
+          >
+            <div className="w-12 h-8 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <Plus className="w-6 h-6 text-white" />
+            </div>
+          </button>
+
+          {/* Cart - CHANGED FROM MESSAGES */}
+          <Link
+            href="/cart"
+            className="flex flex-col items-center gap-1 flex-1 relative"
+          >
+            <ShoppingCart
+              className={`w-6 h-6 ${
+                pathname === '/cart' ? 'text-gray-900' : 'text-gray-500'
+              }`}
+            />
+            <span className="text-xs text-gray-600">Keranjang</span>
+            {/* Cart Badge */}
+            {cartItemCount > 0 && (
+              <div className="absolute top-0 right-6 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">{cartItemCount}</span>
               </div>
-              <span
-                className={cn(
-                  "text-xs mt-1 transition-colors duration-200",
-                  isActive ? "text-red-600 font-semibold" : "text-gray-600"
-                )}
-              >
-                {t(item.labelKey)}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+            )}
+          </Link>
+
+          {/* Me */}
+          <Link
+            href="/profile"
+            className="flex flex-col items-center gap-1 flex-1"
+          >
+            <User
+              className={`w-6 h-6 ${
+                pathname === '/profile' ? 'text-gray-900' : 'text-gray-500'
+              }`}
+            />
+            <span className="text-xs text-gray-600">Me</span>
+          </Link>
+        </div>
+      </nav>
+
+      {/* Create Modal */}
+      {showCreateModal && (
+        <CreateModal onClose={() => setShowCreateModal(false)} />
+      )}
+    </>
   );
 }
+
+function CreateModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative w-full bg-white rounded-t-2xl p-4 pb-8">
+        <div className="space-y-3">
+          <button className="w-full py-4 text-left text-base text-gray-500 font-medium">
+            Choose from album
+          </button>
+          <button className="w-full py-4 text-left text-base text-gray-500 font-medium">
+            Camera
+          </button>
+          <button className="w-full py-4 text-left text-base text-gray-500 font-medium">
+            Go Live
+          </button>
+          <button className="w-full py-4 text-left text-base text-gray-500 font-medium">
+            Text
+          </button>
+          <button
+            onClick={onClose}
+            className="w-full py-4 text-center text-base font-medium text-gray-500 border-t"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default BottomNav;

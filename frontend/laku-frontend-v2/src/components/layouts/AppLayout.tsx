@@ -12,8 +12,9 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
 
-  // Hide bottom navigation on product pages
+  // Hide bottom navigation on product and store pages
   const isProductPage = pathname?.startsWith('/product/');
+  const isStorePage = pathname?.startsWith('/store/');
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -22,7 +23,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <main className={`bg-white ${isProductPage ? 'overflow-y-auto' : 'overflow-y-auto'}`}>
           {children}
         </main>
-        {!isProductPage && <BottomNav />}
+        {!isProductPage && !isStorePage && <BottomNav />}
       </div>
     </div>
   );

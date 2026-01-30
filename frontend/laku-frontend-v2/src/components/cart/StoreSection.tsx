@@ -22,10 +22,10 @@ export function StoreSection({ store, onUpdate }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div className="rounded-lg shadow-sm overflow-visible">
 
       {/* Store Header */}
-      <div className="p-4 border-b border-gray-200 flex items-center gap-3">
+      <div className="px-4 pt-[5px] pb-[5px] flex items-center gap-3">
         <input
           type="checkbox"
           checked={allSelected}
@@ -43,17 +43,13 @@ export function StoreSection({ store, onUpdate }: Props) {
 
         <span className="font-medium text-gray-900">{store.storeName}</span>
 
-        {store.hasFreeGift && (
-          <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded">
-            FREE GIFT
-          </span>
-        )}
+        {/* free gift badge removed */}
 
         <ChevronRight className="w-4 h-4 text-gray-500 ml-auto" />
       </div>
 
       {/* Products */}
-      <div className="divide-y divide-gray-200">
+      <div>
         {store.products.map((product) => (
           <CartItem
             key={product.id}
@@ -80,7 +76,7 @@ export function StoreSection({ store, onUpdate }: Props) {
       <VoucherSection vouchers={store.vouchers} />
 
       {/* Shipping Info */}
-      <div className="p-4 bg-white-50 flex items-center gap-2 text-sm">
+      <div className="px-4 pt-[5px] pb-[5px] bg-white-50 flex items-center gap-2 text-sm">
         <Store className="w-4 h-4 text-blue-500" />
         <span className="text-gray-600">{store.shippingInfo}</span>
         <button className="ml-auto text-red-500 font-medium hover:underline">Pelajari lebih lanjut</button>

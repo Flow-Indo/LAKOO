@@ -1,41 +1,43 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Product } from '@/types';
-import { Heart, ShoppingCart } from 'lucide-react';
 import ProductCard from '@/components/shared/ProductCard';
+import { fetchMoreProductsAction } from '@/lib/actions';
 
 interface InfiniteProductFeedProps {
   initialProducts: Product[];
-  loadMore: () => Promise<Product[]>;
-  hasMore: boolean;
+  loadMore?: () => Promise<Product[]>;
+  hasMore?: boolean;
 }
 
-export function InfiniteProductFeed({ initialProducts, loadMore, hasMore }: InfiniteProductFeedProps) {
+export function InfiniteProductFeed({ initialProducts = [], hasMore = false }: InfiniteProductFeedProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [loading, setLoading] = useState(false);
   const [canLoadMore, setCanLoadMore] = useState(hasMore);
+  const [offset, setOffset] = useState(initialProducts.length);
 
-  const observerRef = useRef<HTMLDivElement | null>(null);
+  const observerRef = useRef<HTMLDivElement>(null);
 
-  const handleLoadMore = async () => {
+  const handleLoadMore = useCallback(async () => {
     if (loading || !canLoadMore) return;
 
     setLoading(true);
     try {
-      const newProducts = await loadMore();
+      const limit = 10;
+      const newProducts = await fetchMoreProductsAction(offset, limit);
       if (!newProducts || newProducts.length === 0) {
         setCanLoadMore(false);
       } else {
         setProducts(prev => [...prev, ...newProducts]);
+        setOffset(prev => prev + newProducts.length);
       }
     } catch (error) {
       console.error('Failed to load more products:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading, canLoadMore, offset]);
 
   useEffect(() => {
     const el = observerRef.current;
@@ -51,26 +53,17 @@ export function InfiniteProductFeed({ initialProducts, loadMore, hasMore }: Infi
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [observerRef.current, canLoadMore, loading]);
+  }, [observerRef.current, canLoadMore, loading, handleLoadMore]);
 
   return (
-    <div className="space-y-6">
-      {/* Products Grid - FIXED 2 equal columns, card widths controlled by grid */}
-      <div className="w-full px-0">
-        {/* Two-column flex "masonry" - stable, scroll-friendly */}
+    <div className="px-0 py-0">
+      {/* Products Grid - Masonry layout with matching gaps as Explore section */}
+      <div className="w-full">
+        {/* Two-column flex masonry - matching Explore feed gap (1.5 = 3px) */}
         <div className="full-bleed">
-          <div
-            style={{
-              display: 'flex',
-              gap: '12px',
-              padding: '0',
-              margin: 0,
-              width: '100%',
-              boxSizing: 'border-box',
-            }}
-          >
+          <div className="flex" style={{ columnGap: '3px', rowGap: '3px', padding: 0, margin: 0, width: '100%', boxSizing: 'border-box' }}>
           {/* Left column */}
-          <div style={{ flex: '1 1 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="flex-1 flex flex-col" style={{ columnGap: '3px', rowGap: '3px' }}>
             {products.filter((_, i) => i % 2 === 0).map((product, idx) => (
               <div key={`${product.id}-left-${idx}`} style={{ width: '100%' }}>
                 <ProductCard product={product} />
@@ -79,7 +72,7 @@ export function InfiniteProductFeed({ initialProducts, loadMore, hasMore }: Infi
           </div>
 
           {/* Right column */}
-          <div style={{ flex: '1 1 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="flex-1 flex flex-col" style={{ columnGap: '3px', rowGap: '3px' }}>
             {products.filter((_, i) => i % 2 === 1).map((product, idx) => (
               <div key={`${product.id}-right-${idx}`} style={{ width: '100%' }}>
                 <ProductCard product={product} />
@@ -109,9 +102,11 @@ export function InfiniteProductFeed({ initialProducts, loadMore, hasMore }: Infi
       {/* No More Products Message */}
       {!canLoadMore && products.length > 0 && (
         <div className="text-center py-8 text-gray-500">
-          You've seen all products
+          You&apos;ve seen all products
         </div>
       )}
     </div>
   );
 }
+
+export default InfiniteProductFeed;

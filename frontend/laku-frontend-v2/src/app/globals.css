@@ -583,9 +583,9 @@ html, body, #__next {
   width: 100vw;
   box-sizing: border-box;
   /* tiny side gaps to avoid touching screen edges */
-  padding-left: 10px;
-  padding-right: 10px;
-  padding-top: 10px;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 4px;
 }
 
 /* Full-bleed helper to cancel parent paddings (mobile -> xl) */
@@ -648,3 +648,31 @@ html, body, #__next {
   overflow: hidden;
   word-break: break-word;
 }
+
+/* Smooth touch handling for swipe experience */
+* {
+  -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent pull-to-refresh on swipe container */
+.swipe-container {
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+}
+
+/* Hide scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
