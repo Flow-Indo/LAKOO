@@ -228,37 +228,74 @@ export const storeAssets: Record<
 > = {
   'store-001': {
     carouselImages: [
-      '/jeans/jean_mock_images/IMG_9976.JPG',
-      '/jeans/jean_mock_images/IMG_9977.JPG',
-      '/jeans/jean_mock_images/IMG_9978.JPG',
-      '/jeans/jean_mock_images/IMG_9979.JPG',
+      '/jeans/jean_mock_images2/IMG_9976.JPG',
+      '/jeans/jean_mock_images2/IMG_9977.JPG',
+      '/jeans/jean_mock_images2/IMG_9978.JPG',
+      '/jeans/jean_mock_images2/IMG_9979.JPG',
     ],
     detailCarousel: {
-      background: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/bgrb.png',
+      background: '/viena/bgrb.png',
       images: [
-        { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb1.png', height: '500px', y: '0%' },
-        { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb2.png', height: '500px', y: '0%' },
-        { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb3.png', height: '550px', y: '0%' },
+        { src: '/viena/rb1.png', height: '500px', y: '0%' },
+        { src: '/viena/rb2.png', height: '500px', y: '0%' },
+        { src: '/viena/rb3.png', height: '550px', y: '0%' },
       ],
     },
     productShowImages: [
-      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb1.png', y: '0%', x: '0%', scale: 120 },
-      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb2.png', y: '0%', x: '0%', scale: 120 },
-      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb3.png', y: '-5%', x: '0%', scale: 120 },
-      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb1.png', y: '0%', x: '0%', scale: 120 },
-      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb2.png', y: '0%', x: '0%', scale: 120 },
-      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb3.png', y: '0%', x: '0%', scale: 120 },
-      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb1.png', y: '0%', x: '0%', scale: 120 },
-      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb2.png', y: '0%', x: '0%', scale: 120 },
-      { src: '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/rb3.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/viena/rb1.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/viena/rb2.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/viena/rb3.png', y: '-5%', x: '0%', scale: 120 },
+      { src: '/viena/rb1.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/viena/rb2.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/viena/rb3.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/viena/rb1.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/viena/rb2.png', y: '0%', x: '0%', scale: 120 },
+      { src: '/viena/rb3.png', y: '0%', x: '0%', scale: 120 },
     ],
     shirts: [
-      '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/atasan1-removebg-preview.png',
-      '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/atasan2-removebg-preview.png',
+      '/viena/atasan1-removebg-preview.png',
+      '/viena/atasan2-removebg-preview.png',
     ],
     pants: [
-      '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/celana1-removebg-preview.png',
-      '/Users/filberthamijoyo/LAKOO/LAKOO/frontend/laku-frontend-v2/public/viena/celana2-removebg-preview.png',
+      '/viena/celana1-removebg-preview.png',
+      '/viena/celana2-removebg-preview.png',
+    ],
+    // Detailed products used by virtual fit (mock product metadata)
+    shirtsProducts: [
+      {
+        id: 's-1',
+        src: '/viena/atasan1-removebg-preview.png',
+        name: 'Denim Overshirt',
+        variation: 'Size: M, Color: Blue',
+        price: 150000,
+        originalPrice: 200000
+      },
+      {
+        id: 's-2',
+        src: '/viena/atasan2-removebg-preview.png',
+        name: 'Chambray Shirt',
+        variation: 'Size: M, Color: Light Blue',
+        price: 140000,
+        originalPrice: 0
+      }
+    ],
+    pantsProducts: [
+      {
+        id: 'p-1',
+        src: '/viena/celana1-removebg-preview.png',
+        name: 'Wide Cargo Pants',
+        variation: 'Size: M, Color: Black',
+        price: 180000,
+        originalPrice: 220000
+      },
+      {
+        id: 'p-2',
+        src: '/viena/celana2-removebg-preview.png',
+        name: 'Relaxed Jeans',
+        variation: 'Size: M, Color: Indigo',
+        price: 170000,
+        originalPrice: 0
+      }
     ],
   },
 };
