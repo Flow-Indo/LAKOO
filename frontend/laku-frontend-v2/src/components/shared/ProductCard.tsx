@@ -14,8 +14,11 @@ export function ProductCard({ product }: ProductCardProps) {
   const imageWidth = (rawImage as any)?.width;
   const imageHeight = (rawImage as any)?.height;
 
+  // Use product.slug for dynamic href, fallback to id
+  const productHref = product.slug ? `/product/${product.slug}` : `/product/prod-001`;
+
   return (
-    <Link href={`/product/prod-001`} className="block w-full">
+    <Link href={productHref} className="block w-full">
       <div className="bg-white rounded-lg overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow w-full">
         {/* Image Container - enforce either square (1:1) or tall (1:1.5) aspect ratio */}
         {(() => {

@@ -14,6 +14,40 @@ import { MarketSubNav } from '@/components/market/MarketSubNav';
 import { InfiniteProductFeed } from '@/components/shared/InfiniteProductFeed';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import { AppHeader } from '@/components/layouts/AppHeader';
+import { productsData } from '@/lib/products-data';
+import type { Product } from '@/types';
+
+// Transform productsData to Product type for market feed
+const getMarketProducts = (): Product[] => {
+  return Object.values(productsData).map((product) => ({
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    price: product.price,
+    originalPrice: product.originalPrice,
+    discount: product.originalPrice
+      ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+      : 0,
+    image: product.productImages[0],
+    images: product.productImages.map((url) => ({ url })),
+    imageTall: true,
+    isOfficial: true,
+    category: product.productData.category,
+    description: product.description,
+    stock: product.productData.stock,
+    rating: product.productData.rating,
+    reviewCount: product.productData.reviewCount,
+    sold: parseInt(product.productData.sold.replace(/[^0-9]/g, '')) * (product.productData.sold.includes('K') ? 1000 : 1),
+    store: {
+      id: `store-${product.brand.toLowerCase().replace(/\s+/g, '-')}`,
+      name: product.brand,
+      location: 'Jakarta',
+    },
+  }));
+};
+
+// Market products with our real product data
+const MARKET_PRODUCTS = getMarketProducts();
 
 export default function ExplorePage() {
   const [currentView, setCurrentView] = useState<'explore' | 'market'>('explore');
@@ -82,7 +116,7 @@ export default function ExplorePage() {
           <>
             <MarketSubNav />
             <CategoryGrid />
-            <InfiniteProductFeed initialProducts={MOCK_PRODUCTS} hasMore={true} />
+            <InfiniteProductFeed initialProducts={MARKET_PRODUCTS} hasMore={true} />
           </>
         )}
 

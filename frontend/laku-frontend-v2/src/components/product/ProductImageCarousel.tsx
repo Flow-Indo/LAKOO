@@ -65,11 +65,6 @@ export function ProductImageCarousel({ images, productName }: ProductImageCarous
           </SwiperSlide>
         ))}
       </Swiper>
-
-      {/* Image Counter */}
-      <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-sm font-medium z-10">
-        {currentSlide + 1}/{images.length}
-      </div>
     </div>
   );
 }

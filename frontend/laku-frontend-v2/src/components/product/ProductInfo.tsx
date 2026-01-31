@@ -1,4 +1,5 @@
 import { Star, Heart, Store, MessageCircle, Shield, Truck } from 'lucide-react';
+import Link from 'next/link';
 import ColorSelector from '@/components/client/product/ColorSelector';
 import SizeSelector from '@/components/client/product/SizeSelector';
 import QuantitySelector from '@/components/client/product/QuantitySelector';
@@ -41,6 +42,7 @@ interface ProductInfoProps {
     sizes: string[];
     availableSizes: string[];
     badges?: string[];
+    slug?: string; // Add slug for store link
     seller: {
       id: string;
       name: string;
@@ -54,6 +56,9 @@ interface ProductInfoProps {
 }
 
 export default function ProductInfo({ product }: ProductInfoProps) {
+  // Derive store slug from product slug or seller name
+  const storeSlug = product.slug || product.seller.name?.toLowerCase().replace(/\s+/g, '-') || 'store-001';
+
   return (
     <div className="px-4 lg:px-0 py-4 space-y-6">
       {/* Analytics (client) */}
@@ -154,13 +159,20 @@ export default function ProductInfo({ product }: ProductInfoProps) {
               <Store className="w-6 h-6 text-gray-400" />
             </div>
             <div>
-              <p className="font-semibold">{product.seller.name}</p>
+              <Link
+                href={`/store/${storeSlug}`}
+                className="font-semibold hover:text-[#ff2742] transition-colors"
+              >
+                {product.seller.name}
+              </Link>
               <p className="text-sm text-gray-600">Online • Respon cepat</p>
             </div>
           </div>
-          <button className="px-4 py-2 border border-red-500 text-red-500 rounded-lg text-sm font-medium">
-            Kunjungi Toko
-          </button>
+          <Link href={`/store/${storeSlug}`}>
+            <button className="px-4 py-2 border border-red-500 text-red-500 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors">
+              Kunjungi Toko
+            </button>
+          </Link>
         </div>
       </div>
     </div>

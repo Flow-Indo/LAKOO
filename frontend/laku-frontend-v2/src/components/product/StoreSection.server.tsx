@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Star } from 'lucide-react';
 
-export default function StoreSection({ seller }: any) {
+export default function StoreSection({ seller, storeSlug }: any) {
   const store = seller || {
     name: 'Toko Official',
     logo: '',
@@ -12,6 +12,11 @@ export default function StoreSection({ seller }: any) {
     performance: { productQuality: 4.8, shippingSpeed: 4.7, customerService: 4.9 },
     badges: [],
   };
+
+  // Use storeSlug if provided, otherwise derive from store name
+  const slug = storeSlug || store.name?.toLowerCase().replace(/\s+/g, '-') || 'store-001';
+  const storeLink = `/store/${slug}`;
+
   // Defensive: derive performance values safely
   const performance = {
     productQuality: store?.performance?.productQuality ?? store.rating ?? '-',
@@ -22,14 +27,14 @@ export default function StoreSection({ seller }: any) {
   return (
     <div className="rounded-lg p-4 bg-white shadow-sm border border-gray-100">
       <div className="flex items-center gap-4 mb-4">
-        <Link href="http://localhost:3000/store/store-001" className="flex-shrink-0 no-underline">
+        <Link href={storeLink} className="flex-shrink-0 no-underline">
           <div className="w-16 h-16 bg-gradient-to-br from-gray-800 to-gray-600 rounded-lg flex items-center justify-center shadow-md">
             {store.logo ? <Image src={store.logo} alt={store.name} width={64} height={64} className="rounded-lg" /> : <div className="w-8 h-8 text-white">T</div>}
           </div>
         </Link>
 
         <div className="flex-1 min-w-0">
-          <Link href="http://localhost:3000/store/store-001" className="no-underline">
+          <Link href={storeLink} className="no-underline">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-semibold text-black text-sm sm:text-base truncate">{store.name}</h4>
             </div>
@@ -63,7 +68,7 @@ export default function StoreSection({ seller }: any) {
       </div>
 
       <div className="flex gap-2">
-        <Link href="http://localhost:3000/store/store-001" className="flex-1">
+        <Link href={storeLink} className="flex-1">
           <button className="w-full bg-gradient-to-r from-orange-400 to-yellow-400 text-white py-2 rounded-md font-semibold">Lihat Toko</button>
         </Link>
         <button className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-md font-medium">Semua Produk</button>

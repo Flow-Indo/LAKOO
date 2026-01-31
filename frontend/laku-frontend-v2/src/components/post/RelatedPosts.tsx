@@ -22,7 +22,11 @@ const formatNumber = (num: number): string => {
   return num.toString();
 };
 
-export default function RelatedPosts({ posts }: RelatedPostsProps) {
+export default function RelatedPosts({ posts = [] }: RelatedPostsProps) {
+  if (posts.length === 0) {
+    return null; // Don't render if no related posts
+  }
+
   return (
     <div className="px-3 py-5 bg-white">
       {/* Header - Tighter spacing */}

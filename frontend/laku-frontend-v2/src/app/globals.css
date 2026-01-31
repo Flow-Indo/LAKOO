@@ -212,7 +212,6 @@ body {
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-plus-jakarta), sans-serif;
-  font-weight: 400;
   line-height: 1.2;
   margin: 0;
   padding: 0;
@@ -388,7 +387,7 @@ a {
 
   /* Better tap targets */
   button, a {
-    min-height: 44px;
+    min-height: 0px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -623,16 +622,18 @@ html, body, #__next {
 /* Simple aspect-square fallback for environments without Tailwind aspect-ratio */
 .aspect-square {
   position: relative;
-  width: 100%;
+  display: inline-block;
+}
+.aspect-square::before {
+  content: "";
+  display: block;
   padding-bottom: 100%;
 }
-.aspect-square > img {
+.aspect-square > * {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
 }
 
 /* Small gap variant used on product grid */
@@ -675,4 +676,3 @@ html, body, #__next {
 html {
   scroll-behavior: smooth;
 }
-

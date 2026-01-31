@@ -154,3 +154,39 @@ export interface StoreTabItem {
   label: string;
   count?: number;
 }
+
+// Store data interface for brand store pages
+export interface StoreStory {
+  about: string;
+  mission: string;
+  founded: string;
+}
+
+export interface StoreData {
+  id: string;
+  slug: string;
+  name: string;
+  tagline: string;
+  description: string;
+  coverImage: string; // Hero banner image
+  logoImage: string;
+
+  // Social & Contact
+  instagram?: string;
+  website?: string;
+  location: string;
+
+  // Stats
+  followers: number;
+  productsCount: number;
+  rating: number;
+
+  // Story
+  story: StoreStory;
+
+  // Related product slugs
+  productSlugs: string[];
+
+  // Highlights/Categories
+  categories: string[];
+}
