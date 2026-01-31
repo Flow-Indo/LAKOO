@@ -137,9 +137,13 @@ export default function PreviewFit({ shirts, pants, selectedShirtId, selectedPan
         const pantsContentTop = pRenderedH * pBox.topRatio;
         const targetPantsTop = Math.max(0, targetShirtTop + shirtContentBottom - pantsContentTop);
 
-        const prevAbsolute = (!userNudged && preservedAbsoluteRef.current != null)
-          ? preservedAbsoluteRef.current
-          : ((!userNudged && pantsTop != null) ? (pantsTop + pantsNudge) : null);
+        // Only reuse an explicitly preserved absolute position (set when user nudges).
+        // Do NOT fall back to previous pantsTop + pantsNudge because that's stale when
+        // switching items and the user didn't actually nudge.
+        const prevAbsolute =
+          (!userNudged && preservedAbsoluteRef.current != null)
+            ? preservedAbsoluteRef.current
+            : null;
 
         setShirtTop(targetShirtTop);
         if (prevAbsolute != null) {
@@ -193,7 +197,7 @@ export default function PreviewFit({ shirts, pants, selectedShirtId, selectedPan
             onLoad={() => setLoaded((s) => ({ ...s, pants: true }))}
             className="absolute left-1/2 object-contain pointer-events-none"
             style={{
-              width: '60%',
+              width: '55%',
               height: 'auto',
               zIndex: pantsZ,
               top: pantsTop != null ? `${pantsTop + pantsNudge}px` : '50%',
@@ -211,7 +215,7 @@ export default function PreviewFit({ shirts, pants, selectedShirtId, selectedPan
             onLoad={() => setLoaded((s) => ({ ...s, shirt: true }))}
             className="absolute left-1/2 object-contain pointer-events-none"
             style={{
-              width: '60%',
+              width: '55%',
               height: 'auto',
               zIndex: shirtZ,
               top: shirtTop != null ? `${shirtTop}px` : undefined,

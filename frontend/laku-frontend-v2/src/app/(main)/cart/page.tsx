@@ -13,7 +13,7 @@ const mockCartData: StoreCart[] = [
       {
         id: '1',
         productId: 'prod1',
-        name: 'Dress Casual Wanita Modern',
+        name: 'Dress Casual Wanita Modern jokowi hebat banget ji gila hebat coyyyr',
         image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&h=300&fit=crop',
         price: 150000,
         originalPrice: 200000,
@@ -25,7 +25,7 @@ const mockCartData: StoreCart[] = [
       {
         id: '2',
         productId: 'prod2',
-        name: 'Blouse Katun Premium',
+        name: 'Blouse Katun Premium jokowi hebat anjay',
         image: 'https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=300&h=300&fit=crop',
         price: 85000,
         quantity: 2,

@@ -1,10 +1,48 @@
-export function CartHeader({ count = 0 }: { count?: number }) {
+import Link from 'next/link';
+import { MessageCircle } from 'lucide-react';
+
+type Tab = 'cart' | 'fitting';
+
+interface CartHeaderProps {
+  count?: number;
+  activeTab?: Tab;
+  onTabChange?: (tab: Tab) => void;
+}
+
+export function CartHeader({ count = 0, activeTab = 'cart', onTabChange }: CartHeaderProps) {
   return (
-    <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 py-4">
+    <div className="sticky top-0 z-60 bg-white">
+      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between">
         <h1 className="text-xl font-medium text-gray-900">
           Keranjang Belanja <span className="text-sm text-gray-600">({count})</span>
         </h1>
+
+        <Link href="/messages" className="p-2" aria-label="Messages">
+          <MessageCircle className="w-5 h-5 text-gray-700" />
+        </Link>
+      </div>
+      {/* thin indicator line under the header container */}
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="h-px bg-gray-100" />
+      </div>
+
+      {/* Tabs: Cart / Fitting */}
+      <div className="bg-white">
+      <div className="max-w-7xl mx-auto px-4 pt-1.5 pb-1.5 flex items-center justify-start gap-10" style={{ height: '44px' }}>
+            <button
+              onClick={() => onTabChange && onTabChange('cart')}
+              className={`text-sm h-11 ${activeTab === 'cart' ? 'text-gray-900 font-medium border-b-2 border-gray-900 pb-0' : 'text-gray-600 font-medium'}`}
+            >
+              Cart
+            </button>
+            <button
+              onClick={() => onTabChange && onTabChange('fitting')}
+              className={`text-sm h-11 ${activeTab === 'fitting' ? 'text-gray-900 font-medium border-b-2 border-gray-900 pb-0' : 'text-gray-500 font-bold'}`}
+              style={{ fontFamily: 'cursive' }}
+            >
+              Fitting
+            </button>
+        </div>
       </div>
 
       {/* Table Header - Desktop Only */}

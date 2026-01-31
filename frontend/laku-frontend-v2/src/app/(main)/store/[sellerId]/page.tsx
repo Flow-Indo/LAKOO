@@ -13,6 +13,9 @@ export default async function StorePage({ params }: Props) {
   // const store = await fetchStore(sellerId);
   const store = mockStore;
 
+  // debug: log params and mock store id to server console
+  // eslint-disable-next-line no-console
+  console.log('StorePage debug - sellerId:', sellerId, 'mockStore.id:', store?.id);
   if (!store || store.id !== sellerId) {
     notFound();
   }

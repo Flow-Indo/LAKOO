@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import CartVirtualHeader from './CartVirtualHeader';
+
 import PreviewFit from './PreviewFit';
 import OptionFit from './OptionFit';
-import VirtualCartTotal from '@/components/cart/VirtualCartTotal';
+import VirtualCartTotal from '@/components/VirtualFit/VirtualCartTotal';
 import { storeAssets } from '@/lib/mock-store-data';
 import { useCartStore } from '@/stores/cart-store';
 
@@ -69,7 +69,7 @@ export default function CartVirtualPageClient() {
 
   return (
     <div className="min-h-screen bg-white-50 flex flex-col">
-      <CartVirtualHeader selectMode={selectMode} onToggleSelectMode={handleToggleSelectMode} />
+      
       <div className="flex-1 min-h-0 overflow-auto pb-[72px]">
         <PreviewFit
           shirts={shirts}
@@ -79,6 +79,16 @@ export default function CartVirtualPageClient() {
           onSelectShirt={(id) => setSelectedShirtId(id)}
           onSelectPant={(id) => setSelectedPantId(id)}
         />
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-end h-[30px]" style={{ backgroundColor: '#F7F7F7' }}>
+          <button
+            type="button"
+            className="w-[60px] h-[30px] bg-[#636363] text-xs text-white rounded-full border"
+            onClick={handleToggleSelectMode}
+            aria-pressed={selectMode}
+          >
+            {selectMode ? 'Cancel' : 'Select'}
+          </button>
+        </div>
         <OptionFit
           shirts={shirts}
           pants={pants}

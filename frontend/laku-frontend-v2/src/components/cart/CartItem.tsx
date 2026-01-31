@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus, Trash2, Search as ScanSearch, Heart } from 'lucide-react';
 import { CartPlusMinus } from './CartPlusMinus';
 import type { CartProduct } from '@/types/cart';
 
@@ -93,8 +93,11 @@ export function CartItem({ product, onUpdate, onDelete }: Props) {
 
         {/* Actions */}
         <div className="col-span-2 md:col-span-1 flex flex-col items-center gap-2">
-          <button className="text-sm text-red-500 hover:underline">
-            Cari Serupa
+          <button
+            aria-label="Cari Serupa"
+            className="text-sm text-red-500 hover:underline flex items-center justify-center w-8 h-8 rounded"
+          >
+            <ScanSearch className="w-4 h-4" />
           </button>
         </div>
 

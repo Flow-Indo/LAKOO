@@ -17,10 +17,10 @@ export function VoucherSection({ vouchers }: Props) {
         <Tag className="w-5 h-5 text-red-600" />
 
         <div className="flex-1">
-          <p className="text-sm font-medium text-red-600 mb-1">
+          <p className="text-sm font-medium text-red-600">
             {vouchers[0].title}
           </p>
-          <p className="text-xs text-gray-600">{vouchers[0].description}</p>
+          <p className="text-xs text-gray-600 w-[200px]">{vouchers[0].description}</p>
         </div>
 
         <button className="text-sm text-gray-900 font-light hover:underline">

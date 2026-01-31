@@ -271,7 +271,7 @@ export default function OptionFit({
                   </div>
                   <div className="w-[300px] flex items-center">
                   <div className="relative w-full h-20" style={{ fontSize: '14px' }}>
-                      <div className="font-medium text-gray-900">{s.name}</div>
+                      <div className="text-sm font-bold text-gray-900">{s.name}</div>
                       <div className="text-sm text-gray-600">{s.variation}</div>
                       <div className="text-red-600 font-semibold">Rp{s.price?.toLocaleString()}</div>
                       <div className="mt-2">
@@ -331,7 +331,7 @@ export default function OptionFit({
                   </div>
                   <div className="w-[300px] flex items-center">
                     <div className="relative w-full h-20" style={{ fontSize: '14px' }}>
-                      <div className="font-medium text-gray-900">{p.name}</div>
+                      <div className="text-sm font-bold text-gray-900">{p.name}</div>
                       <div className="text-sm text-gray-600">{p.variation}</div>
                       <div className="text-red-600 font-semibold">Rp{p.price?.toLocaleString()}</div>
                       <div className="mt-2">
@@ -385,7 +385,7 @@ export default function OptionFit({
               <img src={t.src} alt={t.name} className="object-contain w-full h-full" />
             </div>
             <div className="flex-1">
-              <div className="font-medium">{t.name}</div>
+              <div className="text-sm font-bold text-gray-900">{t.name}</div>
               <div className="text-sm text-gray-600">{t.variation}</div>
             </div>
             <div className="text-red-600 font-semibold flex flex-col items-end">
@@ -435,7 +435,7 @@ export default function OptionFit({
               <img src={pt.src} alt={pt.name} className="object-contain w-full h-full" />
             </div>
             <div className="flex-1">
-              <div className="font-medium">{pt.name}</div>
+              <div className="text-sm font-bold text-gray-900">{pt.name}</div>
               <div className="text-sm text-gray-600">{pt.variation}</div>
             </div>
             <div className="text-red-600 font-semibold flex flex-col items-end">

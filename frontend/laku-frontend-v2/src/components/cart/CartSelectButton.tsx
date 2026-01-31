@@ -19,7 +19,10 @@ export default function CartSelectButton({
 
   const isSelected = typeof selected === 'boolean' ? selected : internalSelected;
 
-  const handleClick = () => {
+  const handleClick = (e?: React.MouseEvent) => {
+    // prevent parent label click from also firing when clicking the inner button
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+
     if (onClick) {
       onClick();
     } else {
@@ -30,11 +33,11 @@ export default function CartSelectButton({
   return (
     <button
       type="button"
-      onClick={handleClick}
+      onClick={(e) => handleClick(e)}
       aria-pressed={isSelected}
       aria-label={ariaLabel}
       className={`flex-none inline-flex items-center justify-center ${sizeClass} aspect-square rounded-full p-0 leading-none overflow-hidden transition-colors min-h-0 ${
-        isSelected ? 'bg-black text-white border border-black' : 'bg-white border border-gray-300'
+        isSelected ? 'bg-black text-white border-2 border-black' : 'bg-white border-2 border-gray-600'
       }`}
       style={{ minHeight: 0 }}
     >

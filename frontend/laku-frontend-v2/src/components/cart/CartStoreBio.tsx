@@ -13,7 +13,7 @@ interface Props {
 
 export function CartStoreBio({ store, allSelected, onSelectAll }: Props) {
   return (
-    <div className="px-4 pt-[5px] pb-[1px] flex items-center gap-3">
+    <div className="px-4 pt-[10px] pb-[10px] flex items-center gap-3">
       <CartSelectButton
         selected={allSelected}
         onClick={() => onSelectAll(!allSelected)}
@@ -22,7 +22,12 @@ export function CartStoreBio({ store, allSelected, onSelectAll }: Props) {
       />
       <Store className="w-4 h-4 text-gray-500" />
 
-      <span className="font-bold text-gray-900">{store.storeName}</span>
+      <span
+        className="text-sm font-bold text-gray-900"
+        style={{ fontWeight: 600 }}
+      >
+        {store.storeName}
+      </span>
 
       <ChevronRight className="w-4 h-4 text-gray-500 ml-auto" />
     </div>

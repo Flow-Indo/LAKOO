@@ -23,8 +23,8 @@ export default function CartTotalSticky({ selectAll, onSelectAll, summary, onChe
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 
   return (
-    // show on mobile above BottomNav which is fixed at bottom
-    <div className="fixed bottom-[72px] left-0 right-0 z-50 md:hidden">
+    // act as footer on mobile (replace BottomNav)
+    <div className="fixed bottom-0 left-0 right-0 z-[9999] md:hidden">
       {/* full-bleed sticky bar — no max-width wrapper so bg fills full width */}
       <div className="bg-white border border-gray-100 rounded-t-lg shadow-sm p-3 flex items-center justify-between w-full">
           <div className="flex items-center gap-[10px]">
@@ -47,7 +47,10 @@ export default function CartTotalSticky({ selectAll, onSelectAll, summary, onChe
           <div className="flex-shrink-0">
             <button
               onClick={() => onCheckout && onCheckout()}
-              className="bg-gradient-to-r from-[#d8a93b] to-[#d7a93b] text-white rounded-md pl-4 pr-[1px] py-2 font-medium"
+              className="text-white text-sm rounded-md pl-4 pr-[1px] py-2 font-medium"
+              style={{
+                background: 'linear-gradient(135deg, #C9A961 0%, #E8D399 100%)',
+              }}
             >
               Checkout（{summary.selectedCount}）
             </button>
@@ -56,4 +59,3 @@ export default function CartTotalSticky({ selectAll, onSelectAll, summary, onChe
     </div>
   );
 }
-

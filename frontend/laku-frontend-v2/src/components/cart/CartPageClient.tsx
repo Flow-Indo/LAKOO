@@ -6,6 +6,7 @@ import { ChevronRight } from 'lucide-react';
 import { StoreWrapper } from './StoreWrapper';
 import { CartHeader } from './CartHeader';
 import CartTotalSticky from './CartTotalSticky';
+import CartVirtualPageClient from '@/components/VirtualFit/CartVirtualPageClient';
 import type { StoreCart, CartSummary as CartSummaryType } from '@/types/cart';
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export function CartPageClient({ initialCart }: Props) {
+  const [activeTab, setActiveTab] = useState<'cart' | 'fitting'>('cart');
   const [stores, setStores] = useState<StoreCart[]>(initialCart);
   const [selectAll, setSelectAll] = useState(false);
 
@@ -62,67 +64,68 @@ export function CartPageClient({ initialCart }: Props) {
 
   return (
     <div className="min-h-screen bg-white-50">
-      <CartHeader count={totalItemCount} />
-      <div className="max-w-7xl mx-auto px-0 py-6 flex flex-col gap-[10px]">
-        {/* Quick link to Virtual Fitting Room */}
-        <div className="px-4">
-          <Link
-            href="/fitting-room"
-            className="text-black text-base font-medium inline-flex items-center"
-            aria-label="Coba Virtual Fitting Room"
-          >
-            <span>Coba Virtual Fitting Room</span>
-            <ChevronRight className="w-4 h-4 ml-3 text-black" />
-          </Link>
-        </div>
+      <CartHeader count={totalItemCount} activeTab={activeTab} onTabChange={(t) => setActiveTab(t)} />
+      <div className="max-w-7xl mx-auto px-0 pt-[10px] pb-[6px] flex flex-col gap-[10px]">
+        {/* (Virtual Fitting Room link removed - UI uses tabs) */}
 
-        {/* Store Sections simplified to use CartStoreBio and CartProductBody */}
-        {stores.length === 0 ? (
-          <div className="bg-white rounded-lg p-12 text-center">
-            <p className="text-xl text-gray-600">Keranjang Anda kosong</p>
-          </div>
-        ) : (
-          stores.map((store) => (
-            <StoreWrapper
-              key={store.storeId}
-              store={store}
-              onSelectAll={(checked: boolean) => {
-                setStores(stores.map(s =>
-                  s.storeId === store.storeId
-                    ? { ...s, products: s.products.map(p => ({ ...p, isSelected: checked })) }
-                    : s
-                ));
-              }}
-              onToggle={(productId: string) => {
-                setStores(stores.map(s =>
-                  s.storeId === store.storeId
-                    ? { ...s, products: s.products.map(p => p.id === productId ? { ...p, isSelected: !p.isSelected } : p) }
-                    : s
-                ));
-              }}
-              onDelete={(productId: string) => {
-                setStores(stores
-                  .map(s =>
+        {/* Tabbed content */}
+        {activeTab === 'cart' ? (
+          stores.length === 0 ? (
+            <div className="bg-white rounded-lg p-12 text-center">
+              <p className="text-xl text-gray-600">Keranjang Anda kosong</p>
+            </div>
+          ) : (
+            stores.map((store) => (
+              <StoreWrapper
+                key={store.storeId}
+                store={store}
+                onSelectAll={(checked: boolean) => {
+                  setStores(stores.map(s =>
                     s.storeId === store.storeId
-                      ? { ...s, products: s.products.filter(p => p.id !== productId) }
+                      ? { ...s, products: s.products.map(p => ({ ...p, isSelected: checked })) }
                       : s
-                  )
-                  .filter(s => s.products.length > 0)
-                );
-              }}
-              onQuantityChange={(productId: string, quantity: number) => {
-                setStores(stores.map(s =>
-                  s.storeId === store.storeId
-                    ? { ...s, products: s.products.map(p => p.id === productId ? { ...p, quantity } : p) }
-                    : s
-                ));
-              }}
-            />
-          ))
+                  ));
+                }}
+                onToggle={(productId: string) => {
+                  setStores(stores.map(s =>
+                    s.storeId === store.storeId
+                      ? { ...s, products: s.products.map(p => p.id === productId ? { ...p, isSelected: !p.isSelected } : p) }
+                      : s
+                  ));
+                }}
+                onDelete={(productId: string) => {
+                  setStores(stores
+                    .map(s =>
+                      s.storeId === store.storeId
+                        ? { ...s, products: s.products.filter(p => p.id !== productId) }
+                        : s
+                    )
+                    .filter(s => s.products.length > 0)
+                  );
+                }}
+                onQuantityChange={(productId: string, quantity: number) => {
+                  setStores(stores.map(s =>
+                    s.storeId === store.storeId
+                      ? { ...s, products: s.products.map(p => p.id === productId ? { ...p, quantity } : p) }
+                      : s
+                  ));
+                }}
+              />
+            ))
+          )
+        ) : (
+          <CartVirtualPageClient />
         )}
 
+        <div className="w-full flex items-center justify-center my-1">
+          <div data-cursor-element-id="cursor-el-710" style={{ width: '28%', height: '1px', background: 'linear-gradient(to left, #FF6A00 0%, #FFFFFF 100%)' }}></div>
+          <span className="text-[#FF6A00] font-semibold" data-cursor-element-id="cursor-el-711" style={{ margin: '0px 12px' }}>Produk</span>
+          <div data-cursor-element-id="cursor-el-1" style={{ width: '28%', height: '1px', background: 'linear-gradient(to right, #FF6A00 0%, #FFFFFF 100%)' }}></div>
+        </div>
       </div>
-      <CartTotalSticky selectAll={selectAll} onSelectAll={handleSelectAll} summary={summary} />
+      {activeTab === 'cart' && (
+        <CartTotalSticky selectAll={selectAll} onSelectAll={handleSelectAll} summary={summary} />
+      )}
     </div>
   );
 }

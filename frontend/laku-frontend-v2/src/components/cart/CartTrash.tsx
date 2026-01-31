@@ -75,26 +75,37 @@ export default function CartTrash({
 
   return (
     <div ref={wrapperRef} className="relative inline-block text-right">
-      <button
-        onClick={onDelete}
-        aria-label={ariaLabel}
-        title={ariaLabel}
-        className="text-sm text-gray-900 hover:text-red-500 h-[20px]"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
-
       <div className="mt-1">
+        <div className="ml-2 inline-flex items-center gap-0 rounded-md bg-transparent px-[1px] py-[1px] text-sm font-medium text-gray-900 h-[30px]">
+          <button
+            type="button"
+            onClick={() => selectQty(Math.max(1, quantity - 1))}
+            aria-label="Decrease quantity"
+            className={`inline-flex items-center justify-center w-6 h-6 text-sm ${quantity <= 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-900'}`}
+          >
+            −
+          </button>
+
           <button
             type="button"
             onClick={() => setIsOpen((v) => !v)}
-            className="ml-2 inline-flex items-center gap-2 rounded-md bg-gray-100 px-[1px] py-[1px] text-sm font-medium text-gray-900 h-[30px] w-[50px]"
             aria-haspopup="menu"
             aria-expanded={isOpen}
+            className="bg-gray-100 px-3 py-1 rounded-sm text-[12px] font-medium"
+            aria-label="Quantity menu"
           >
-            <span className="text-[10px] font-medium">{quantity}</span>
-            <ChevronDown className="w-4 h-4" />
+            {quantity}
           </button>
+
+          <button
+            type="button"
+            onClick={() => selectQty(quantity + 1)}
+            aria-label="Increase quantity"
+            className="inline-flex items-center justify-center w-6 h-6 text-sm"
+          >
+            +
+          </button>
+        </div>
 
           {isOpen && (
             <div className="absolute right-0 z-40 mt-2 w-36 overflow-hidden rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5">
