@@ -39,7 +39,7 @@ export function VideoOverlay({ video, onVideoUpdate }: Props) {
 
         {/* Avatar */}
         <Image
-          src={video.creator.avatar}
+          src={video.creator.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(video.creator.username)}`}
           alt={video.creator.displayName}
           width={40}
           height={40}

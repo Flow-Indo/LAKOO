@@ -171,23 +171,23 @@ export default function CommentSection({
               onClick={() => setShowSortMenu(!showSortMenu)}
               className="flex items-center gap-1 text-[13px] text-gray-600 hover:text-gray-900 font-medium"
             >
-              {sortLabels[sortBy]}
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
+              {sortLabels[sortBy]}
             </button>
             
             {showSortMenu && (
               <>
-                {/* Backdrop */}
-                <div 
-                  className="fixed inset-0 z-40"
+                {/* Backdrop - Left aligned */}
+                <div
+                  className="fixed left-0 right-0 top-0 bottom-0 z-40"
                   onClick={() => setShowSortMenu(false)}
                 />
-                
-                {/* Menu */}
-                <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+
+                {/* Menu - Aligned with button */}
+                <div className="absolute right-0 w-28 bg-white rounded-lg shadow-lg border border-gray-200 py-0.5 z-50 mt-1">
                   <button
                     onClick={() => handleSortChange('latest')}
-                    className={`w-full px-4 py-2 text-left text-[13px] hover:bg-gray-50 transition-colors ${
+                    className={`w-full px-2.5 py-1.5 text-left text-xs hover:bg-gray-50 transition-colors ${
                       sortBy === 'latest' ? 'text-[#ff2742] font-medium' : 'text-gray-700'
                     }`}
                   >
@@ -195,7 +195,7 @@ export default function CommentSection({
                   </button>
                   <button
                     onClick={() => handleSortChange('popular')}
-                    className={`w-full px-4 py-2 text-left text-[13px] hover:bg-gray-50 transition-colors ${
+                    className={`w-full px-2.5 py-1.5 text-left text-xs hover:bg-gray-50 transition-colors ${
                       sortBy === 'popular' ? 'text-[#ff2742] font-medium' : 'text-gray-700'
                     }`}
                   >
@@ -203,7 +203,7 @@ export default function CommentSection({
                   </button>
                   <button
                     onClick={() => handleSortChange('oldest')}
-                    className={`w-full px-4 py-2 text-left text-[13px] hover:bg-gray-50 transition-colors ${
+                    className={`w-full px-2.5 py-1.5 text-left text-xs hover:bg-gray-50 transition-colors ${
                       sortBy === 'oldest' ? 'text-[#ff2742] font-medium' : 'text-gray-700'
                     }`}
                   >

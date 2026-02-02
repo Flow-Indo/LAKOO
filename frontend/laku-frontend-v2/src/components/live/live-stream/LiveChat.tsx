@@ -36,7 +36,7 @@ export function LiveChat({ comments, onCommentClick }: Props) {
           }`}
         >
           <img
-            src={comment.user.avatar}
+            src={comment.user.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(comment.user.username)}`}
             alt={comment.user.username}
             className="w-6 h-6 rounded-full border border-white/50 flex-shrink-0"
           />

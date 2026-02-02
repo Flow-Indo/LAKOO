@@ -155,7 +155,6 @@ export default function ProductReviews({ product }: any) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">Ulasan · {reviewCount}</h3>
-          <span className="text-xs sm:text-sm text-orange-600">3 bulan terakhir rating tinggi mencapai 99.5%</span>
         </div>
         <button
           onClick={() => setReviewsModalOpen(true)}

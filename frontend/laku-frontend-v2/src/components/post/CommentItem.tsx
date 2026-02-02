@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Heart, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
@@ -41,24 +41,34 @@ export default function CommentItem({ comment, isLast }: CommentItemProps) {
   const [likeCount, setLikeCount] = useState(comment.likes);
   const [showReplies, setShowReplies] = useState(false);
 
+  // Check if all replies are from the author
+  const hasAuthorOnlyReplies = comment.replies && comment.replies.length > 0 &&
+    comment.replies.every(reply => reply.author.isAuthor);
+
+  // Auto-show replies if they're all from the author
+  useEffect(() => {
+    if (hasAuthorOnlyReplies) {
+      setShowReplies(true);
+    }
+  }, [hasAuthorOnlyReplies]);
+
   const handleLike = () => {
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
   };
 
+  // Filter non-author replies for the dropdown
+  const nonAuthorReplies = comment.replies?.filter(reply => !reply.author.isAuthor) || [];
+
   return (
     <div className={`${!isLast ? 'pb-5' : ''}`}>
       {/* Main Comment */}
       <div className="flex gap-3">
-        {/* Avatar */}
-        <div className="flex-shrink-0">
-          <Image
-            src={comment.author.avatar || '/default-avatar.png'}
-            alt={comment.author.name}
-            width={40}
-            height={40}
-            className="rounded-full object-cover"
-          />
+        {/* Avatar with gradient fallback */}
+        <div className="flex-shrink-0 w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-[#FF2442] to-[#FF6B35] flex items-center justify-center">
+          <span className="text-[9px] text-white font-medium">
+            {comment.author.name.charAt(0).toUpperCase()}
+          </span>
         </div>
 
         {/* Content */}
@@ -89,14 +99,14 @@ export default function CommentItem({ comment, isLast }: CommentItemProps) {
             </button>
           </div>
 
-          {/* View Replies Button */}
-          {comment.replies && comment.replies.length > 0 && (
+          {/* View Replies Button - Only for non-author replies */}
+          {nonAuthorReplies.length > 0 && (
             <button
               onClick={() => setShowReplies(!showReplies)}
               className="flex items-center gap-1.5 text-[13px] text-[#0066FF] hover:text-[#0052CC] font-medium mt-2 mb-3"
             >
               <MessageCircle className="w-3.5 h-3.5" />
-              <span>{showReplies ? 'Sembunyikan' : 'Lihat'} {comment.replies.length} balasan</span>
+              <span>{showReplies ? 'Sembunyikan' : 'Lihat'} {nonAuthorReplies.length} balasan</span>
               {showReplies ? (
                 <ChevronUp className="w-3.5 h-3.5" />
               ) : (
@@ -105,44 +115,46 @@ export default function CommentItem({ comment, isLast }: CommentItemProps) {
             </button>
           )}
 
-          {/* Replies */}
-          {showReplies && comment.replies && (
-            <div className="space-y-4 mt-3 pl-0">
+          {/* Replies - Author replies shown by default, non-author replies toggle */}
+          {(showReplies || hasAuthorOnlyReplies) && comment.replies && (
+            <div className="pt-4 space-y-4">
               {comment.replies.map((reply) => (
-                <div key={reply.id} className="flex gap-2.5">
-                  <Image
-                    src={reply.author.avatar || '/default-avatar.png'}
-                    alt={reply.author.name}
-                    width={32}
-                    height={32}
-                    className="rounded-full flex-shrink-0"
-                  />
+                <div key={reply.id} className="flex gap-3">
+                  {/* Reply Avatar with gradient fallback */}
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-[#FF2442] to-[#FF6B35] flex items-center justify-center">
+                    <span className="text-[9px] text-white font-medium">
+                      {reply.author.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[13px] font-medium text-gray-900">
+                      <span className="text-[14px] font-medium text-gray-900">
                         {reply.author.name}
                       </span>
                       {reply.author.isAuthor && (
-                        <span className="px-1.5 py-0.5 bg-[#ff2742] text-white text-[9px] rounded font-medium">
+                        <span className="px-2 py-0.5 bg-[#ff2742] text-white text-[10px] rounded font-medium leading-tight">
                           Penulis
                         </span>
                       )}
                     </div>
-                    <p className="text-[13px] text-gray-700 leading-relaxed mb-1.5 break-words">
+                    <p className="text-[14px] text-gray-700 leading-relaxed mb-2 break-words">
                       {reply.content}
                     </p>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[11px] text-gray-500">{reply.timestamp}</span>
-                      <span className="text-[11px] text-gray-500">{reply.location}</span>
-                      <button className="text-[11px] text-gray-500 hover:text-gray-700 font-medium">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-[12px] text-gray-500">{reply.timestamp}</span>
+                      <span className="text-[12px] text-gray-500">{reply.location}</span>
+                      <button className="text-[12px] text-gray-500 hover:text-gray-700 font-medium transition-colors">
                         Balas
                       </button>
                     </div>
                   </div>
-                  <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+                  {/* Reply Like Button */}
+                  <div className="pt-2 flex flex-col items-center gap-0.5 flex-shrink-0">
                     <Heart className="w-4 h-4 text-gray-400 hover:text-red-500 cursor-pointer transition-colors" />
                     {reply.likes > 0 && (
-                      <span className="text-[10px] text-gray-500">{reply.likes}</span>
+                      <span className={`text-[10px] font-medium ${liked ? 'text-red-500' : 'text-gray-500'}`}>
+                        {reply.likes}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -152,10 +164,10 @@ export default function CommentItem({ comment, isLast }: CommentItemProps) {
         </div>
 
         {/* Like Button */}
-        <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+        <div className="pt-2 flex flex-col items-center gap-0.5 flex-shrink-0">
           <button onClick={handleLike} className="group">
             <Heart
-              className={`w-5 h-5 transition-all ${
+              className={`w-4 h-4 transition-all ${
                 liked
                   ? 'fill-red-500 text-red-500 scale-110'
                   : 'text-gray-400 group-hover:text-red-500 group-hover:scale-110'
@@ -163,7 +175,7 @@ export default function CommentItem({ comment, isLast }: CommentItemProps) {
             />
           </button>
           {likeCount > 0 && (
-            <span className={`text-[11px] font-medium ${liked ? 'text-red-500' : 'text-gray-500'}`}>
+            <span className={`text-[10px] text-gray-500 font-medium ${liked ? 'text-red-500' : 'text-gray-500'}`}>
               {likeCount}
             </span>
           )}

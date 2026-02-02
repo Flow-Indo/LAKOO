@@ -119,7 +119,7 @@ function DesktopStoreReviews({ store }: { store: Store }) {
           {store.reviews.map((review) => (
             <div key={review.id} className="border border-gray-200 rounded-lg p-6">
               <div className="flex items-start gap-4">
-                <img src={review.user.avatar} alt={review.user.name} className="w-12 h-12 rounded-full" />
+                <img src={review.user.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(review.user.name)}`} alt={review.user.name} className="w-12 h-12 rounded-full" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="font-semibold">{review.user.name}</span>

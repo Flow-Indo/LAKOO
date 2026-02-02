@@ -36,7 +36,7 @@ export function MobileStoreReviews({ store }: MobileStoreReviewsProps) {
           <div key={review.id} className="border border-gray-200 rounded-lg p-4">
             <div className="flex items-start gap-3 mb-3">
               <Image
-                src={review.user.avatar}
+                src={review.user.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(review.user.name)}`}
                 alt={review.user.name}
                 width={40}
                 height={40}

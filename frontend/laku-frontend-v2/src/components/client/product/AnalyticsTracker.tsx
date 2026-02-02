@@ -7,12 +7,12 @@ export default function AnalyticsTracker({ product }: { product: any }) {
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'view_item', {
         currency: 'IDR',
-        value: product.salePrice,
+        value: product.price,
         items: [
           {
             item_id: product.id,
             item_name: product.name,
-            price: product.salePrice,
+            price: product.price,
             quantity: 1,
           },
         ],

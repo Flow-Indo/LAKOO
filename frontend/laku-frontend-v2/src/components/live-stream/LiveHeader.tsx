@@ -30,7 +30,7 @@ export function LiveHeader({ stream, onLike }: Props) {
           {/* Seller avatar with live indicator */}
           <div className="relative">
             <img
-              src={stream.seller.avatar}
+              src={stream.seller.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(stream.seller.username)}`}
               alt={stream.seller.name}
               className="w-10 h-10 rounded-full border-2 border-pink-500 animate-pulse"
             />
@@ -68,7 +68,7 @@ export function LiveHeader({ stream, onLike }: Props) {
               {stream.viewers.slice(0, 3).map((viewer, index) => (
                 <img
                   key={viewer.id}
-                  src={viewer.avatar}
+                  src={viewer.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(viewer.username)}`}
                   alt={viewer.username}
                   className="w-6 h-6 rounded-full border border-white"
                 />

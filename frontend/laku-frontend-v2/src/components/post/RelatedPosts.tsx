@@ -74,7 +74,7 @@ export default function RelatedPosts({ posts = [] }: RelatedPostsProps) {
             {/* Author - Compact */}
             <div className="flex items-center gap-1">
               <Image
-                src={post.author.avatar}
+                src={post.author.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(post.author.name)}`}
                 alt={post.author.name}
                 width={14}
                 height={14}

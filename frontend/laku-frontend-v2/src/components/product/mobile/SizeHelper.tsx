@@ -123,7 +123,7 @@ export function SizeHelper({ recommendedSize, sizeChart, buyerReferences }: Size
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                 <Image
-                  src={buyer.avatar}
+                  src={buyer.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(buyer.name)}`}
                   alt={buyer.name}
                   width={32}
                   height={32}

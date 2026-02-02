@@ -35,7 +35,7 @@ interface ProductInfoProps {
     reviewCount: number;
     sold: number;
     stock: number;
-    salePrice: number;
+    price: number;
     originalPrice: number;
     discountPercentage: number;
     colors: Color[];
@@ -100,10 +100,10 @@ export default function ProductInfo({ product }: ProductInfoProps) {
       <div className="bg-red-50 rounded-lg p-4">
         <div className="flex items-baseline gap-3">
           <span className="text-3xl font-bold text-red-600">
-            Rp {product.salePrice.toLocaleString('id-ID')}
+            Rp {product.price?.toLocaleString('id-ID')}
           </span>
           <span className="text-lg text-gray-400 line-through">
-            Rp {product.originalPrice.toLocaleString('id-ID')}
+            Rp {product.originalPrice?.toLocaleString('id-ID')}
           </span>
           <span className="bg-red-500 text-white px-2 py-1 text-sm font-bold rounded">
             -{product.discountPercentage}%

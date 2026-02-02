@@ -24,7 +24,7 @@ export function MessageItem({ conversation, isSelected, onClick }: Props) {
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         <Image
-          src={participant.avatar}
+          src={participant.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(participant.name)}`}
           alt={participant.name}
           width={56}
           height={56}

@@ -12,15 +12,19 @@ interface ProductTagProps {
     y: number;
   };
   visible: boolean;
+  isHidden?: boolean;
+  onToggle?: () => void;
 }
 
 export default function ProductTag({
   productName,
   productSlug,
   position,
-  visible
+  visible,
+  isHidden = false,
+  onToggle
 }: ProductTagProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true); // Default expanded
   const [showOnLeft, setShowOnLeft] = useState(false);
   const tagRef = useRef<HTMLDivElement>(null);
 
@@ -36,19 +40,21 @@ export default function ProductTag({
     const handleClickOutside = (e: MouseEvent) => {
       if (tagRef.current && !tagRef.current.contains(e.target as Node)) {
         setIsExpanded(false);
+        onToggle?.();
       }
     };
 
-    if (isExpanded) {
+    if (isExpanded && !isHidden) {
       document.addEventListener('click', handleClickOutside);
     }
 
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
-  }, [isExpanded]);
+  }, [isExpanded, isHidden, onToggle]);
 
-  if (!visible) return null;
+  // Hide when isHidden is true
+  if (!visible || isHidden) return null;
 
   return (
     <div
@@ -62,7 +68,10 @@ export default function ProductTag({
     >
       {/* Dot Indicator - Smaller */}
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsExpanded(!isExpanded);
+        }}
         className="relative w-6 h-6 bg-white/90 backdrop-blur-sm rounded-full shadow-md flex items-center justify-center group hover:bg-white transition-all z-10"
       >
         <ShoppingBag className="w-3 h-3 text-gray-800" />
@@ -78,7 +87,7 @@ export default function ProductTag({
           style={{
             // Dot is 24px (w-6), so radius is 12px from center
             // Position the tag box to start from the edge of the dot (12px) + 4px gap = 16px from center
-            transform: showOnLeft 
+            transform: showOnLeft
               ? 'translateY(-50%) translateX(calc(-100% - 10px))' // Left: dot edge - 4px gap
               : 'translateY(-50%) translateX(30px)' // Right: dot edge + 4px gap
           }}

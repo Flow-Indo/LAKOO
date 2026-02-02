@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart, Star, MessageCircle, X } from 'lucide-react';
+import { Heart, Star, MessageCircle } from 'lucide-react';
+import CommentModal from './CommentModal';
 
 interface BottomActionsProps {
   postId: string;
@@ -10,118 +11,127 @@ interface BottomActionsProps {
     favorites: number;
     comments: number;
   };
+  onCommentAdded?: () => void;
 }
 
-const formatNumber = (n: number): string => {
-  if (n >= 1000) {
-    return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-  }
-  return n.toString();
-};
-
-export default function BottomActions({ postId, initialData }: BottomActionsProps) {
-  const [likes, setLikes] = useState(initialData.likes);
-  const [favorites, setFavorites] = useState(initialData.favorites);
+export default function BottomActions({
+  postId,
+  initialData,
+  onCommentAdded
+}: BottomActionsProps) {
   const [liked, setLiked] = useState(false);
   const [favorited, setFavorited] = useState(false);
   const [showCommentModal, setShowCommentModal] = useState(false);
-  const [commentText, setCommentText] = useState('');
+  const [counts, setCounts] = useState(initialData);
 
   const handleLike = () => {
     setLiked(!liked);
-    setLikes(liked ? likes - 1 : likes + 1);
+    setCounts(prev => ({
+      ...prev,
+      likes: liked ? prev.likes - 1 : prev.likes + 1
+    }));
   };
 
   const handleFavorite = () => {
     setFavorited(!favorited);
-    setFavorites(favorited ? favorites - 1 : favorites + 1);
+    setCounts(prev => ({
+      ...prev,
+      favorites: favorited ? prev.favorites - 1 : prev.favorites + 1
+    }));
   };
 
-  const handleSubmitComment = () => {
-    if (commentText.trim()) {
-      alert('Komentar terkirim!');
-      setCommentText('');
-      setShowCommentModal(false);
+  const handleCommentAdded = () => {
+    setCounts(prev => ({
+      ...prev,
+      comments: prev.comments + 1
+    }));
+    if (onCommentAdded) {
+      onCommentAdded();
     }
+  };
+
+  const formatCount = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+    return num.toString();
   };
 
   return (
     <>
-      {/* Bottom Bar - Optimized for iPhone */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-inset-bottom">
-        <div className="flex items-center gap-2 px-3 py-2.5 max-w-md mx-auto">
-          {/* Comment Input - Tighter on mobile */}
+      {/* Bottom Fixed Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100">
+        <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
+          {/* Left: Comment Input Button */}
           <button
             onClick={() => setShowCommentModal(true)}
-            className="flex-1 flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-150 rounded-full transition-colors"
+            className="flex items-center gap-2 px-4 h-10 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
           >
             <MessageCircle className="w-4 h-4 text-gray-500" />
-            <span className="text-xs text-gray-500">Bagikan...</span>
+            <span className="text-[14px] text-gray-500">Tulis komentar...</span>
           </button>
-          
-          {/* Actions - Compact on mobile */}
+
+          {/* Right: Action Icons with Counts */}
           <div className="flex items-center gap-3">
-            <button onClick={handleLike} className="flex flex-col items-center gap-0">
+            {/* Like */}
+            <button
+              onClick={handleLike}
+              className="flex items-center gap-1.5 min-w-[44px] group"
+            >
               <Heart
-                className={`w-5 h-5 transition-all ${liked ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-700'}`}
+                className={`w-6 h-6 transition-all ${
+                  liked ? 'fill-red-500 text-red-500' : 'text-gray-700 group-hover:text-gray-900'
+                }`}
+                strokeWidth={1.5}
               />
-              <span className={`text-[10px] ${liked ? 'text-red-500 font-medium' : 'text-gray-600'}`}>
-                {formatNumber(likes)}
+              <span className={`text-[12px] font-medium ${
+                liked ? 'text-red-500' : 'text-gray-700'
+              }`}>
+                {formatCount(counts.likes)}
               </span>
             </button>
-            
-            <button onClick={handleFavorite} className="flex flex-col items-center gap-0">
+
+            {/* Favorite */}
+            <button
+              onClick={handleFavorite}
+              className="flex items-center gap-1.5 min-w-[44px] group"
+            >
               <Star
-                className={`w-5 h-5 transition-all ${favorited ? 'fill-yellow-400 text-yellow-400 scale-110' : 'text-gray-700'}`}
+                className={`w-6 h-6 transition-all ${
+                  favorited ? 'fill-yellow-400 text-yellow-400' : 'text-gray-700 group-hover:text-gray-900'
+                }`}
+                strokeWidth={1.5}
               />
-              <span className={`text-[10px] ${favorited ? 'text-yellow-600 font-medium' : 'text-gray-600'}`}>
-                {formatNumber(favorites)}
+              <span className={`text-[12px] font-medium ${
+                favorited ? 'text-yellow-500' : 'text-gray-700'
+              }`}>
+                {formatCount(counts.favorites)}
               </span>
             </button>
-            
-            <button onClick={() => setShowCommentModal(true)} className="flex flex-col items-center gap-0">
-              <MessageCircle className="w-5 h-5 text-gray-700" />
-              <span className="text-[10px] text-gray-600">{formatNumber(initialData.comments)}</span>
+
+            {/* Comments */}
+            <button
+              onClick={() => setShowCommentModal(true)}
+              className="flex items-center gap-1.5 min-w-[44px] group"
+            >
+              <MessageCircle
+                className="w-6 h-6 text-gray-700 group-hover:text-gray-900"
+                strokeWidth={1.5}
+              />
+              <span className="text-[12px] font-medium text-gray-700 group-hover:text-gray-900">
+                {formatCount(counts.comments)}
+              </span>
             </button>
           </div>
         </div>
       </div>
-      
-      {/* Comment Modal - Full screen on mobile */}
-      {showCommentModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-end md:items-center md:justify-center">
-          <div className="bg-white w-full md:max-w-md rounded-t-2xl md:rounded-2xl overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b">
-              <h3 className="text-sm font-semibold">Tulis Komentar</h3>
-              <button onClick={() => setShowCommentModal(false)}>
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-            <textarea
-              placeholder="Bagikan pendapat Anda..."
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              className="w-full h-32 p-4 text-sm resize-none focus:outline-none"
-              autoFocus
-            />
-            <div className="flex items-center justify-between px-4 py-3 border-t">
-              <div className="flex gap-2">
-                <button className="text-lg">📷</button>
-                <button className="text-lg">😊</button>
-              </div>
-              <button
-                onClick={handleSubmitComment}
-                disabled={!commentText.trim()}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium ${
-                  commentText.trim() ? 'bg-[#ff2742] text-white' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                Kirim
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
+      {/* Comment Modal */}
+      <CommentModal
+        isOpen={showCommentModal}
+        onClose={() => setShowCommentModal(false)}
+        postId={postId}
+        onCommentAdded={handleCommentAdded}
+      />
     </>
   );
 }

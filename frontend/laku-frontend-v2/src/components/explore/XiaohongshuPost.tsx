@@ -42,20 +42,20 @@ export function XiaohongshuPost({ post }: XiaohongshuPostProps) {
           />
         </div>
 
-        <div className="p-1.5">
-          <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-tight mb-1">
+        <div className="px-3 pt-2 pb-1 pr-4">
+          <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-tight mb-2">
             {post.title}
           </p>
 
-          <div className="flex items-center justify-between">
+          <div className="py-2 flex items-center justify-between">
             <div className="flex items-center gap-1 flex-1 min-w-0">
-              <div className="relative w-5 h-5 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-                <Image
-                  src={post.author.avatar}
-                  alt={post.author.username}
-                  fill
-                  className="object-cover"
-                />
+              <div className="relative w-4 h-4 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                {/* Always use gradient avatar placeholder - no external image loading */}
+                <div className="w-full h-full bg-gradient-to-br from-[#FF2442] to-[#FF6B35] flex items-center justify-center">
+                  <span className="text-[8px] text-white font-medium">
+                    {post.author.username.charAt(0).toUpperCase()}
+                  </span>
+                </div>
               </div>
               <span className="text-xs text-gray-600 truncate">
                 {post.author.username}

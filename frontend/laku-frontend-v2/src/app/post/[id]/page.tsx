@@ -37,7 +37,7 @@ function getMockComments(product: any) {
       id: '1',
       author: {
         name: 'Sarah Style',
-        avatar: '/avatars/user1.png',
+        avatar: '',
         isAuthor: false
       },
       content: 'Bagus banget kak! Beli dimana ya?',
@@ -49,7 +49,7 @@ function getMockComments(product: any) {
           id: 'r1',
           author: {
             name: product.postData.author.name,
-            avatar: product.postData.author.avatar,
+            avatar: '',
             isAuthor: true
           },
           content: 'Link ada di bio ya kak! 😊',
@@ -63,7 +63,7 @@ function getMockComments(product: any) {
       id: '2',
       author: {
         name: 'Fashion Lover',
-        avatar: '/avatars/user2.png',
+        avatar: '',
         isAuthor: false
       },
       content: 'Cantik banget! Kualitasnya bagus gak?',

@@ -55,8 +55,8 @@ export default function PostHeader({ author }: PostHeaderProps) {
 
         {/* Center: Avatar + info */}
         <div className="flex items-center gap-2 flex-1 mx-2">
-          <Image 
-            src={author.avatar} 
+          <Image
+            src={author.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(author.name)}`}
             alt={author.name}
             width={32}
             height={32}

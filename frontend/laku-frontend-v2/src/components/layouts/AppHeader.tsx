@@ -57,9 +57,9 @@ export function AppHeader({ currentView = 'explore', onViewChange }: AppHeaderPr
         </div>
 
         {/* Right: Search Icon */}
-        <button className="p-2">
+        <Link href="/search" className="p-2">
           <Search className="w-6 h-6 text-gray-700" />
-        </button>
+        </Link>
       </div>
     </header>
   );

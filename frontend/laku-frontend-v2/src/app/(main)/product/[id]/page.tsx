@@ -52,6 +52,9 @@ function transformToProductPageData(product: any) {
     alt: `${product.name} - Image ${index + 1}`,
   }));
 
+  // Raw image URLs for checkout modal
+  const imageUrls = product.productImages;
+
   // Convert colors to the expected format
   const colors = product.productData.colors.map((color: string, index: number) => ({
     id: `color-${index + 1}`,
@@ -99,9 +102,54 @@ function transformToProductPageData(product: any) {
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
+    // Transform color variants for checkout modal
+  const colorVariants = product.colors.map((color: any) => ({
+    id: color.id,
+    name: color.name,
+    image: color.image,
+    stock: color.stock,
+    label: color.label,
+  }));
+
+  // Transform size variants for checkout modal
+  const sizeVariants = product.sizes.map((size: any) => ({
+    id: size.id,
+    name: size.name,
+    price: size.price,
+    weight: size.weight,
+    weightRecommendation: size.weightRecommendation,
+    measurements: size.measurements,
+  }));
+
+  // Transform shipping options for checkout modal
+  const shippingOptions = product.shippingOptions.map((option: any) => ({
+    id: option.id,
+    name: option.name,
+    courier: option.courier,
+    service: option.service,
+    price: option.price,
+    estimatedDays: option.estimatedDays,
+    isFree: option.isFree,
+    isFast: option.isFast,
+    description: `${option.courier} ${option.service} - ${option.estimatedDays}`,
+  }));
+
+  // Transform vouchers for checkout modal
+  const vouchers = product.vouchers.map((voucher: any) => ({
+    id: voucher.id,
+    code: voucher.code,
+    discount: voucher.discount,
+    discountType: voucher.discountType,
+    minPurchase: voucher.minPurchase,
+    maxDiscount: voucher.maxDiscount,
+    validUntil: voucher.validUntil,
+    description: voucher.description,
+  }));
+
   return {
     id: product.id,
     name: product.name,
+    brand: product.brand,
     subtitle: product.productData.subtitle || product.description.substring(0, 50),
     category: product.productData.category,
     categorySlug: product.productData.categorySlug,
@@ -112,10 +160,11 @@ function transformToProductPageData(product: any) {
     reviewCount: product.productData.reviewCount,
     sold: parseInt(product.productData.sold.replace(/[^0-9]/g, '')) * (product.productData.sold.includes('K') ? 1000 : 1),
     stock: product.productData.stock,
-    salePrice: product.price,
+    price: product.price,
     originalPrice: product.originalPrice || product.price,
     discountPercentage: discountPercentage,
-    colors: colors,
+    currency: product.currency || 'Rp',
+    colors: colors, // Use transformed colors with id, name, image, isHot
     sizes: product.productData.sizes,
     availableSizes: product.productData.sizes, // All sizes available
     description: product.description,
@@ -139,6 +188,12 @@ function transformToProductPageData(product: any) {
     reviews: [], // Empty for now
     recommendations: [], // Empty for now
     images: images,
+    // Checkout modal data - using correct field names for StickyBottomBar
+    imageUrls: imageUrls, // Raw URLs for checkout modal color grid
+    sizeVariants: sizeVariants,
+    shippingOptions: shippingOptions,
+    vouchers: vouchers,
+    mainImage: product.productImages[0] || product.postImages[0],
   };
 }
 

@@ -72,9 +72,18 @@ export default function MobileProductPageMain({ product }: any) {
         product={{
           id: product.id,
           name: product.name,
-          price: product.salePrice,
+          price: product.price,
+          originalPrice: product.originalPrice,
+          currency: product.currency,
+          brand: product.brand,
           sellerId: product.seller?.id || 'store-001',
           sellerName: product.seller?.name || 'Toko Official',
+          mainImage: product.mainImage,
+          images: product.imageUrls, // Raw image URLs for checkout modal
+          colorVariants: product.colors, // Use colors from transformed data
+          sizeVariants: product.sizeVariants,
+          shippingOptions: product.shippingOptions,
+          vouchers: product.vouchers,
         }}
         wishlistCount={432}
       />

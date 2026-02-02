@@ -152,7 +152,7 @@ export function ConversationView({ conversation, onBack }: Props) {
           </button>
 
           <Image
-            src={conversation.participant.avatar}
+            src={conversation.participant.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(conversation.participant.name)}`}
             alt={conversation.participant.name}
             width={40}
             height={40}

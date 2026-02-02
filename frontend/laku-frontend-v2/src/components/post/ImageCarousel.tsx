@@ -149,6 +149,7 @@ export default function ImageCarousel({
                 productSlug={item.slug}
                 position={item.tag.position}
                 visible={showTags || isFullscreen}
+                isHidden={!showTags}
               />
             </div>
           ))}
@@ -233,6 +234,7 @@ export default function ImageCarousel({
                     productSlug={item.slug}
                     position={item.tag.position}
                     visible={index === currentIndex && (showTags || isFullscreen)}
+                    isHidden={!showTags}
                   />
                 </div>
               ))}
