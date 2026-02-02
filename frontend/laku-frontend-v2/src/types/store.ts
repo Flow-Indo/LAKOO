@@ -147,7 +147,7 @@ export type StoreSortOption =
   | 'top-rated'
   | 'most-reviewed';
 
-export type StoreTab = 'home' | 'products' | 'reviews' | 'chat';
+export type StoreTab = 'home' | 'products' | 'tags' | 'chat';
 
 export interface StoreTabItem {
   id: StoreTab;

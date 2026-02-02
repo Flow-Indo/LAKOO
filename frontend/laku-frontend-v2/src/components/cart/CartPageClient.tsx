@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
 import { StoreWrapper } from './StoreWrapper';
 import { CartHeader } from './CartHeader';
 import CartTotalSticky from './CartTotalSticky';
 import CartVirtualPageClient from '@/components/VirtualFit/CartVirtualPageClient';
+import { InfiniteProductFeed } from '@/components/shared/InfiniteProductFeed';
+import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import type { StoreCart, CartSummary as CartSummaryType } from '@/types/cart';
 
 interface Props {
@@ -117,11 +120,17 @@ export function CartPageClient({ initialCart }: Props) {
           <CartVirtualPageClient />
         )}
 
-        <div className="w-full flex items-center justify-center my-1">
-          <div data-cursor-element-id="cursor-el-710" style={{ width: '28%', height: '1px', background: 'linear-gradient(to left, #FF6A00 0%, #FFFFFF 100%)' }}></div>
-          <span className="text-[#FF6A00] font-semibold" data-cursor-element-id="cursor-el-711" style={{ margin: '0px 12px' }}>Produk</span>
-          <div data-cursor-element-id="cursor-el-1" style={{ width: '28%', height: '1px', background: 'linear-gradient(to right, #FF6A00 0%, #FFFFFF 100%)' }}></div>
+        <div className="w-full flex items-center justify-center mt-4 mb-4">
+          <div data-cursor-element-id="cursor-el-710" style={{ width: '28%', height: '1px', background: 'linear-gradient(to left, #DC2626 0%, #FFFFFF 100%)' }}></div>
+          <span className="text-red-600 font-semibold" data-cursor-element-id="cursor-el-711" style={{ margin: '0px 12px' }}>Rekomendasi</span>
+          <div data-cursor-element-id="cursor-el-1" style={{ width: '28%', height: '1px', background: 'linear-gradient(to right, #DC2626 0%, #FFFFFF 100%)' }}></div>
         </div>
+
+        {/* Recommended products feed */}
+        <div className="px-0 py-0">
+          <InfiniteProductFeed initialProducts={MOCK_PRODUCTS} hasMore={true} />
+        </div>
+        {/* removed manual product grid to avoid duplicate recommendations (using InfiniteProductFeed above) */}
       </div>
       {activeTab === 'cart' && (
         <CartTotalSticky selectAll={selectAll} onSelectAll={handleSelectAll} summary={summary} />

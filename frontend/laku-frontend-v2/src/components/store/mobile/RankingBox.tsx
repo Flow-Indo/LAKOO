@@ -4,13 +4,15 @@ import React, { useState } from 'react';
 import RankingProduct from './RankingProduct';
 import RankingReview from './RankingReview';
 import RankingRating from './RankingRating';
+import type { Store } from '@/types/store';
 
 type Props = {
   top?: number;
   className?: string;
+  store?: Store;
 };
 
-export default function RankingBox({ top = 5, className = '' }: Props) {
+export default function RankingBox({ top = 5, className = '', store }: Props) {
   const [mode, setMode] = useState<'sold' | 'review' | 'rating'>('sold');
 
   return (
@@ -56,11 +58,11 @@ export default function RankingBox({ top = 5, className = '' }: Props) {
       </div>
 
       {mode === 'sold' ? (
-        <RankingProduct top={top} />
+        <RankingProduct top={top} products={store?.products} />
       ) : mode === 'review' ? (
-        <RankingReview top={top} />
+        <RankingReview top={top} products={store?.products} />
       ) : (
-        <RankingRating top={top} />
+        <RankingRating top={top} products={store?.products} />
       )}
     </div>
   );

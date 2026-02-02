@@ -10,7 +10,7 @@ interface DesktopStoreNavigationProps {
 const tabs: { id: StoreTab; label: string; getCount?: (store: Store) => number | undefined }[] = [
   { id: 'products', label: 'All Products' },
   { id: 'categories', label: 'Categories' },
-  { id: 'reviews', label: 'Reviews', getCount: (store) => store.reviews.length },
+  { id: 'tags', label: 'Tags', getCount: (store) => store.reviews.length },
   { id: 'about', label: 'About' },
   { id: 'recommend', label: 'Recommended' },
 ];

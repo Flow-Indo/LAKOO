@@ -9,11 +9,12 @@ import type { StoreProduct } from '@/types/store';
 
 type Props = {
   top?: number;
+  products?: StoreProduct[];
 };
 
-export default function RankingProduct({ top = 5 }: Props) {
-  const products: StoreProduct[] = (mockStore && mockStore.products) || [];
-  const ranked = products
+export default function RankingProduct({ top = 5, products }: Props) {
+  const productsList: StoreProduct[] = products && products.length ? products : (mockStore && mockStore.products) || [];
+  const ranked = productsList
     .slice()
     .sort((a, b) => {
       const as = typeof a.sold === 'number' ? a.sold : parseFloat(String(a.sold || '0')) || 0;
@@ -35,20 +36,14 @@ export default function RankingProduct({ top = 5 }: Props) {
           }}
         >
           <div className="flex gap-4 items-stretch">
-            <div className="relative w-40 h-40 rounded overflow-hidden flex-shrink-0">
+            <div className="relative w-[120px] h-[120px] rounded overflow-hidden flex-shrink-0">
               <Image src={p.image} alt={p.name} fill className="object-cover" />
-              <div
-                className={`absolute top-2 left-2 px-3 py-1 rounded-full text-sm font-semibold ${
-                  i === 0 ? 'bg-amber-200 text-amber-800' : 'bg-amber-100 text-amber-700'
-                }`}
-              >
-                TOP {i + 1}
-              </div>
+              
             </div>
 
             <div className="flex-1 flex flex-col justify-between">
               <div>
-                <h3 className="font-semibold text-sm leading-tight mb-2 line-clamp-2">{p.name}</h3>
+                <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">{p.name}</h3>
 
                 <div className="text-sm text-gray-500 space-y-1">
                 
@@ -73,7 +68,7 @@ export default function RankingProduct({ top = 5 }: Props) {
               </div>
 
               <div className="mt-3">
-                <div className="text-red-600 font-bold text-xl">{formatPrice(p.price)}</div>
+                <div className="text-red-600 font-semibold text-base">{formatPrice(p.price)}</div>
               </div>
             </div>
           </div>

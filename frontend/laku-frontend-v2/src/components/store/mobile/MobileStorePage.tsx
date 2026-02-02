@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import { Store, StoreTab, StoreFilter, StoreSortOption } from '@/types/store';
-import { MobileStoreHeader } from './MobileStoreHeader';
-import { MobileStoreInfoCard } from './MobileStoreInfoCard';
+
 import { MobileStoreBody } from './MobileStoreBody';
 import { MobileStoreTabs } from './MobileStoreTabs';
 import { MobileStoreProducts } from './MobileStoreProducts';
-import { MobileStoreReviews } from './MobileStoreReviews';
+import MobileStoreTags from './MobileStoreTags';
+import { MobileStoreBioBackground } from './MobileStoreBioBackground';
+import { MobileStoreBioName } from './MobileStoreBioName';
+import { MobileStoreBioCaption } from './MobileStoreBioCaption';
+import MobileStoreProductsTagsHeader from './MobileStoreProductsTagsHeader';
 
 
 interface MobileStorePageProps {
@@ -19,6 +22,11 @@ export function MobileStorePage({ store, showBottomNav = true }: MobileStorePage
   const [activeTab, setActiveTab] = useState<StoreTab>('products');
   const [filters, setFilters] = useState<StoreFilter>({});
   const [sortBy, setSortBy] = useState<StoreSortOption>('recommended');
+  const [isFollowing, setIsFollowing] = useState<boolean>(!!store.isFollowing);
+
+  const toggleFollow = () => {
+    setIsFollowing((s) => !s);
+  };
 
   const handleTabChange = (tab: StoreTab) => {
     setActiveTab(tab);
@@ -34,7 +42,6 @@ export function MobileStorePage({ store, showBottomNav = true }: MobileStorePage
 
   return (
     <div className="min-h-screen bg-white">
-      <MobileStoreHeader store={store} />
 
       {showBottomNav && (
         <MobileStoreTabs
@@ -43,13 +50,26 @@ export function MobileStorePage({ store, showBottomNav = true }: MobileStorePage
           store={store}
         />
       )}
+      {/* Sticky header for selected tabs - placed above tab content to avoid ancestor overflow */}
+      {(['home', 'products', 'tags'] as StoreTab[]).includes(activeTab) && (
+        <>
+          {activeTab === 'home' ? (
+            <MobileStoreBioBackground store={store} expandedHeight={300}>
+              <MobileStoreBioName store={store} />
+              <MobileStoreBioCaption store={store} isFollowing={isFollowing} onFollow={toggleFollow} />
+            </MobileStoreBioBackground>
+          ) : (
+            <MobileStoreProductsTagsHeader store={store} expandedHeight={130} isFollowing={isFollowing} onFollow={toggleFollow} />
+          )}
+        </>
+      )}
 
       {/* Tab Content */}
       <div className="pt-0 pb-0"> {/* padding reset per preview changes */}
+
         {activeTab === 'home' && (
           <>
-            <MobileStoreInfoCard store={store} />
-            <MobileStoreBody />
+            <MobileStoreBody store={store} images={store.products.map((p) => p.image)} />
             <MobileStoreProducts
               store={store}
               filters={filters}
@@ -63,7 +83,6 @@ export function MobileStorePage({ store, showBottomNav = true }: MobileStorePage
 
         {activeTab === 'products' && (
           <>
-            <MobileStoreInfoCard store={store} />
           <MobileStoreProducts
             store={store}
             filters={filters}
@@ -74,8 +93,8 @@ export function MobileStorePage({ store, showBottomNav = true }: MobileStorePage
           </>
         )}
 
-        {activeTab === 'reviews' && (
-          <MobileStoreReviews store={store} />
+        {activeTab === 'tags' && (
+          <MobileStoreTags store={store} />
         )}
 
         {activeTab === 'chat' && (

@@ -1,12 +1,12 @@
  'use client';
 
 import { Store } from '@/types/store';
-import { Star, Users, Package } from 'lucide-react';
+import { Users } from 'lucide-react';
 
 export function StoreStats({ store }: { store: Store }) {
   return (
     <div>
-      <div className="flex items-center gap-2 text-xs text-gray-600" style={{ marginTop: '3px', marginBottom: '3px' }}>
+      <div className="flex flex-col text-xs text-white" style={{ marginTop: '3px', marginBottom: '3px' }}>
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-0.5">
             {Array.from({ length: 5 }).map((_, i) => {
@@ -32,20 +32,9 @@ export function StoreStats({ store }: { store: Store }) {
               );
             })}
           </div>
-          <span className="font-medium text-xs">{store.rating}</span>
-          </div>
-          <span className="text-gray-300 mx-1">|</span>
+        </div>
 
-          <div className="flex items-center gap-1">
-            <Users className="w-3 h-3" />
-            <span className="text-xs">
-              {store.followers >= 1000000
-                ? `${(store.followers / 1000000).toFixed(1).replace(/\.0$/, '')}Jt Pengikut`
-                : store.followers >= 1000
-                ? `${(store.followers / 1000).toFixed(0)}K Pengikut`
-                : `${store.followers} Pengikut`}
-            </span>
-          </div>
+        {/* followers line removed as requested */}
       </div>
     </div>
   );

@@ -63,7 +63,7 @@ export function DesktopStorePage({ store }: DesktopStorePageProps) {
             <DesktopStoreCategories store={store} />
           )}
 
-          {activeTab === 'reviews' && (
+          {activeTab === 'tags' && (
             <DesktopStoreReviews store={store} />
           )}
 

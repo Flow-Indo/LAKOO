@@ -8,7 +8,7 @@ export const storesData: Record<string, StoreData> = {
     name: 'CULT SURI',
     tagline: 'Elegant Fashion for Modern Women',
     description: 'CULT SURI menghadirkan koleksi fashion elegan dengan sentuhan modern untuk wanita Indonesia. Setiap piece dirancang dengan detail yang indah dan material premium.',
-    coverImage: '/stores/cult-suri-banner.jpg',
+    coverImage: '/products/CULT SURI - Coco Top Chiffon Dengan Scarf Detail/cult_produk.webp',
     logoImage: '/stores/cult-suri-logo.png',
     
     instagram: '@cultsuri',
@@ -36,7 +36,7 @@ export const storesData: Record<string, StoreData> = {
     name: 'Karakiri',
     tagline: 'Contemporary Indonesian Fashion',
     description: 'Karakiri adalah brand fashion Indonesia yang mengusung konsep contemporary dengan sentuhan lokal. Kami menghadirkan pieces yang versatile dan mudah dipadukan.',
-    coverImage: '/stores/karakiri-banner.jpg',
+    coverImage: '/products/Karakiri - Jolie Pants | Wide Leg Trousers | Culotte Pants/kara_produk.webp',
     logoImage: '/stores/karakiri-logo.png',
     
     instagram: '@karakiri.id',
@@ -64,7 +64,7 @@ export const storesData: Record<string, StoreData> = {
     name: 'RUE',
     tagline: 'Feminine & Sophisticated Style',
     description: 'RUE menghadirkan koleksi fashion feminine dengan desain yang sophisticated. Setiap piece dirancang untuk wanita yang ingin tampil anggun dalam setiap kesempatan.',
-    coverImage: '/stores/rue-banner.jpg',
+    coverImage: '/products/RUE - Sheer Top Atasan Lengan Panjang Boatneck Longsleeve/rue_produk.webp',
     logoImage: '/stores/rue-logo.png',
     
     instagram: '@rue.indonesia',
@@ -92,7 +92,7 @@ export const storesData: Record<string, StoreData> = {
     name: 'WEAR THREEK',
     tagline: 'Y2K Fashion & Streetwear',
     description: 'WEAR THREEK adalah brand streetwear yang terinspirasi dari era Y2K. Kami menghadirkan fashion yang bold, trendy, dan expressive untuk generasi muda Indonesia.',
-    coverImage: '/stores/wearthreek-banner.jpg',
+    coverImage: '/products/WEAR THREEK - Britney Low Waist Jeans/wearthreek_produk.webp',
     logoImage: '/stores/wearthreek-logo.png',
     
     instagram: '@wearthreek',
