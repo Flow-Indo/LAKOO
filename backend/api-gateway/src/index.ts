@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser'
-import { router } from './routes/index'
+import { router } from '@src/routes/index.js'
 
 dotenv.config();
 

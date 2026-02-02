@@ -15,7 +15,7 @@ export const getUserBodyLoginSchema = z.object({
         
 })
 
-export const getUserBodySignInSchema = z.object({
+export const getUserBodySignUpSchema = z.object({
     phoneNumber: z.string()
         .min(10, "Phone number must be at least 10 digits"),
     firstName: z.string(),
