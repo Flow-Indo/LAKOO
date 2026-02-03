@@ -30,7 +30,7 @@ export default function CheckoutFooter({
     <div className="border-t border-gray-200 bg-white">
       {/* Price Details (Collapsible) */}
       {showDetails && (
-        <div className="px-6 py-4 space-y-2 text-sm border-b border-gray-100">
+        <div className="px-6 pt-4 text-sm">
           <div className="flex justify-between text-gray-600">
             <span>Subtotal Produk</span>
             <span>{formatPrice(pricing.subtotal)}</span>
@@ -45,7 +45,11 @@ export default function CheckoutFooter({
             <span>Biaya Pengiriman</span>
             <span>{formatPrice(pricing.shipping)}</span>
           </div>
-          <div className="h-px bg-gray-200 my-2" />
+          <div className="pb-3 flex justify-between font-bold text-gray-900">
+            <span>Total</span>
+            <span>{formatPrice(pricing.total)}</span>
+          </div>
+          <div className="h-px bg-gray-200" />
         </div>
       )}
 
@@ -79,9 +83,9 @@ export default function CheckoutFooter({
         <Button
           onClick={onCheckout}
           disabled={!canCheckout}
-          className="px-8 py-6 text-base font-medium bg-[#FF2442] hover:bg-[#E61E3A] disabled:bg-gray-300 disabled:cursor-not-allowed rounded-full"
+          className="px-8 py-6 text-base font-medium bg-[#FF2442] hover:bg-[#E61E3A] text-white disabled:bg-gray-300 disabled:cursor-not-allowed rounded-full"
         >
-          Bayar Sekarang
+          Bayar
         </Button>
       </div>
     </div>

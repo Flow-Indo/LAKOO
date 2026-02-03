@@ -43,14 +43,14 @@ export default function ProductPageClient({ product }: { product: any }) {
         </nav>
 
         {/* Mobile Layout */}
-        <div className="lg:hidden h-screen flex flex-col">
-          {/* 1. Image Carousel - 60% screen height */}
-          <div className="relative h-[60vh] flex-shrink-0">
+        <div className="lg:hidden">
+          {/* 1. Image Carousel - Fixed at top */}
+          <div className="relative h-[60dvh] sm:h-[55dvh] md:h-[60dvh] sticky top-0 z-10">
               <ProductImageGallery images={product.images} />
             </div>
 
-          {/* 2. Red Banner - 1.5x thumbnail size (9vh) */}
-          <div className="h-[9vh] bg-red-500 flex items-center px-4 flex-shrink-0">
+          {/* 2. Red Banner - Sticky below carousel */}
+          <div className="sticky top-[60dvh] sm:top-[55dvh] md:top-[60dvh] z-20 bg-red-500 flex items-center px-4">
             <div className="flex items-center justify-between w-full text-white text-sm">
               <div className="flex items-center gap-3">
                 <div>
@@ -81,14 +81,13 @@ export default function ProductPageClient({ product }: { product: any }) {
             </div>
           </div>
 
-          {/* 4. Product Name */}
-          <div className="px-4 py-4 flex-shrink-0">
+          {/* 4. Product Name - Sticky below banner */}
+          <div className="sticky top-[69dvh] sm:top-[64dvh] md:top-[69dvh] z-10 bg-white px-4 py-4">
             <h1 className="text-xl font-bold text-gray-900">{product.name}</h1>
           </div>
 
-          {/* 5. Rest of content - SCROLLABLE */}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            <div className="px-4 pb-20">
+          {/* 5. Rest of content - Scrolls naturally */}
+          <div className="px-4 pb-24">
               <ProductTabs product={product} />
               <ReviewsSection
                 productId={product.id}
@@ -99,7 +98,6 @@ export default function ProductPageClient({ product }: { product: any }) {
               <RecommendationsSection products={product.recommendations} />
             </div>
           </div>
-        </div>
 
         {/* Desktop Layout */}
         <div className="hidden lg:block px-6 py-6">

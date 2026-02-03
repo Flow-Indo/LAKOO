@@ -1,6 +1,7 @@
 'use client';
 
-import { Check, ZoomIn } from 'lucide-react';
+import Image from 'next/image';
+import { Maximize2 } from 'lucide-react';
 import { ColorVariant } from '@/types/checkout';
 
 interface ColorOptionProps {
@@ -21,17 +22,19 @@ export default function ColorOption({
       <button
         onClick={onSelect}
         disabled={color.stock === 0}
-        className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${
+        className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
           isSelected
-            ? 'border-[#FF2442] bg-[#FFF0F3]'
+            ? 'border-[#FF2442]'
             : 'border-gray-200 hover:border-gray-300'
         } ${color.stock === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
       >
-        <div className="relative w-20 h-24 flex-shrink-0 rounded overflow-hidden bg-white">
-          <img
+        <div className="relative w-20 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
+          <Image
             src={color.image}
             alt={color.label || color.name}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            unoptimized
           />
         </div>
         <div className="flex-1 text-left">
@@ -42,9 +45,6 @@ export default function ColorOption({
             <p className="text-xs text-red-500">Habis</p>
           )}
         </div>
-        {isSelected && (
-          <Check className="h-5 w-5 text-[#FF2442]" />
-        )}
       </button>
     );
   }
@@ -55,62 +55,59 @@ export default function ColorOption({
       <button
         onClick={onSelect}
         disabled={color.stock === 0}
-        className={`relative w-full group ${color.stock === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+        className={`relative w-full block ${color.stock === 0 ? 'cursor-not-allowed' : 'cursor-pointer'}`}
       >
-        {/* Product Image Card - 3:4 Aspect Ratio Portrait */}
+        {/* OUTER FRAME - Contains both image and color name */}
         <div
-          className={`relative w-full rounded-xl overflow-hidden border-2 transition-all bg-white ${
+          className={`w-full rounded-2xl overflow-hidden transition-all ${
             isSelected
-              ? 'border-[#FF2442] ring-2 ring-[#FFE5EA]'
-              : 'border-gray-200 hover:border-gray-300'
+              ? 'border-[1px] border-[#FF2442] bg-[#FFF0F3]'
+              : 'border-1 border-gray-200'
           } ${color.stock === 0 ? 'opacity-40' : ''}`}
-          style={{ aspectRatio: '3/4' }}
         >
-          {/* Full Product Image - Using regular img for testing */}
-          <img
-            src={color.image}
-            alt={color.label || color.name}
-            className="w-full h-full object-cover"
-            style={{ minHeight: '100%', minWidth: '100%' }}
-          />
+          {/* Image Container with Padding - Creates space around image */}
+          <div className="p-2">
+            {/* Rounded Image */}
+            <div
+              className="relative w-full rounded-xl overflow-hidden"
+              style={{ aspectRatio: '3/4' }}
+            >
+              <Image
+                src={color.image}
+                alt={color.label || color.name}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 33vw, (max-width: 1200px) 25vw, 200px"
+                priority={isSelected}
+                unoptimized
+              />
 
-          {/* Hover Overlay with Zoom Icon */}
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-5 transition-all flex items-center justify-center">
-            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="bg-white/90 rounded-full p-1.5 shadow-lg">
-                <ZoomIn className="h-3.5 w-3.5 text-gray-700" />
+              {/* Small Zoom Icon - Bottom Right */}
+              <div className="absolute bottom-2 right-2 bg-white/80 backdrop-blur-sm rounded-md p-1 shadow-sm">
+                <Maximize2 className="h-3 w-3 text-gray-600" />
               </div>
+
+              {/* Out of Stock Overlay */}
+              {color.stock === 0 && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-xl">
+                  <span className="text-sm text-white font-medium px-3 py-1 bg-gray-900/80 rounded-full">
+                    Habis
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Selection Check Mark - Top Right Corner */}
-          {isSelected && (
-            <div className="absolute top-2 right-2 z-10">
-              <div className="bg-[#FF2442] rounded-full p-1 shadow-md">
-                <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
-              </div>
-            </div>
-          )}
-
-          {/* Out of Stock Overlay */}
-          {color.stock === 0 && (
-            <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10">
-              <span className="text-sm text-white font-medium px-3 py-1 bg-gray-900 rounded-full">
-                Habis
-              </span>
-            </div>
-          )}
+          {/* Color Name INSIDE Frame - Below Image with separator */}
+          <div className="px-3 pb-3 pt-1">
+            <p className={`text-center text-[13px] leading-tight font-medium ${
+              isSelected ? 'text-[#FF2442]' : 'text-gray-700'
+            }`}>
+              {color.label || color.name}
+            </p>
+          </div>
         </div>
       </button>
-
-      {/* Color Name Below Image - Centered Xiaohongshu Style */}
-      <div className="mt-2.5 text-center px-1">
-        <p className={`text-[13px] leading-tight ${
-          isSelected ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'
-        }`}>
-          {color.label || color.name}
-        </p>
-      </div>
     </div>
   );
 }

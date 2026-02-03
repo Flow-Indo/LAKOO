@@ -35,13 +35,13 @@ export default function QuantitySelector({
         size="icon"
         onClick={handleDecrease}
         disabled={value <= min}
-        className="h-8 w-8 rounded-full border-gray-300"
+        className="h-7 w-7 rounded-md border-gray-300 bg-white hover:bg-gray-100"
       >
-        <Minus className="h-4 w-4" />
+        <Minus className="h-3 w-3 text-gray-700" />
       </Button>
 
       <div className="min-w-[40px] text-center">
-        <span className="text-sm font-medium">{value}</span>
+        <span className="text-sm font-bold text-gray-900">{value}</span>
       </div>
 
       <Button
@@ -49,9 +49,9 @@ export default function QuantitySelector({
         size="icon"
         onClick={handleIncrease}
         disabled={value >= max}
-        className="h-8 w-8 rounded-full border-gray-300"
+        className="h-7 w-7 rounded-md border-gray-300 bg-white hover:bg-gray-100"
       >
-        <Plus className="h-4 w-4" />
+        <Plus className="h-3 w-3 text-gray-700" />
       </Button>
     </div>
   );

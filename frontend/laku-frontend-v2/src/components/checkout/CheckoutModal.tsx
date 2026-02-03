@@ -99,7 +99,7 @@ export default function CheckoutModal({ isOpen, onClose, product }: CheckoutModa
       {/* Modal Container */}
       <div className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-2xl max-h-[90vh] overflow-y-auto">
         {/* Scrollable Content */}
-        <div className="pb-36">
+        <div className="pb-0">
           {/* Section 1: Header */}
           <CheckoutHeader onClose={onClose} />
 
@@ -107,7 +107,7 @@ export default function CheckoutModal({ isOpen, onClose, product }: CheckoutModa
           <AddressSection />
 
           {/* Main Content with INCREASED Spacing - space-y-8 (32px) */}
-          <div className="space-y-8 px-6 py-6">
+          <div className="px-6 py-0">
             {/* Section 2: Product Info WITH Quantity */}
             <ProductInfo
               product={product}

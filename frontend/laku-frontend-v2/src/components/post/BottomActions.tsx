@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Heart, Star, MessageCircle } from 'lucide-react';
 import CommentModal from './CommentModal';
 
@@ -58,8 +58,8 @@ export default function BottomActions({
 
   return (
     <>
-      {/* Bottom Fixed Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100">
+      {/* Fixed Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-100 pb-safe">
         <div className="flex items-center justify-between px-4 py-3 max-w-7xl mx-auto">
           {/* Left: Comment Input Button */}
           <button

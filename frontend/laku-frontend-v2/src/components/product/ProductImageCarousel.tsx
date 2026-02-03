@@ -3,12 +3,11 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Navigation } from 'swiper/modules';
+import { Navigation } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 
 // Import Swiper styles
 import 'swiper/css';
-import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
 interface ProductImage {
@@ -36,12 +35,7 @@ export function ProductImageCarousel({ images, productName }: ProductImageCarous
   return (
     <div className="md:hidden relative -mx-4">
       <Swiper
-        modules={[Pagination, Navigation]}
-        pagination={{
-          clickable: true,
-          bulletClass: 'swiper-pagination-bullet !bg-white/60',
-          bulletActiveClass: 'swiper-pagination-bullet-active !bg-white',
-        }}
+        modules={[Navigation]}
         navigation={{
           nextEl: '.swiper-button-next',
           prevEl: '.swiper-button-prev',

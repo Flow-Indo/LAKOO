@@ -16,7 +16,7 @@ html {
 body {
   height: 100%;
   background-color: #FFFFFF;
-  overflow: auto; /* allow page scrolling by default */
+  overflow: auto;
   font-family: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont,
     'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
     'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -396,31 +396,9 @@ a {
 
 /* ===== SWIPER STYLES ===== */
 
-/* Default swiper styles */
+/* Hide swiper pagination completely */
 .swiper-pagination {
-  bottom: 16px !important;
-}
-
-.swiper-pagination-bullet {
-  width: 8px;
-  height: 8px;
-  opacity: 0.6;
-  transition: all 0.3s ease;
-}
-
-.swiper-pagination-bullet-active {
-  opacity: 1;
-  width: 24px;
-  border-radius: 4px;
-}
-
-/* Taobao-style swiper pagination (white bullets) */
-.swiper-pagination-bullet.bg-white\/50 {
-  background-color: rgba(255, 255, 255, 0.5) !important;
-}
-
-.swiper-pagination-bullet.bg-white {
-  background-color: white !important;
+  display: none !important;
 }
 
 /* ===== SAFE AREA SUPPORT ===== */
@@ -440,12 +418,7 @@ html, body {
 
 /* Remove swiper pagination default styles conflict */
 .swiper-pagination {
-  bottom: 16px !important;
-}
-
-.swiper-pagination-bullet {
-  width: 8px;
-  height: 8px;
+  display: none !important;
 }
 
 /* Hide scrollbar but keep functionality */
@@ -485,27 +458,15 @@ html, body {
     min-height: 100vh;
     min-height: 100dvh;
     overflow-y: auto;
-    overscroll-behavior-y: none;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-  }
-
-  /* Prevent overscroll on all child elements */
-  .mobile-product-page * {
-    overscroll-behavior-y: contain;
-  }
-
-  /* Specific fix for scrollable content area */
-  .mobile-product-page .flex-1 {
-    overscroll-behavior-y: none;
-    -webkit-overflow-scrolling: touch;
   }
 
   /* Prevent all overscroll on mobile */
   @supports (-webkit-touch-callout: none) {
     .mobile-product-page {
       -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: none;
     }
   }
 }
@@ -518,19 +479,6 @@ html, body {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-/* Taobao-style swiper pagination */
-.swiper-pagination {
-  bottom: 100px !important; /* Above thumbnail strip */
-  display: flex;
-  justify-content: center;
-  gap: 4px;
-}
-
-.swiper-pagination-bullet {
-  transition: all 0.3s ease;
-  margin: 0 !important;
 }
 
 /* Ensure transitions don't flash black */

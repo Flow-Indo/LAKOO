@@ -25,7 +25,7 @@ export default function ColorSelector({
   return (
     <div className="space-y-4">
       {/* Header with View Toggle - Xiaohongshu Style */}
-      <div className="flex items-center justify-between">
+      <div className="pb-2 flex items-center justify-between">
         <h3 className="text-[15px] font-semibold text-gray-900">
           {colors.length > 1 ? `Warna (${colors.length})` : 'Foto (1)'}
         </h3>
@@ -48,7 +48,6 @@ export default function ColorSelector({
           >
             <List className={`h-4 w-4 ${viewMode === 'list' ? 'text-gray-900' : 'text-gray-500'}`} />
           </button>
-          <span className="text-[11px] text-gray-500 ml-1.5">List View</span>
         </div>
       </div>
 

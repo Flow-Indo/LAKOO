@@ -28,7 +28,7 @@ export default function ProductQA({ product }: any) {
       <div className="bg-white">
         {/* Question */}
         <div className="flex items-start gap-3 mb-3">
-          <div className="w-7 h-7 rounded-full bg-orange-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+          <div className="w-6 h-6 text-[9px] rounded-full overflow-hidden bg-gradient-to-br from-[#FF2442] to-[#FF6B35] flex items-center justify-center text-white flex-shrink-0 mt-0.5">
             T
           </div>
           <div className="flex-1">
@@ -37,22 +37,22 @@ export default function ProductQA({ product }: any) {
         </div>
 
         {/* Answers */}
-        <div className="ml-10 space-y-3">
+        <div className="pl-10 py-5">
           {displayedAnswers.map((answer: any, idx: number) => (
             <div key={idx} className="pb-3 border-b border-gray-100 last:border-b-0">
               <div className="flex items-start gap-2 mb-2">
                 {/* Avatar */}
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex-shrink-0 overflow-hidden">
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-[#FF2442] to-[#FF6B35] flex-shrink-0 flex items-center justify-center text-white font-medium">
                   {answer.avatar ? (
                     <Image src={answer.avatar} alt={answer.author} width={32} height={32} />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-sm font-semibold">
+                    <span className="text-[9px]">
                       {answer.author.charAt(0)}
-                    </div>
+                    </span>
                   )}
                 </div>
 
-                <div className="flex-1">
+                <div className="py-3 flex-1">
                   {/* Badge - Buyer or Merchant */}
                   <div className="flex items-center gap-2 mb-1">
                     {answer.isMerchant ? (
@@ -60,7 +60,7 @@ export default function ProductQA({ product }: any) {
                         Penjual
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium">
+                      <span className="px-2 py-0.5 bg-[#FFF0F3] text-[#FF2442] text-xs rounded font-medium">
                         Pembeli
                       </span>
                     )}
@@ -104,8 +104,8 @@ export default function ProductQA({ product }: any) {
   return (
     <div className="px-4 py-2 border-b border-gray-200">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-900 text-base">Tanya Jawab · {qaCount}</h3>
+      <div className="py-2 flex items-center justify-between mb-4">
+        <h3 className="font-semibold text-gray-900 text-[16px]">Tanya Jawab · {qaCount}</h3>
         <button
           onClick={() => setQAModalOpen(true)}
           className="text-gray-500 text-sm flex items-center gap-1"
@@ -116,39 +116,37 @@ export default function ProductQA({ product }: any) {
       </div>
 
       {/* Q&A Preview Cards */}
-      <div className="space-y-3 mb-4">
+      <div className="">
         {sampleQAs.map((qa: any) => (
-          <div key={qa.id} className="bg-white">
-            <div className="flex items-start gap-2 mb-2">
-              <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
-                T
+          <div key={qa.id} className="bg-white pt-2 pb-2">
+            {/* Question */}
+            <div className="flex items-start gap-2 mb-3">
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-[#FF2442] to-[#FF6B35] flex-shrink-0 flex items-center justify-center text-white font-medium">
+                <span className="text-[9px]">T</span>
               </div>
-              <div className="flex-1">
-                <p className="text-sm text-gray-900 font-medium">{qa.question}</p>
-                <span className="text-xs text-gray-500">{qa.answerCount} Jawaban</span>
-              </div>
+              <p className="text-sm text-gray-900 font-medium flex-1 leading-relaxed">{qa.question}</p>
             </div>
 
-            <div className="ml-8">
-              <div className="flex items-start gap-2 mb-1">
-                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs rounded font-medium">Pembeli</span>
-                <p className="text-sm text-gray-700 flex-1">{qa.answer}</p>
+              {/* Answer Preview */}
+              <div className="pl-8">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-xs text-gray-700 leading-relaxed flex-1">{qa.answer}</p>
+                </div>
+                <div className="text-[10px] text-gray-400 mt-1">
+                  {qa.author} · {qa.date} · {qa.answerCount} Jawaban
+                </div>
               </div>
-              <div className="text-xs text-gray-400">
-                {qa.author} · {qa.date}
-              </div>
-            </div>
           </div>
         ))}
       </div>
 
       {/* Ask Question Box */}
-      <div className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-orange-500 text-2xl font-bold">?</span>
+      <div className="px-4 py-5 bg-gray-50 rounded-lg flex items-center justify-between">
+        <div className="flex items-center gap-5">
+          <span className="text-[#FF2442] text-2xl font-bold">?</span>
           <span className="text-gray-600 text-sm">Punya pertanyaan? Tanya pembeli lain</span>
         </div>
-        <button className="bg-white text-gray-900 font-medium text-sm px-4 py-2 rounded-md border border-gray-300">
+        <button className="bg-[#FFF0F3] text-[#FF2442] font-medium text-sm px-4 py-2 rounded-md">
           Tanya
         </button>
       </div>

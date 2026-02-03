@@ -22,7 +22,7 @@ export default function SizeSelector({
   return (
     <div className="py-4">
       {/* Header with Size Guide */}
-      <div className="py-2 flex items-center justify-between">
+      <div className="py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-[15px] font-semibold text-gray-900">Ukuran</h3>
           <span className="text-[13px] text-gray-500">

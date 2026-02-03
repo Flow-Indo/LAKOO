@@ -73,6 +73,18 @@ export interface PaymentMethod {
   icon?: string;
 }
 
+export interface Address {
+  id: string;
+  recipientName: string;
+  phone: string;
+  fullAddress: string;
+  province: string;
+  city: string;
+  district: string;
+  postalCode: string;
+  isDefault: boolean;
+}
+
 export interface CheckoutState {
   selectedColor: string | null;
   selectedSize: string | null;

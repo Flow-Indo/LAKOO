@@ -327,7 +327,7 @@ export const productsData: Record<string, ProductData> = {
     productData: {
       rating: 4.8,
       reviewCount: 342,
-      sold: '2.5K+',
+      sold: '71.4K+',
       sizes: ['S', 'M', 'L', 'XL'],
       colors: ['Beige', 'Black', 'White', 'Navy'],
       category: 'Tops',

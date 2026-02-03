@@ -178,6 +178,7 @@ export interface StoreData {
 
   // Stats
   followers: number;
+  totalSold: number; // Total products sold by the store
   productsCount: number;
   rating: number;
 

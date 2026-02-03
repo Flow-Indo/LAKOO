@@ -51,30 +51,29 @@ export default function ProductImageCarousel({ images }: { images: ProductImage[
         ))}
       </Swiper>
 
-      {/* Image counter */}
-      <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-10">
-        <div className="bg-black/60 text-white px-3 py-1.5 rounded-full text-sm font-medium">
-          {activeIndex + 1}/{images.length}
-        </div>
-      </div>
-
       {/* Thumbnail row */}
       <div className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/60 via-black/40 to-transparent pt-6 pb-3 px-3">
-        <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar">
-          {images.map((img, i) => (
-            <button
-              key={img.id}
-              onClick={() => {
-                swiperRef.current?.slideTo(i);
-                setActiveIndex(i);
-              }}
-              className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden border-2 ${
-                i === activeIndex ? 'border-white scale-105' : 'border-white/30'
-              }`}
-            >
-              <Image src={img.thumbnail || img.url} alt={img.alt || `thumb-${i}`} width={48} height={48} className="object-cover w-full h-full" />
-            </button>
-          ))}
+        <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-1">
+            {images.map((img, i) => (
+              <button
+                key={img.id}
+                onClick={() => {
+                  swiperRef.current?.slideTo(i);
+                  setActiveIndex(i);
+                }}
+                className={`flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-md overflow-hidden border-2 ${
+                  i === activeIndex ? 'border-white scale-105' : 'border-white/30'
+                }`}
+              >
+                <Image src={img.thumbnail || img.url} alt={img.alt || `thumb-${i}`} width={48} height={48} className="object-cover w-full h-full" />
+              </button>
+            ))}
+          </div>
+          {/* Image counter */}
+          <div className="flex-shrink-0 bg-black/60 text-white px-3 py-1.5 rounded-full text-sm font-medium">
+            {activeIndex + 1}/{images.length}
+          </div>
         </div>
       </div>
     </div>

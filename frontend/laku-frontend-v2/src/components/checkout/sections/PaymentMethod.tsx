@@ -42,15 +42,13 @@ export default function PaymentMethod({ selected, onSelect }: PaymentMethodProps
   };
 
   return (
-    <div className="py-4 space-y-3">
-      <h3 className="text-[15px] font-semibold text-gray-900">Metode Pembayaran</h3>
-
+    <div className="px-0 py-2 bg-white">
       {/* Dropdown Trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+        className="w-full flex items-center gap-3 text-left hover:bg-gray-50 transition-colors rounded-lg p-3 -mx-3"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-1">
           {selectedMethod ? (
             <>
               {getIcon(selectedMethod.icon)}
@@ -61,11 +59,11 @@ export default function PaymentMethod({ selected, onSelect }: PaymentMethodProps
           ) : (
             <>
               <CreditCard className="h-5 w-5 text-gray-400" />
-              <span className="text-sm text-gray-500">Pilih metode pembayaran</span>
+              <span className="text-sm text-gray-900">Pilih metode pembayaran</span>
             </>
           )}
         </div>
-        <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-5 w-5 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
       </button>
 
       {/* Dropdown Options */}
@@ -78,18 +76,18 @@ export default function PaymentMethod({ selected, onSelect }: PaymentMethodProps
                 onSelect(method.id);
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 transition-colors ${
+              className={`w-full flex items-center px-4 py-3 hover:bg-gray-50 transition-colors gap-3 ${
                 selected === method.id ? 'bg-[#FFF0F3]' : ''
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-1">
                 {getIcon(method.icon)}
                 <span className="text-sm font-medium text-gray-900">
                   {method.name}
                 </span>
               </div>
               {selected === method.id && (
-                <Check className="h-5 w-5 text-[#FF2442]" />
+                <Check className="h-5 w-5 text-[#FF2442] flex-shrink-0" />
               )}
             </button>
           ))}

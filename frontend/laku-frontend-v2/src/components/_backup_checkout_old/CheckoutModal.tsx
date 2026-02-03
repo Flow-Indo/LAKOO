@@ -599,7 +599,7 @@ export default function CheckoutModal({ isOpen, onClose, product }: CheckoutModa
               : 'bg-gray-200 text-gray-400'
           }`}
         >
-          Bayar Sekarang {safeCurrency} {Math.floor(finalPrice / 1000).toLocaleString('id-ID')}
+          Bayar {safeCurrency} {Math.floor(finalPrice / 1000).toLocaleString('id-ID')}
         </button>
       </div>
     </>

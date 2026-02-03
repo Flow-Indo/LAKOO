@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { MapPin, ChevronRight } from 'lucide-react';
 
 interface AddressSectionProps {
@@ -7,7 +8,9 @@ interface AddressSectionProps {
 }
 
 export default function AddressSection({ onSelectAddress }: AddressSectionProps) {
-  // Mock address data - will be replaced with real user address
+  const router = useRouter();
+
+  // Mock address data - will be replaced with real user address from context/store
   const defaultAddress = {
     recipientName: 'John Doe',
     phone: '+62 812-3456-7890',
@@ -17,10 +20,18 @@ export default function AddressSection({ onSelectAddress }: AddressSectionProps)
     postalCode: '12190',
   };
 
+  const handleAddressClick = () => {
+    if (onSelectAddress) {
+      onSelectAddress();
+    } else {
+      router.push('/address');
+    }
+  };
+
   return (
-    <div className="px-6 py-4 bg-white border-b border-gray-200">
+    <div className="px-4 py-0 bg-white border-b border-gray-200">
       <button
-        onClick={onSelectAddress}
+        onClick={handleAddressClick}
         className="w-full flex items-start gap-3 text-left hover:bg-gray-50 transition-colors rounded-lg p-3 -mx-3"
       >
         <MapPin className="h-5 w-5 text-[#FF2442] flex-shrink-0 mt-0.5" />

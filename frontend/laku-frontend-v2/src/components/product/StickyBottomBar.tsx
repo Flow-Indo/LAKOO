@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Store, MessageCircle, Star, ShoppingCart } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Store, Star, MessageCircle, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { CheckoutModal } from '@/components/checkout';
 import type { CheckoutProduct, ColorVariant, SizeVariant } from '@/types/checkout';
@@ -142,18 +142,16 @@ const getColorVariants = (productId: string, mainImage?: string): ColorVariant[]
 };
 
 export default function StickyBottomBar({ product, wishlistCount = 432 }: StickyBottomBarProps) {
-  const [isLiked, setIsLiked] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const barRef = useRef<HTMLDivElement>(null);
 
-  const handleLikeToggle = () => {
-    setIsLiked(!isLiked);
-    // Add wishlist logic here
+  const handleFavoriteToggle = () => {
+    setIsFavorited(!isFavorited);
   };
 
-  // Safely get brand slug for store link
   const brandSlug = product.brand?.toLowerCase().replace(/\s+/g, '-') || 'default';
 
-  // Prepare checkout product data with REAL IMAGES from color variants
   const checkoutProduct: CheckoutProduct = {
     id: product.id,
     name: product.name,
@@ -165,24 +163,9 @@ export default function StickyBottomBar({ product, wishlistCount = 432 }: Sticky
     images: product.images,
     colors: getColorVariants(product.id.replace('prod-', ''), product.mainImage),
     sizes: product.sizeVariants && product.sizeVariants.length > 0 ? product.sizeVariants : [
-      {
-        id: 's',
-        name: 'S',
-        price: product.price,
-        stock: 10
-      },
-      {
-        id: 'm',
-        name: 'M',
-        price: product.price,
-        stock: 10
-      },
-      {
-        id: 'l',
-        name: 'L',
-        price: product.price,
-        stock: 10
-      }
+      { id: 's', name: 'S', price: product.price, stock: 10 },
+      { id: 'm', name: 'M', price: product.price, stock: 10 },
+      { id: 'l', name: 'L', price: product.price, stock: 10 }
     ],
     shippingOptions: product.shippingOptions || [],
     vouchers: product.vouchers || []
@@ -190,42 +173,55 @@ export default function StickyBottomBar({ product, wishlistCount = 432 }: Sticky
 
   return (
     <>
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 pb-safe">
-        <div className="px-4 py-3 flex items-center gap-3">
-          {/* Store Icon Button */}
-          <Link href={`http://localhost:3001/store/store-${brandSlug}`} className="flex flex-col items-center justify-center min-w-[48px]">
-            <Store className="w-5 h-5 text-gray-700" />
-            <span className="text-[10px] text-gray-600 mt-0.5">Toko</span>
-          </Link>
+      <div 
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 pb-safe"
+      >
+        <div className="flex items-center justify-between px-2 py-3">
+          {/* Left buttons - Store, Favorite, Chat */}
+          <div className="flex items-center gap-0">
+            <Link 
+              href={`http://localhost:3001/store/store-${brandSlug}`}
+              className="flex flex-col items-center justify-center w-12 h-12 group"
+            >
+              <Store className="w-5 h-5 text-gray-700 group-hover:text-gray-900" />
+            </Link>
+            
+            <button
+              onClick={handleFavoriteToggle}
+              className="flex flex-col items-center justify-center w-12 h-12 group"
+            >
+              <Star 
+                className={`w-5 h-5 transition-all ${
+                  isFavorited ? 'fill-yellow-400 text-yellow-400' : 'text-gray-700 group-hover:text-gray-900'
+                }`}
+              />
+            </button>
+            
+            <Link 
+              href="http://localhost:3001/messages"
+              className="flex flex-col items-center justify-center w-12 h-12 group"
+            >
+              <MessageCircle className="w-5 h-5 text-gray-700 group-hover:text-gray-900" />
+            </Link>
+          </div>
 
-          {/* Customer Support Icon Button */}
-          <Link href="http://localhost:3001/messages" className="flex flex-col items-center justify-center min-w-[48px]">
-            <MessageCircle className="w-5 h-5 text-gray-700" />
-            <span className="text-[10px] text-gray-600 mt-0.5">Bantuan</span>
-          </Link>
-
-          {/* Like Button - Star with border */}
-          <button
-            onClick={handleLikeToggle}
-            className="flex flex-col items-center justify-center min-w-[48px]"
-          >
-            <Star className={`w-5 h-5 ${isLiked ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`} />
-            <span className="text-[10px] text-gray-600 mt-0.5">{wishlistCount}</span>
-          </button>
-
-          {/* Add to Cart Button */}
-          <button className="flex-1 h-11 bg-[#FF9BB0] text-white rounded-lg text-[15px] font-semibold hover:bg-[#FF8AA5] transition-colors flex items-center justify-center gap-2">
-            <ShoppingCart className="w-4 h-4" />
-            Keranjang
-          </button>
-
-          {/* Buy Now Button - Opens Checkout Modal */}
-          <button
-            onClick={() => setShowCheckoutModal(true)}
-            className="flex-1 h-11 bg-[#FF2442] text-white rounded-lg text-[15px] font-semibold hover:bg-[#E61E3A] transition-colors ml-2"
-          >
-            Beli Sekarang
-          </button>
+          {/* Action buttons */}
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowCheckoutModal(true)}
+              className="h-12 w-28 bg-[#FFF0F3] text-[#FF2442] rounded-lg text-sm font-semibold flex items-center justify-center gap-1"
+            >
+              <ShoppingCart className="w-4 h-4 mr-1.5" />
+              Keranjang
+            </button>
+            
+            <button
+              onClick={() => setShowCheckoutModal(true)}
+              className="h-12 w-28 bg-[#FF2442] text-white rounded-lg text-sm font-semibold"
+            >
+              Beli Sekarang
+            </button>
+          </div>
         </div>
       </div>
 

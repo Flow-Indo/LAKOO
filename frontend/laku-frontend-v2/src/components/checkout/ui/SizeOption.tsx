@@ -19,7 +19,7 @@ export default function SizeOption({
     <button
       onClick={onSelect}
       disabled={isOutOfStock}
-      className={`px-3 py-2.5 rounded-lg border-2 transition-all gap-4 ${
+      className={`px-3 py-2.5 rounded-lg border-1 transition-all gap-4 ${
         isSelected
           ? 'border-[#FF2442] bg-[#FFF0F3] text-[#FF2442] font-medium'
           : isOutOfStock
@@ -29,7 +29,7 @@ export default function SizeOption({
     >
       <span className="text-sm font-medium">{size.name}</span>
       {size.weightRecommendation && (
-        <div className="text-[10px] text-gray-500 mt-0.5">
+        <div className="text-[12px] text-gray-500">
           {size.weightRecommendation}
         </div>
       )}

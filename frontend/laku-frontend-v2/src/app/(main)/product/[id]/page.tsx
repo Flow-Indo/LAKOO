@@ -4,6 +4,7 @@ import MobileProductPage from '@/components/product/MobileProductPageMain';
 import DesktopProductPage from '@/components/product/DesktopProductPage';
 import type { Metadata } from 'next';
 import { getProductBySlug, getAllProductSlugs } from '@/lib/products-data';
+import { storesData } from '@/lib/stores-data';
 
 export async function generateStaticParams() {
   const slugs = getAllProductSlugs();
@@ -64,13 +65,17 @@ function transformToProductPageData(product: any) {
   }));
 
   // Create seller data
+  const storeSlug = product.brand.toLowerCase().replace(/\s+/g, '-');
+  const storeInfo = storesData[storeSlug] || {};
+  
   const seller = {
-    id: `store-${product.brand.toLowerCase().replace(/\s+/g, '-')}`,
+    id: `store-${storeSlug}`,
     name: product.brand,
-    logo: `/stores/${product.brand.toLowerCase().replace(/\s+/g, '-')}-logo.jpg`,
+    logo: `/stores/${storeSlug}-logo.jpg`,
     rating: product.productData.rating,
-    followers: 50000,
-    badges: ['verified', 'trusted'] as ['verified', 'trusted', 'premium', 'top', 'star'],
+    followers: storeInfo.followers || 50000,
+    totalSold: storeInfo.totalSold || 0,
+    badges: ['verified', 'trusted', 'premium', 'top', 'star'] as const,
     verified: true,
     productCount: product.productData.sizes.length * product.productData.colors.length,
     stats: {
@@ -146,6 +151,60 @@ function transformToProductPageData(product: any) {
     description: voucher.description,
   }));
 
+  // Mock store products for recommendations
+  const storeProducts = [
+    {
+      id: 'rec-001',
+      name: product.brand + ' - Summer Beach Dress',
+      image: '/products/CULT SURI - Coco Top Chiffon Dengan Scarf Detail/cult_eksplor1.webp',
+      price: 249000,
+      originalPrice: 349000,
+      rating: 4.7,
+      sold: '2.1K',
+    },
+    {
+      id: 'rec-002',
+      name: product.brand + ' - Floral Blouse',
+      image: '/products/CULT SURI - Coco Top Chiffon Dengan Scarf Detail/cult_eksplor2.webp',
+      price: 189000,
+      rating: 4.5,
+      sold: '890',
+    },
+    {
+      id: 'rec-003',
+      name: product.brand + ' - Denim Shorts',
+      image: '/products/Karakiri - Jolie Pants | Wide Leg Trousers | Culotte Pants/kara_eksplor1.webp',
+      price: 159000,
+      rating: 4.6,
+      sold: '1.5K',
+    },
+    {
+      id: 'rec-004',
+      name: product.brand + ' - Sandals',
+      image: '/products/Karakiri - Jolie Pants | Wide Leg Trousers | Culotte Pants/kara_eksplor2.webp',
+      price: 99000,
+      rating: 4.4,
+      sold: '3.2K',
+    },
+    {
+      id: 'rec-005',
+      name: product.brand + ' - Casual Pants',
+      image: '/products/RUE - Sheer Top Atasan Lengan Panjang Boatneck Longsleeve/rue_eksplor1.webp',
+      price: 279000,
+      originalPrice: 359000,
+      rating: 4.8,
+      sold: '1.2K',
+    },
+    {
+      id: 'rec-006',
+      name: product.brand + ' - Top Collection',
+      image: '/products/RUE - Sheer Top Atasan Lengan Panjang Boatneck Longsleeve/rue_eksplor2.webp',
+      price: 199000,
+      rating: 4.6,
+      sold: '2.8K',
+    },
+  ];
+
   return {
     id: product.id,
     name: product.name,
@@ -182,7 +241,7 @@ function transformToProductPageData(product: any) {
     })),
     seller: seller,
     badges: product.productData.badges || [],
-    storeProducts: [], // Empty for now
+    storeProducts: storeProducts,
     buyerReferences: [], // Empty for now
     relatedProducts: [], // Empty for now
     reviews: [], // Empty for now

@@ -33,7 +33,7 @@ export function SizeHelper({ recommendedSize, sizeChart, buyerReferences }: Size
     <div className="px-4 py-8 border-t border-gray-200 my-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 gap-2">
-        <h3 className="font-semibold text-gray-900 text-sm truncate flex-1">Panduan Ukuran</h3>
+        <h3 className="font-semibold text-gray-900 text-sm truncate flex-1">Ukuran</h3>
         <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 flex-shrink-0 ml-3">
           <span>Saya <span className="font-medium">Tinggi 162cm | Berat 61kg</span></span>
           <button className="text-red-600 ml-2 font-medium text-xs py-1 px-2 rounded">Edit</button>

@@ -9,7 +9,7 @@ export default function ProductReviews({ product }: any) {
   const [reviewFilter, setReviewFilter] = useState('Semua');
 
   const defaultReviews = [
-    { id: 'r_default_1', author: 'b***o', rating: 5, date: '2 hari yang lalu', text: 'Kualitas bahan sangat bagus, nyaman dipakai seharian.', images: [], purchaseDetails: 'Warna: Biru Tua; Ukuran: L' },
+    { id: 'r_default_1', author: 'b***o', rating: 5, date: '2 hari yang lalu', text: 'Kualitas bahan sangat bagus, nyaman dipakai seharian. Model juga kece dan versatile, bisa dipake kemana aja. Wajib beli sekarang juga. Yang ga beli pasti fomo atau ga pny temen.', images: [], purchaseDetails: 'Warna: Biru Tua; Ukuran: L' },
     { id: 'r_default_2', author: 's***7', rating: 4, date: '5 hari yang lalu', text: 'Warna sesuai gambar, ukuran pas.', images: ['/jeans/jean_mock_reviews/reviews1.JPG'], purchaseDetails: 'Warna: Hitam; Ukuran: M' },
   ];
 
@@ -74,7 +74,7 @@ export default function ProductReviews({ product }: any) {
                   <Star
                     key={i}
                     className={`w-3.5 h-3.5 ${
-                      i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'
+                      i < review.rating ? 'fill-[#FF2442] text-[#FF2442]' : 'text-gray-200'
                     }`}
                   />
                 ))}
@@ -95,7 +95,7 @@ export default function ProductReviews({ product }: any) {
 
         {/* Media Grid - Images/Videos */}
         {review.media && review.media.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="grid grid-cols-3 gap-2">
             {review.media.map((item: any, idx: number) => (
               <div key={idx} className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
                 {item.type === 'video' ? (
@@ -153,41 +153,32 @@ export default function ProductReviews({ product }: any) {
 
       {/* Header with Statistics */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900 text-xs sm:text-sm">Ulasan · {reviewCount}</h3>
+        <h3 className="font-semibold text-gray-900 text-[16px] leading-tight">Ulasan · {reviewCount}</h3>
+        <div className="flex flex-col items-end">
+          <button
+            onClick={() => setReviewsModalOpen(true)}
+            className="pt-3 text-gray-500 text-xs sm:text-sm flex items-center gap-1 leading-tight"
+          >
+            Lihat Semua
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <div className="flex items-center gap-1 mt-0.5">
+            <span className="text-[12px] text-gray-500">Rata-rata</span>
+            <Star className="w-3.5 h-3.5 fill-[#FF2442] text-[#FF2442]" />
+            <span className="text-xs font-medium text-gray-900">{product?.rating ?? 0}</span>
+          </div>
         </div>
-        <button
-          onClick={() => setReviewsModalOpen(true)}
-          className="text-gray-500 text-xs sm:text-sm flex items-center gap-1"
-        >
-          Lihat Semua
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Review Tags with Counts */}
-      <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-2">
-        <button className="px-2 py-1 bg-orange-50 text-orange-700 rounded-full text-xs whitespace-nowrap border border-orange-200 border-opacity-50">
-          Desain Keren 3
-        </button>
-        <button className="px-2 py-1 bg-orange-50 text-orange-700 rounded-full text-xs whitespace-nowrap border border-orange-200 border-opacity-50">
-          Kualitas Bagus 2
-        </button>
-        <button className="px-2 py-1 bg-orange-50 text-orange-700 rounded-full text-xs whitespace-nowrap border border-orange-200 border-opacity-50">
-          Pengalaman Memuaskan 1
-        </button>
-        <button className="px-2 py-1 bg-orange-50 text-orange-700 rounded-full text-xs whitespace-nowrap border border-orange-200 border-opacity-50">
-          Trending 1
-        </button>
       </div>
 
       {/* Reviews Preview */}
-      <div className="space-y-3">
+      <div className="py-0">
         {sampleReviews.map((review: any) => (
-          <div key={review.id} className="bg-white pb-4 mb-4 border-b border-gray-100 last:border-b-0">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex-shrink-0 flex items-center justify-center text-white font-semibold">
-                {review.author ? review.author.charAt(0).toUpperCase() : 'U'}
+          <div key={review.id} className="bg-white pb-3 mb-4 border-b border-gray-100 last:border-b-0">
+            <div className="pt-2 flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-br from-[#FF2442] to-[#FF6B35] flex-shrink-0 flex items-center justify-center text-white font-medium">
+                <span className="text-[9px]">
+                  {review.author ? review.author.charAt(0).toUpperCase() : 'U'}
+                </span>
               </div>
 
               <div className="flex-1 min-w-0">
@@ -197,7 +188,7 @@ export default function ProductReviews({ product }: any) {
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-3.5 h-3.5 ${i < (review.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
+                        className={`w-3.5 h-3.5 ${i < (review.rating || 0) ? 'fill-[#FF2442] text-[#FF2442]' : 'text-gray-200'}`}
                       />
                     ))}
                   </div>
@@ -209,14 +200,14 @@ export default function ProductReviews({ product }: any) {
                   </div>
                 )}
 
-                <p className="text-xs sm:text-sm text-gray-900 leading-relaxed mb-2">
-                  {review.text}
-                </p>
+                  <p className="py-1 text-xs sm:text-sm text-gray-900 leading-relaxed mb-2 line-clamp-3">
+                    {review.text}
+                  </p>
 
                 {review.images && review.images.length > 0 && (
-                  <div className="flex gap-2 overflow-x-auto no-scrollbar mb-2">
+                  <div className="pb-2 flex gap-2 overflow-x-auto no-scrollbar mb-2">
                     {review.images.map((img: string, idx: number) => (
-                      <div key={idx} className="w-20 h-20 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                      <div key={idx} className="w-24 h-24 rounded overflow-hidden bg-gray-100 flex-shrink-0">
                         <Image
                           src={img}
                           alt={`Review image ${idx + 1}`}

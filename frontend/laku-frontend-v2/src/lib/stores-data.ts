@@ -16,6 +16,7 @@ export const storesData: Record<string, StoreData> = {
     location: 'Jakarta, Indonesia',
     
     followers: 125000,
+    totalSold: 71400,
     productsCount: 48,
     rating: 4.8,
     
