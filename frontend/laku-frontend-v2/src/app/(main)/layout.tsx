@@ -21,7 +21,7 @@ export default function MainLayout({
   const isProductPage = pathname?.startsWith('/product/');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 px-0">
       <main>
         {children}
       </main>

@@ -3,9 +3,17 @@
 import { useCartStore } from '@/stores/cart-store';
 import { Button } from '@/components/ui';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import CartTotalSticky from './CartTotalSticky';
+import { BottomNav } from '@/components/layouts/BottomNav';
 
 export function CartPage() {
   const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore();
+  const router = useRouter();
+  const selectAllStore = useCartStore(state => state.selectAll);
+  const clearSelection = useCartStore(state => state.clearSelection);
+  const selectedCount = useCartStore(state => state.getSelectedCount());
+  const selectedTotal = useCartStore(state => state.getSelectedTotalPrice());
 
   if (items.length === 0) {
     return (
@@ -93,5 +101,21 @@ export function CartPage() {
         </div>
       </div>
     </div>
+    <>
+      </div>
+
+      {/* Mobile sticky cart total + bottom nav */}
+      <CartTotalSticky
+        selectAll={selectedCount > 0 && selectedCount === items.length && items.length > 0}
+        onSelectAll={(checked: boolean) => {
+          if (checked) selectAllStore();
+          else clearSelection();
+        }}
+        summary={{ selectedCount, total: selectedTotal } as any}
+        onCheckout={() => router.push('/checkout')}
+      />
+
+      <BottomNav />
+    </>
   );
 }

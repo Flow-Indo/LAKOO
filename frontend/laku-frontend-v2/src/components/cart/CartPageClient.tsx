@@ -11,6 +11,7 @@ import CartVirtualPageClient from '@/components/VirtualFit/CartVirtualPageClient
 import { InfiniteProductFeed } from '@/components/shared/InfiniteProductFeed';
 import { MOCK_PRODUCTS } from '@/lib/mock-data';
 import type { StoreCart, CartSummary as CartSummaryType } from '@/types/cart';
+import { BottomNav } from '@/components/layouts/BottomNav';
 
 interface Props {
   initialCart: StoreCart[];
@@ -135,6 +136,9 @@ export function CartPageClient({ initialCart }: Props) {
       {activeTab === 'cart' && (
         <CartTotalSticky selectAll={selectAll} onSelectAll={handleSelectAll} summary={summary} />
       )}
+
+      {/* Show bottom navigation on fitting tab as well */}
+      {activeTab === 'fitting' && <BottomNav />}
     </div>
   );
 }
