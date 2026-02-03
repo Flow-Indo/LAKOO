@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import {type Request, type Response, type NextFunction} from 'express';
 import dotenv from 'dotenv';
-import { BlacklistService } from '../services/blacklistService';
+import { BlacklistService } from '@src/services/blacklistService.js';
 
 dotenv.config();
 

@@ -1,4 +1,5 @@
 import { createProxyMiddleware } from "http-proxy-middleware";
+import { generateGatewayToken } from "@shared/utils/gatewayToken.js"
 
 
 const forwardHeaders = (proxyReq: any, req: any) => {
@@ -7,10 +8,10 @@ const forwardHeaders = (proxyReq: any, req: any) => {
         proxyReq.setHeader('x-user-phone', req.headers['x-user-phone']);
         proxyReq.setHeader('x-user-role', req.headers['x-user-role']);
     } 
-    
-    if(req.headers['x-service-name']) {
-        proxyReq.setHeader('x-service-name', req.headers['x-service-name']);
-    }
+
+    //api gateway key pass on, this is still not efficient, use redis later to cache
+    const gatewayKey = generateGatewayToken(process.env.GATEWAY_SECRET || "gateway_secret");
+    proxyReq.setHeader('x-gateway-auth', gatewayKey)
 }
 
 export const createServiceProxy = (target: string, pathRewrite?: any) => 

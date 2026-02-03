@@ -1,6 +1,6 @@
 
 import { Request, Response, NextFunction } from 'express';
-import { verifyServiceToken } from '../utils/serviceAuth';
+import { verifyServiceToken } from '../utils/serviceToken';
 
 const SERVICE_AUTH_HEADER = 'X-Service-Auth';
 const SERVICE_NAME_HEADER = 'X-Service-Name';
