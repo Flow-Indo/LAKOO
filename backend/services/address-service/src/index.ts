@@ -1,5 +1,4 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 
 import express from 'express';
 import cors from 'cors';
@@ -9,6 +8,7 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import { config } from './config/env';
 import addressRoutes from './routes/address.routes';
+import locationRoutes from './routes/location.routes';
 import { errorHandler } from './middleware/error-handler';
 
 const app = express();
@@ -58,6 +58,7 @@ app.get('/health', (_req, res) => {
 
 // API routes
 app.use('/api/addresses', addressRoutes);
+app.use('/api/locations', locationRoutes);
 
 // 404 handler
 app.use((req, res) => {

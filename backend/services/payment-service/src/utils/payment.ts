@@ -6,17 +6,29 @@ export function verifyXenditSignature(
   payload: any,
   receivedSignature: string
 ): boolean {
+  if (!webhookToken || !receivedSignature) return false;
+
   const data = JSON.stringify(payload);
   const expectedSignature = crypto
     .createHmac('sha256', webhookToken)
     .update(data)
     .digest('hex');
 
-  // Use timing-safe comparison to prevent timing attacks
-  return crypto.timingSafeEqual(
-    Buffer.from(expectedSignature),
-    Buffer.from(receivedSignature)
-  );
+  // Use timing-safe comparison to prevent timing attacks.
+  // timingSafeEqual throws if buffers differ in length, so guard first.
+  if (receivedSignature.length !== expectedSignature.length) {
+    return false;
+  }
+
+  try {
+    const expectedBuf = Buffer.from(expectedSignature, 'hex');
+    const receivedBuf = Buffer.from(receivedSignature, 'hex');
+    if (expectedBuf.length !== receivedBuf.length) return false;
+
+    return crypto.timingSafeEqual(expectedBuf, receivedBuf);
+  } catch {
+    return false;
+  }
 }
 
 export function validatePaymentAmount(

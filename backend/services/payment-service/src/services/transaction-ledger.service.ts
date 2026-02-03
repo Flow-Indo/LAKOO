@@ -142,54 +142,6 @@ export class TransactionLedgerService {
     return transactions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
-  async getFactoryTransactionSummary(factoryId: string, startDate: Date, endDate: Date) {
-    // In microservice architecture, factory info would come from product-service
-    // For now, return payment statistics for the period
-    const payments = await prisma.payment.aggregate({
-      where: {
-        status: 'paid',
-        paidAt: {
-          gte: startDate,
-          lte: endDate
-        }
-      },
-      _sum: {
-        amount: true,
-        netAmount: true,
-        gatewayFee: true
-      },
-      _count: true
-    });
-
-    const refunds = await prisma.refund.aggregate({
-      where: {
-        status: 'completed',
-        completedAt: {
-          gte: startDate,
-          lte: endDate
-        }
-      },
-      _sum: {
-        amount: true
-      },
-      _count: true
-    });
-
-    return {
-      period: { startDate, endDate },
-      payments: {
-        count: payments._count,
-        totalAmount: payments._sum.amount || 0,
-        totalFees: payments._sum.gatewayFee || 0,
-        netAmount: payments._sum.netAmount || 0
-      },
-      refunds: {
-        count: refunds._count,
-        totalAmount: refunds._sum.amount || 0
-      }
-    };
-  }
-
   async getTransactionSummary(startDate: Date, endDate: Date) {
     const [payments, refunds, settlements] = await Promise.all([
       prisma.payment.aggregate({

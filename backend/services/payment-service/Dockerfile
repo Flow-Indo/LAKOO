@@ -10,22 +10,23 @@ WORKDIR /app
 # Install dependencies for Prisma
 RUN apk add --no-cache openssl
 
+# Enable pnpm via corepack
+RUN corepack enable
+
 # Copy package files
-COPY package*.json ./
+COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma/
+COPY scripts ./scripts/
 
 # Install dependencies
-RUN npm ci
-
-# Generate Prisma client
-RUN npx prisma generate
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source code
 COPY tsconfig.json ./
 COPY src ./src/
 
 # Build TypeScript
-RUN npm run build
+RUN pnpm run build
 
 # Production stage
 FROM node:20-alpine AS production
@@ -33,20 +34,19 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 # Install openssl for Prisma
-RUN apk add --no-cache openssl dumb-init
+RUN apk add --no-cache openssl dumb-init wget
+RUN corepack enable
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
 # Copy package files and install production dependencies
-COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod --no-frozen-lockfile && pnpm store prune
 
-# Copy Prisma schema and generated client
+# Copy Prisma schema (optional but useful for introspection/migrations)
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/src/generated ./src/generated
 
 # Copy built application
 COPY --from=builder /app/dist ./dist

@@ -277,7 +277,8 @@ router.delete('/:id', deleteAddressValidators, validateRequest, controller.delet
  *     tags: [Addresses]
  *     description: Internal endpoint for order-service to track address usage
  *     security:
- *       - internalAuth: []
+ *       - internalServiceAuth: []
+ *         internalServiceName: []
  *     parameters:
  *       - in: path
  *         name: id

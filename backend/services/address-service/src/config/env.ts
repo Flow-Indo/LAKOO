@@ -3,6 +3,8 @@
  * Fails fast at startup if required config is missing
  */
 
+import 'dotenv/config';
+
 interface EnvConfig {
   // Server
   port: number;

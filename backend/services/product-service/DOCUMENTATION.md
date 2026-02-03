@@ -588,7 +588,7 @@ NODE_ENV=development
 ALLOWED_ORIGINS=http://localhost:3000
 
 # Database
-DATABASE_URL="postgresql://user:pass@localhost:5432/product_db"
+DATABASE_URL="postgresql://user:pass@your-neon-host.neon.tech/product_db?sslmode=require"
 # Back-compat (optional): if you already use PRODUCT_DATABASE_URL, product-service maps it to DATABASE_URL on startup.
 # PRODUCT_DATABASE_URL="postgresql://user:pass@localhost:5432/product_db"
 
@@ -652,6 +652,11 @@ pnpm dev
 pnpm build
 pnpm start
 ```
+
+### Docker (Neon)
+This service ships with `docker-compose.yml` and expects `DATABASE_URL` to point to Neon/remote Postgres.
+- Build & run: `docker compose -f backend/services/product-service/docker-compose.yml up --build`
+- Push schema (one-shot): `docker compose -f backend/services/product-service/docker-compose.yml --profile migrate run --rm product-migrate`
 
 ### API Documentation
 Visit `http://localhost:3002/api-docs` for Swagger documentation.

@@ -6,9 +6,11 @@ import { notificationClient } from '../clients/notification.client';
 import { outboxService } from './outbox.service';
 import axios from 'axios';
 import { getServiceAuthHeaders } from '../utils/serviceAuth';
+import { prisma } from '../lib/prisma';
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
-const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3005';
+const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3006';
+const OUTBOUND_HTTP_TIMEOUT_MS = Number.parseInt(process.env.OUTBOUND_HTTP_TIMEOUT_MS || '8000', 10);
 
 export class PaymentService {
   private repository: PaymentRepository;
@@ -19,17 +21,29 @@ export class PaymentService {
 
   /**
    * Fetch user data from auth-service
+   * In development mode without auth-service, returns mock data
    */
   private async fetchUser(userId: string): Promise<any> {
     try {
       const response = await axios.get(`${AUTH_SERVICE_URL}/api/auth/users/${userId}`, {
-        headers: getServiceAuthHeaders()
+        headers: getServiceAuthHeaders(),
+        timeout: OUTBOUND_HTTP_TIMEOUT_MS
       });
       if (!response.data.success) {
         throw new Error(response.data.error || 'Failed to fetch user');
       }
       return response.data.data;
     } catch (error: any) {
+      // In development mode, return mock user data if auth-service is unavailable
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[DEV] Auth service unavailable, using mock user data for ${userId}`);
+        return {
+          id: userId,
+          email: `dev-user-${userId.slice(0, 8)}@lakoo.id`,
+          phoneNumber: '+6281234567890',
+          name: 'Development User'
+        };
+      }
       if (error.response?.status === 404) {
         throw new Error('User not found');
       }
@@ -43,7 +57,8 @@ export class PaymentService {
   private async fetchOrder(orderId: string): Promise<any> {
     try {
       const response = await axios.get(`${ORDER_SERVICE_URL}/api/orders/${orderId}`, {
-        headers: getServiceAuthHeaders()
+        headers: getServiceAuthHeaders(),
+        timeout: OUTBOUND_HTTP_TIMEOUT_MS
       });
       if (!response.data.success) {
         throw new Error(response.data.error || 'Failed to fetch order');
@@ -65,11 +80,12 @@ export class PaymentService {
       await axios.put(
         `${ORDER_SERVICE_URL}/api/orders/${orderId}/status`,
         { newStatus },
-        { headers: getServiceAuthHeaders() }
+        { headers: getServiceAuthHeaders(), timeout: OUTBOUND_HTTP_TIMEOUT_MS }
       );
     } catch (error: any) {
+      // Do not fail payment processing if order-service is unavailable.
+      // The outbox event (`payment.paid`) is the source of truth for downstream reconciliation.
       console.error(`Failed to update order ${orderId} status:`, error.message);
-      throw error;
     }
   }
 
@@ -120,14 +136,19 @@ export class PaymentService {
       data: invoiceData
     });
 
-    const payment = await this.repository.create(
-      data,
-      invoice.invoiceUrl || '',
-      invoice.id || ''
-    );
+    const payment = await prisma.$transaction(async (tx) => {
+      const created = await this.repository.create(
+        data,
+        invoice.invoiceUrl || '',
+        invoice.id || '',
+        tx
+      );
 
-    // Publish payment.created event
-    await outboxService.paymentCreated(payment);
+      // Transactional outbox: publish in the same DB transaction.
+      await outboxService.paymentCreated(created, tx);
+
+      return created;
+    });
 
     return {
       payment,
@@ -153,11 +174,12 @@ export class PaymentService {
 
     const gatewayFee = callbackData.fees_paid_amount || 0;
 
-    // Mark payment as paid
-    const updatedPayment = await this.repository.markPaid(payment.id, gatewayFee, callbackData);
-
-    // Publish payment.paid event
-    await outboxService.paymentPaid(updatedPayment);
+    // Mark payment as paid + publish outbox event transactionally
+    const updatedPayment = await prisma.$transaction(async (tx) => {
+      const updated = await this.repository.markPaid(payment.id, gatewayFee, callbackData, tx);
+      await outboxService.paymentPaid(updated, tx);
+      return updated;
+    });
 
     // Update order status
     await this.updateOrderStatus(payment.orderId, 'paid');
@@ -186,14 +208,15 @@ export class PaymentService {
       return { message: 'Payment not pending' };
     }
 
-    await this.repository.markExpired(payment.id);
-
-    // Publish payment.expired event
-    await outboxService.paymentExpired(payment);
+    const updatedPayment = await prisma.$transaction(async (tx) => {
+      const updated = await this.repository.markExpired(payment.id, tx);
+      await outboxService.paymentExpired(updated, tx);
+      return updated;
+    });
 
     return {
       message: 'Payment marked as expired',
-      payment
+      payment: updatedPayment
     };
   }
 
@@ -240,7 +263,7 @@ export class PaymentService {
       let orderNumber = '';
       try {
         const order = await this.fetchOrder(orderId);
-        orderNumber = order.order_number;
+        orderNumber = order.orderNumber || order.order_number || '';
       } catch (error) {
         console.error('Failed to fetch order for notification:', error);
       }

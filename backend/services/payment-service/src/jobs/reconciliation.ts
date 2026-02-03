@@ -28,6 +28,8 @@ export async function dailyReconciliationJob(options?: {
   const startTime = Date.now();
 
   const reconciliationDate = options?.date || new Date(Date.now() - 24 * 60 * 60 * 1000); // Yesterday by default
+  // SettlementRecord.settlementDate is a DATE (no time). Normalize for idempotency/upsert.
+  const settlementDate = new Date(reconciliationDate.toISOString().slice(0, 10));
   const startOfDay = new Date(reconciliationDate);
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date(reconciliationDate);
@@ -111,21 +113,44 @@ export async function dailyReconciliationJob(options?: {
 
     // Create reconciliation record if not dry run
     if (!options?.dryRun) {
-      await prisma.settlementRecord.create({
-        data: {
-          settlementDate: reconciliationDate,
+      const totalFees = payments.reduce((sum, p) => sum + Number(p.gatewayFee), 0);
+
+      await prisma.settlementRecord.upsert({
+        where: {
+          settlementDate_paymentGateway: {
+            settlementDate,
+            paymentGateway: 'xendit'
+          }
+        },
+        create: {
+          settlementDate,
           paymentGateway: 'xendit',
           totalPayments,
           totalAmount,
-          totalFees: payments.reduce((sum, p) => sum + Number(p.gatewayFee), 0),
-          netAmount: totalAmount - payments.reduce((sum, p) => sum + Number(p.gatewayFee), 0),
+          totalFees,
+          netAmount: totalAmount - totalFees,
           totalRefunds,
           refundAmount,
           isReconciled,
           reconciledAt: isReconciled ? new Date() : null,
-          notes: discrepancies.length > 0
-            ? `Found ${discrepancies.length} discrepancies`
-            : 'Reconciliation completed successfully'
+          notes:
+            discrepancies.length > 0
+              ? `Found ${discrepancies.length} discrepancies`
+              : 'Reconciliation completed successfully'
+        },
+        update: {
+          totalPayments,
+          totalAmount,
+          totalFees,
+          netAmount: totalAmount - totalFees,
+          totalRefunds,
+          refundAmount,
+          isReconciled,
+          reconciledAt: isReconciled ? new Date() : null,
+          notes:
+            discrepancies.length > 0
+              ? `Found ${discrepancies.length} discrepancies`
+              : 'Reconciliation completed successfully'
         }
       });
     }
@@ -137,7 +162,7 @@ export async function dailyReconciliationJob(options?: {
     console.log(`[ReconciliationJob] Discrepancies: ${discrepancies.length}`);
 
     return {
-      date: reconciliationDate,
+      date: settlementDate,
       totalPayments,
       totalAmount,
       totalRefunds,

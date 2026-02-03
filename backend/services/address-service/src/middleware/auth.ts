@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { UnauthorizedError, ForbiddenError } from './error-handler';
 import { verifyServiceToken } from '../utils/serviceAuth';
 
+const DEV_DEFAULT_USER_ID = process.env.DEV_USER_ID || '11111111-1111-1111-1111-111111111111';
+const DEV_DEFAULT_USER_ROLE = process.env.DEV_USER_ROLE || 'admin';
+
 // Extend Express Request type
 declare global {
   namespace Express {
@@ -22,17 +25,18 @@ export const gatewayAuth = (req: Request, res: Response, next: NextFunction) => 
   const expectedKey = process.env.GATEWAY_SECRET_KEY;
   const gatewayKey = req.headers['x-gateway-key'] as string | undefined;
 
-  // In development without gateway key configured, allow requests through
-  if (process.env.NODE_ENV === 'development' && !expectedKey) {
+  // In development, allow requests without any auth headers (Swagger/local testing).
+  // If the header is present, we still validate it (so wrong keys are rejected).
+  if (process.env.NODE_ENV === 'development' && !gatewayKey) {
     req.user = {
-      id: (req.headers['x-user-id'] as string) || 'dev-user',
-      role: (req.headers['x-user-role'] as string) || 'user'
+      id: (req.headers['x-user-id'] as string) || DEV_DEFAULT_USER_ID,
+      role: (req.headers['x-user-role'] as string) || process.env.DEV_USER_ROLE || 'user'
     };
     return next();
   }
 
   // Verify gateway key
-  if (!gatewayKey || gatewayKey !== expectedKey) {
+  if (!gatewayKey || !expectedKey || gatewayKey !== expectedKey) {
     return next(new UnauthorizedError('Invalid gateway key'));
   }
 
@@ -58,17 +62,23 @@ export const gatewayOrInternalAuth = (req: Request, res: Response, next: NextFun
   const serviceNameHeader = req.headers['x-service-name'];
   const serviceSecret = process.env.SERVICE_SECRET;
 
-  // Development mode bypass
-  if (process.env.NODE_ENV === 'development' && !expectedGatewayKey && !serviceSecret) {
-    req.user = {
-      id: (req.headers['x-user-id'] as string) || 'dev-user',
-      role: (req.headers['x-user-role'] as string) || 'user'
-    };
-    return next();
+  // Development mode bypass: if no auth headers are present, allow the request through for Swagger/local testing.
+  // If any auth header is present, we still validate it (so wrong keys are rejected).
+  if (process.env.NODE_ENV === 'development') {
+    const hasGatewayAttempt = !!gatewayKey;
+    const hasServiceAttempt = !!tokenHeader || !!serviceNameHeader;
+
+    if (!hasGatewayAttempt && !hasServiceAttempt) {
+      req.user = {
+        id: (req.headers['x-user-id'] as string) || DEV_DEFAULT_USER_ID,
+        role: (req.headers['x-user-role'] as string) || DEV_DEFAULT_USER_ROLE
+      };
+      return next();
+    }
   }
 
   // Check gateway key first
-  if (gatewayKey && gatewayKey === expectedGatewayKey) {
+  if (gatewayKey && expectedGatewayKey && gatewayKey === expectedGatewayKey) {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) {
       return next(new UnauthorizedError('Missing user identification'));

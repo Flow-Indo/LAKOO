@@ -1,16 +1,22 @@
 /**
  * Weekly Settlement Job
- * Processes settlements for factories based on completed payments
+ * Creates a reconciliation settlement record for the payment gateway (Xendit).
+ *
+ * Note: LAKOO does not have "factoryId" identifiers. Seller payouts/settlements are a separate concern
+ * and should be driven by Seller/Wallet services + the CommissionLedger, not Payment.metadata.
  */
 
 import { prisma } from '../lib/prisma';
 
 interface SettlementSummary {
-  factoryId: string;
+  settlementDate: Date;
+  paymentGateway: string;
   totalAmount: number;
   paymentCount: number;
   totalFees: number;
   netAmount: number;
+  totalRefunds: number;
+  refundAmount: number;
 }
 
 export async function weeklySettlementJob(options?: {
@@ -18,7 +24,7 @@ export async function weeklySettlementJob(options?: {
   periodEnd?: Date;
   dryRun?: boolean;
 }): Promise<{
-  settlements: SettlementSummary[];
+  settlement: SettlementSummary | null;
   processedAt: Date;
   periodStart: Date;
   periodEnd: Date;
@@ -29,6 +35,11 @@ export async function weeklySettlementJob(options?: {
   // Default to last 7 days if not specified
   const periodEnd = options?.periodEnd || new Date();
   const periodStart = options?.periodStart || new Date(periodEnd.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  const paymentGateway = 'xendit';
+
+  // SettlementRecord.settlementDate is a DATE (no time). Use the period end date for idempotency.
+  const settlementDate = new Date(periodEnd.toISOString().slice(0, 10));
 
   try {
     // Find all paid payments that haven't been settled
@@ -45,91 +56,109 @@ export async function weeklySettlementJob(options?: {
         amount: true,
         gatewayFee: true,
         netAmount: true,
-        orderId: true,
-        metadata: true
+        orderId: true
       }
     });
 
     if (eligiblePayments.length === 0) {
       console.log('[WeeklySettlementJob] No eligible payments found for settlement.');
       return {
-        settlements: [],
+        settlement: null,
         processedAt: new Date(),
         periodStart,
         periodEnd
       };
     }
 
-    // Group payments by factory (from metadata or order)
-    const factoryPayments = new Map<string, typeof eligiblePayments>();
+    const totalAmount = eligiblePayments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const totalFees = eligiblePayments.reduce((sum, p) => sum + Number(p.gatewayFee), 0);
+    const netAmount = totalAmount - totalFees;
 
-    for (const payment of eligiblePayments) {
-      const factoryId = (payment.metadata as any)?.factoryId || 'unknown';
-      if (!factoryPayments.has(factoryId)) {
-        factoryPayments.set(factoryId, []);
-      }
-      factoryPayments.get(factoryId)!.push(payment);
-    }
+    const refundAgg = await prisma.refund.aggregate({
+      where: {
+        status: 'completed',
+        completedAt: {
+          gte: periodStart,
+          lt: periodEnd
+        }
+      },
+      _sum: { amount: true },
+      _count: true
+    });
 
-    const settlements: SettlementSummary[] = [];
+    const totalRefunds = refundAgg._count;
+    const refundAmount = Number(refundAgg._sum.amount || 0);
 
-    for (const [factoryId, payments] of factoryPayments) {
-      const totalAmount = payments.reduce((sum, p) => sum + Number(p.amount), 0);
-      const totalFees = payments.reduce((sum, p) => sum + Number(p.gatewayFee), 0);
-      const netAmount = totalAmount - totalFees;
+    const summary: SettlementSummary = {
+      settlementDate,
+      paymentGateway,
+      totalAmount,
+      paymentCount: eligiblePayments.length,
+      totalFees,
+      netAmount,
+      totalRefunds,
+      refundAmount
+    };
 
-      settlements.push({
-        factoryId,
-        totalAmount,
-        paymentCount: payments.length,
-        totalFees,
-        netAmount
+    if (!options?.dryRun) {
+      const existing = await prisma.settlementRecord.findUnique({
+        where: {
+          settlementDate_paymentGateway: {
+            settlementDate,
+            paymentGateway
+          }
+        }
       });
 
-      if (!options?.dryRun) {
-        // Create settlement record
-        await prisma.settlementRecord.create({
-          data: {
-            settlementDate: new Date(),
-            paymentGateway: 'xendit',
-            totalPayments: payments.length,
-            totalAmount,
-            totalFees,
-            netAmount,
-            totalRefunds: 0,
-            refundAmount: 0,
-            notes: `Weekly settlement for factory ${factoryId} (${periodStart.toISOString()} - ${periodEnd.toISOString()})`
-          }
-        });
-
-        // Publish settlement event to outbox for other services
-        await prisma.serviceOutbox.create({
-          data: {
-            aggregateType: 'Settlement',
-            aggregateId: factoryId,
-            eventType: 'settlement.completed',
-            payload: {
-              factoryId,
-              periodStart: periodStart.toISOString(),
-              periodEnd: periodEnd.toISOString(),
-              totalPayments: payments.length,
+      if (existing) {
+        console.log(`[WeeklySettlementJob] Settlement already exists for ${settlementDate.toISOString().slice(0, 10)} (${paymentGateway}) - skipping create.`);
+      } else {
+        await prisma.$transaction(async (tx) => {
+          const created = await tx.settlementRecord.create({
+            data: {
+              settlementDate,
+              paymentGateway,
+              totalPayments: eligiblePayments.length,
               totalAmount,
               totalFees,
               netAmount,
-              paymentIds: payments.map(p => p.id)
+              totalRefunds,
+              refundAmount,
+              notes: `Gateway settlement (${paymentGateway}) ${periodStart.toISOString()} - ${periodEnd.toISOString()}`
             }
-          }
+          });
+
+          // Publish settlement event to outbox for other services (aggregateId must be a UUID).
+          await tx.serviceOutbox.create({
+            data: {
+              aggregateType: 'Settlement',
+              aggregateId: created.id,
+              eventType: 'settlement.completed',
+              payload: {
+                settlementId: created.id,
+                settlementDate: created.settlementDate.toISOString().slice(0, 10),
+                paymentGateway,
+                periodStart: periodStart.toISOString(),
+                periodEnd: periodEnd.toISOString(),
+                totalPayments: eligiblePayments.length,
+                totalAmount,
+                totalFees,
+                netAmount,
+                totalRefunds,
+                refundAmount,
+                paymentIds: eligiblePayments.map(p => p.id)
+              }
+            }
+          });
         });
       }
-
-      console.log(`[WeeklySettlementJob] Factory ${factoryId}: ${payments.length} payments, net amount: ${netAmount}`);
     }
 
     const duration = Date.now() - startTime;
-    console.log(`[WeeklySettlementJob] Completed in ${duration}ms. Processed ${settlements.length} factory settlements.`);
+    console.log(`[WeeklySettlementJob] Completed in ${duration}ms. Processed ${eligiblePayments.length} payments.`);
 
     return {
-      settlements,
+      settlement: summary,
       processedAt: new Date(),
       periodStart,
       periodEnd

@@ -13,11 +13,12 @@ import adminRoutes from './routes/admin.routes';
 import commissionRoutes from './routes/commission.routes';
 import { PaymentRepository } from './repositories/payment.repository';
 import { errorHandler } from './middleware/error-handler';
+import { prisma } from './lib/prisma';
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3006;
+const PORT = process.env.PORT || 3007;
 
 app.disable('x-powered-by');
 
@@ -36,13 +37,16 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
+// Capture raw body for webhook verification while still parsing JSON
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    (req as any).rawBody = buf;
+  }
+}));
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-
-
 
 // Redirect root to API docs
 app.get('/', (req, res) => {
@@ -82,18 +86,40 @@ app.use(errorHandler);
 
 // Graceful shutdown
 let server: ReturnType<typeof app.listen> | undefined;
-const gracefulShutdown = () => {
-  console.log('Received shutdown signal, closing server gracefully...');
-  
-  server?.close(() => {
-    console.log('Server closed');
-    process.exit(0);
+const closeServer = () =>
+  new Promise<void>((resolve, reject) => {
+    if (!server) return resolve();
+    server.close((err?: Error) => {
+      if (err) return reject(err);
+      resolve();
+    });
   });
 
-  setTimeout(() => {
+const gracefulShutdown = async () => {
+  console.log('Received shutdown signal, closing server gracefully...');
+  
+  const forcedExitTimer = setTimeout(() => {
     console.error('Forced shutdown after timeout');
     process.exit(1);
   }, 10000);
+
+  try {
+    await closeServer();
+    console.log('HTTP server closed');
+  } catch (err) {
+    console.error('Error closing HTTP server:', err);
+  }
+
+  try {
+    await prisma.$disconnect();
+    console.log('Prisma disconnected');
+  } catch (err) {
+    console.error('Error disconnecting Prisma:', err);
+  } finally {
+    clearTimeout(forcedExitTimer);
+  }
+
+  process.exit(0);
 };
 
 process.on('SIGTERM', gracefulShutdown);

@@ -19,7 +19,7 @@ COPY prisma ./prisma/
 COPY scripts ./scripts/
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source code
 COPY tsconfig.json ./
@@ -42,7 +42,7 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Copy package files and install production dependencies
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile && pnpm store prune
+RUN pnpm install --prod --no-frozen-lockfile && pnpm store prune
 
 # Copy Prisma schema (optional but useful for introspection/migrations)
 COPY --from=builder /app/prisma ./prisma

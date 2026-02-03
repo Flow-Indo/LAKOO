@@ -1,16 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { PaymentService } from '../services/payment.service';
 import { RefundService } from '../services/refund.service';
-import { NotFoundError, BadRequestError } from '../middleware/error-handler';
-
-/**
- * Async handler wrapper - catches errors and passes to error middleware
- */
-const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
-  };
-};
+import { AuthenticatedRequest } from '../middleware/auth';
+import {
+  NotFoundError,
+  BadRequestError,
+  ForbiddenError,
+  UnauthorizedError,
+  asyncHandler
+} from '../middleware/error-handler';
 
 export class PaymentController {
   private paymentService: PaymentService;
@@ -25,7 +23,24 @@ export class PaymentController {
    * Create a new payment for an order
    */
   createPayment = asyncHandler(async (req: Request, res: Response) => {
-    const result = await this.paymentService.createPayment(req.body);
+    const authReq = req as AuthenticatedRequest;
+    const role = authReq.user?.role;
+    const authUserId = authReq.user?.id;
+
+    const input = { ...(req.body as any) };
+
+    // Gateway-originated requests must not be able to create payments for arbitrary users.
+    if (role !== 'internal') {
+      if (!authUserId) {
+        throw new UnauthorizedError('Missing authenticated user');
+      }
+      if (input.userId && input.userId !== authUserId) {
+        throw new ForbiddenError('Cannot create payment for another user');
+      }
+      input.userId = authUserId;
+    }
+
+    const result = await this.paymentService.createPayment(input);
     res.status(result.isExisting ? 200 : 201).json({
       success: true,
       data: result
@@ -36,6 +51,7 @@ export class PaymentController {
    * Get payment by order ID
    */
   getPaymentByOrder = asyncHandler(async (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     const orderId = req.params.orderId;
     if (!orderId) {
       throw new BadRequestError('orderId is required');
@@ -44,6 +60,15 @@ export class PaymentController {
     if (!payment) {
       throw new NotFoundError('Payment not found for this order');
     }
+
+    // Authorization: users can only view their own payments; admins/internal can view any.
+    if (authReq.user?.role !== 'internal' && authReq.user?.role !== 'admin') {
+      if (!authReq.user?.id) throw new UnauthorizedError('Missing authenticated user');
+      if (payment.userId !== authReq.user.id) {
+        throw new ForbiddenError('Cannot access payment for another user');
+      }
+    }
+
     res.json({
       success: true,
       data: payment
@@ -54,6 +79,7 @@ export class PaymentController {
    * Get payment by ID
    */
   getPaymentById = asyncHandler(async (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     const id = req.params.id;
     if (!id) {
       throw new BadRequestError('id is required');
@@ -62,6 +88,15 @@ export class PaymentController {
     if (!payment) {
       throw new NotFoundError('Payment not found');
     }
+
+    // Authorization: users can only view their own payments; admins/internal can view any.
+    if (authReq.user?.role !== 'internal' && authReq.user?.role !== 'admin') {
+      if (!authReq.user?.id) throw new UnauthorizedError('Missing authenticated user');
+      if (payment.userId !== authReq.user.id) {
+        throw new ForbiddenError('Cannot access payment for another user');
+      }
+    }
+
     res.json({
       success: true,
       data: payment
@@ -72,11 +107,21 @@ export class PaymentController {
    * Get payments for a user
    */
   getPaymentsByUser = asyncHandler(async (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     const { limit, offset } = req.query;
     const userId = req.params.userId;
     if (!userId) {
       throw new BadRequestError('userId is required');
     }
+
+    // Authorization: non-admin/non-internal can only query their own userId.
+    if (authReq.user?.role !== 'internal' && authReq.user?.role !== 'admin') {
+      if (!authReq.user?.id) throw new UnauthorizedError('Missing authenticated user');
+      if (userId !== authReq.user.id) {
+        throw new ForbiddenError('Cannot access payments for another user');
+      }
+    }
+
     const payments = await this.paymentService.getPaymentsByUserId(
       userId,
       {
@@ -130,7 +175,24 @@ export class PaymentController {
    * Create a refund for a payment
    */
   createRefund = asyncHandler(async (req: Request, res: Response) => {
-    const refund = await this.refundService.createRefund(req.body);
+    const authReq = req as AuthenticatedRequest;
+    const role = authReq.user?.role;
+    const authUserId = authReq.user?.id;
+
+    const input = { ...(req.body as any) };
+
+    // Gateway-originated requests must not be able to request refunds for arbitrary users.
+    if (role !== 'internal') {
+      if (!authUserId) {
+        throw new UnauthorizedError('Missing authenticated user');
+      }
+      if (input.userId && input.userId !== authUserId) {
+        throw new ForbiddenError('Cannot request refund for another user');
+      }
+      input.userId = authUserId;
+    }
+
+    const refund = await this.refundService.createRefund(input);
     res.status(201).json({
       success: true,
       data: refund
@@ -141,6 +203,7 @@ export class PaymentController {
    * Get refund by ID
    */
   getRefundById = asyncHandler(async (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     const id = req.params.id;
     if (!id) {
       throw new BadRequestError('id is required');
@@ -149,6 +212,14 @@ export class PaymentController {
     if (!refund) {
       throw new NotFoundError('Refund not found');
     }
+
+    if (authReq.user?.role !== 'internal' && authReq.user?.role !== 'admin') {
+      if (!authReq.user?.id) throw new UnauthorizedError('Missing authenticated user');
+      if (refund.userId !== authReq.user.id) {
+        throw new ForbiddenError('Cannot access refund for another user');
+      }
+    }
+
     res.json({
       success: true,
       data: refund
@@ -159,11 +230,21 @@ export class PaymentController {
    * Get refunds for an order
    */
   getRefundsByOrder = asyncHandler(async (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     const orderId = req.params.orderId;
     if (!orderId) {
       throw new BadRequestError('orderId is required');
     }
     const refunds = await this.refundService.getRefundsByOrderId(orderId);
+
+    if (authReq.user?.role !== 'internal' && authReq.user?.role !== 'admin') {
+      if (!authReq.user?.id) throw new UnauthorizedError('Missing authenticated user');
+      const anyOtherUser = refunds.some(r => r.userId !== authReq.user!.id);
+      if (anyOtherUser) {
+        throw new ForbiddenError('Cannot access refunds for another user');
+      }
+    }
+
     res.json({
       success: true,
       data: refunds

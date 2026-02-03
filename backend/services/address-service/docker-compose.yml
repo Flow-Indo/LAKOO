@@ -3,8 +3,6 @@
 # Development Environment
 # ========================================
 
-version: '3.8'
-
 services:
   address-service:
     build:
@@ -14,15 +12,13 @@ services:
     restart: unless-stopped
     ports:
       - "3010:3010"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
       - PORT=3010
-      - ADDRESS_DATABASE_URL=postgresql://postgres:postgres@address-db:5432/address_db?schema=public
-      - GATEWAY_SECRET_KEY=${GATEWAY_SECRET_KEY}
+      - GATEWAY_SECRET_KEY=${GATEWAY_SECRET_KEY:-dev-gateway-key}
       - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
-    depends_on:
-      address-db:
-        condition: service_healthy
     networks:
       - address-network
       - shared-network
@@ -33,44 +29,20 @@ services:
       retries: 3
       start_period: 10s
 
-  address-db:
-    image: postgres:15-alpine
-    container_name: address-db
-    restart: unless-stopped
-    ports:
-      - "5439:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=address_db
-    volumes:
-      - address-db-data:/var/lib/postgresql/data
-    networks:
-      - address-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # DB init service (runs once) - uses db push because this repo currently has no migrations folder
   address-db-push:
+    profiles: ["migrate"]
     build:
       context: .
       dockerfile: Dockerfile
+      target: builder
     container_name: address-db-push
-    command: npx prisma db push
-    environment:
-      - ADDRESS_DATABASE_URL=postgresql://postgres:postgres@address-db:5432/address_db?schema=public
-    depends_on:
-      address-db:
-        condition: service_healthy
+    command: sh -lc "pnpm -s run db:push"
+    env_file:
+      - .env
     networks:
       - address-network
     restart: "no"
-
-volumes:
-  address-db-data:
 
 networks:
   address-network:

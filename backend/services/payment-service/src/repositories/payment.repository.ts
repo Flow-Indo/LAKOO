@@ -1,7 +1,12 @@
 import { prisma } from '../lib/prisma';
 import { CreatePaymentDTO } from '../types';
+import { Prisma } from '../generated/prisma';
 
 export class PaymentRepository {
+  private getDb(tx?: Prisma.TransactionClient) {
+    return tx ?? prisma;
+  }
+
   private generatePaymentNumber(): string {
     const date = new Date();
     const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
@@ -9,10 +14,15 @@ export class PaymentRepository {
     return `PAY-${dateStr}-${random}`;
   }
 
-  async create(data: CreatePaymentDTO, invoiceUrl: string, invoiceId: string) {
+  async create(
+    data: CreatePaymentDTO,
+    invoiceUrl: string,
+    invoiceId: string,
+    tx?: Prisma.TransactionClient
+  ) {
     const paymentNumber = this.generatePaymentNumber();
 
-    return prisma.payment.create({
+    return this.getDb(tx).payment.create({
       data: {
         paymentNumber,
         orderId: data.orderId,
@@ -76,13 +86,13 @@ export class PaymentRepository {
     });
   }
 
-  async markPaid(id: string, gatewayFee: number, gatewayResponse: any) {
-    const payment = await prisma.payment.findUnique({ where: { id } });
+  async markPaid(id: string, gatewayFee: number, gatewayResponse: any, tx?: Prisma.TransactionClient) {
+    const payment = await this.getDb(tx).payment.findUnique({ where: { id } });
     if (!payment) throw new Error('Payment not found');
 
     const netAmount = Number(payment.amount) - gatewayFee;
 
-    return prisma.payment.update({
+    return this.getDb(tx).payment.update({
       where: { id },
       data: {
         status: 'paid',
@@ -97,11 +107,12 @@ export class PaymentRepository {
     });
   }
 
-  async markExpired(id: string) {
-    return prisma.payment.update({
+  async markExpired(id: string, tx?: Prisma.TransactionClient) {
+    return this.getDb(tx).payment.update({
       where: { id },
       data: {
-        status: 'expired'
+        status: 'expired',
+        cancelledAt: new Date()
       }
     });
   }
@@ -117,8 +128,8 @@ export class PaymentRepository {
     });
   }
 
-  async markCancelled(id: string) {
-    return prisma.payment.update({
+  async markCancelled(id: string, tx?: Prisma.TransactionClient) {
+    return this.getDb(tx).payment.update({
       where: { id },
       data: {
         status: 'cancelled',
@@ -127,8 +138,8 @@ export class PaymentRepository {
     });
   }
 
-  async markRefunded(id: string) {
-    return prisma.payment.update({
+  async markRefunded(id: string, tx?: Prisma.TransactionClient) {
+    return this.getDb(tx).payment.update({
       where: { id },
       data: {
         status: 'refunded'
@@ -143,7 +154,8 @@ export class PaymentRepository {
         expiresAt: { lt: new Date() }
       },
       data: {
-        status: 'expired'
+        status: 'expired',
+        cancelledAt: new Date()
       }
     });
   }

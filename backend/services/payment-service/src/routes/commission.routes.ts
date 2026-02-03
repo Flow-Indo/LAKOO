@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { body, param, query } from 'express-validator';
 import { validateRequest } from '../middleware/validation';
 import { gatewayOrInternalAuth, requireRole } from '../middleware/auth';
 import * as commissionController from '../controllers/commission.controller';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // =============================================================================
 // Validation Schemas
@@ -119,6 +119,7 @@ router.use(gatewayOrInternalAuth);
 // POST /api/commissions - Record commission
 router.post(
   '/',
+  requireRole('internal'),
   recordCommissionValidators,
   validateRequest,
   commissionController.recordCommission
@@ -127,6 +128,7 @@ router.post(
 // PUT /api/commissions/order/:orderId/complete - Mark order completed
 router.put(
   '/order/:orderId/complete',
+  requireRole('internal'),
   markOrderCompletedValidators,
   validateRequest,
   commissionController.markOrderCompleted
@@ -135,6 +137,7 @@ router.put(
 // POST /api/commissions/seller/:sellerId/collect - Collect commissions
 router.post(
   '/seller/:sellerId/collect',
+  requireRole('internal'),
   collectCommissionsValidators,
   validateRequest,
   commissionController.collectCommissions
@@ -143,6 +146,7 @@ router.post(
 // PUT /api/commissions/order/:orderId/refund - Refund commission
 router.put(
   '/order/:orderId/refund',
+  requireRole('internal'),
   refundCommissionValidators,
   validateRequest,
   commissionController.refundCommission
@@ -158,18 +162,10 @@ router.put(
   commissionController.waiveCommission
 );
 
-// Read routes (internal / seller access)
-// GET /api/commissions/:id - Get commission by ID
-router.get(
-  '/:id',
-  param('id').isUUID().withMessage('id must be a valid UUID'),
-  validateRequest,
-  commissionController.getCommissionById
-);
-
 // GET /api/commissions/ledger/:ledgerNumber - Get commission by ledger number
 router.get(
   '/ledger/:ledgerNumber',
+  requireRole('admin', 'internal'),
   param('ledgerNumber').matches(/^COM-\d{8}-\d{5}$/).withMessage('Invalid ledger number format'),
   validateRequest,
   commissionController.getCommissionByLedgerNumber
@@ -178,6 +174,7 @@ router.get(
 // GET /api/commissions/seller/:sellerId - Get commissions for seller
 router.get(
   '/seller/:sellerId',
+  requireRole('admin', 'internal'),
   getSellerCommissionsValidators,
   validateRequest,
   commissionController.getSellerCommissions
@@ -186,6 +183,7 @@ router.get(
 // GET /api/commissions/order/:orderId - Get commissions for order
 router.get(
   '/order/:orderId',
+  requireRole('admin', 'internal'),
   param('orderId').isUUID().withMessage('orderId must be a valid UUID'),
   validateRequest,
   commissionController.getOrderCommissions
@@ -194,6 +192,7 @@ router.get(
 // GET /api/commissions/seller/:sellerId/stats - Get seller stats
 router.get(
   '/seller/:sellerId/stats',
+  requireRole('admin', 'internal'),
   param('sellerId').isUUID().withMessage('sellerId must be a valid UUID'),
   validateRequest,
   commissionController.getSellerStats
@@ -202,9 +201,20 @@ router.get(
 // POST /api/commissions/calculate-payout - Calculate net payout
 router.post(
   '/calculate-payout',
+  requireRole('admin', 'internal'),
   calculateNetPayoutValidators,
   validateRequest,
   commissionController.calculateNetPayout
+);
+
+// Read routes (internal / seller access)
+// GET /api/commissions/:id - Keep LAST to avoid catching /ledger, /seller, /order, etc.
+router.get(
+  '/:id',
+  requireRole('admin', 'internal'),
+  param('id').isUUID().withMessage('id must be a valid UUID'),
+  validateRequest,
+  commissionController.getCommissionById
 );
 
 export default router;

@@ -1,0 +1,59 @@
+# ========================================
+# PRODUCT SERVICE DOCKER COMPOSE
+# Development Environment
+# ========================================
+
+services:
+  product-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: product-service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - ALLOWED_ORIGINS=http://localhost:3000
+      # Auth: keep optional in dev (unset key allows dev bypass in middleware)
+      - GATEWAY_SECRET_KEY=${GATEWAY_SECRET_KEY:-}
+      - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
+      - SERVICE_NAME=product-service
+      # Inter-service URLs (container DNS on shared network)
+      - WAREHOUSE_SERVICE_URL=${WAREHOUSE_SERVICE_URL:-http://warehouse-service:3012}
+      - NOTIFICATION_SERVICE_URL=${NOTIFICATION_SERVICE_URL:-http://notification-service:3008}
+      - SELLER_SERVICE_URL=${SELLER_SERVICE_URL:-http://seller-service:3015}
+    networks:
+      - product-network
+      - shared-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Database schema sync service (runs once)
+  product-migrate:
+    profiles: ["migrate"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: product-migrate
+    command: sh -lc "pnpm -s run prisma:push"
+    env_file:
+      - .env
+    networks:
+      - product-network
+    restart: "no"
+
+networks:
+  product-network:
+    driver: bridge
+  shared-network:
+    external: true
+    name: microservices-network

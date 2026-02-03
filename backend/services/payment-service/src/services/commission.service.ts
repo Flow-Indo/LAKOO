@@ -61,7 +61,7 @@ export class CommissionService {
 
   /**
    * Record commission for an order
-   * This is called when an order is created/paid
+   * This is called when an order is paid
    */
   async recordCommission(data: CreateCommissionDTO): Promise<CommissionLedger> {
     // Check if commission already exists for this order/seller
@@ -75,7 +75,7 @@ export class CommissionService {
     const ledgerNumber = this.generateLedgerNumber();
 
     // Create commission record in a transaction with outbox event
-    const commission = await prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx) => {
       const created = await tx.commissionLedger.create({
         data: {
           ledgerNumber,
@@ -90,31 +90,9 @@ export class CommissionService {
         }
       });
 
-      // Publish event
-      await tx.serviceOutbox.create({
-        data: {
-          aggregateType: 'Commission',
-          aggregateId: created.id,
-          eventType: 'commission.recorded',
-          payload: {
-            commissionId: created.id,
-            ledgerNumber: created.ledgerNumber,
-            orderId: created.orderId,
-            orderNumber: created.orderNumber,
-            sellerId: created.sellerId,
-            paymentId: created.paymentId,
-            orderAmount: Number(created.orderAmount),
-            commissionRate: Number(created.commissionRate),
-            commissionAmount: Number(created.commissionAmount),
-            createdAt: created.createdAt.toISOString()
-          }
-        }
-      });
-
+      await outboxService.commissionRecorded(created, tx);
       return created;
     });
-
-    return commission;
   }
 
   /**
@@ -133,19 +111,26 @@ export class CommissionService {
 
     const completedAt = data.completedAt || new Date();
 
-    const updated = await this.repository.markAsCollectible(commission.id, completedAt);
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.commissionLedger.update({
+        where: { id: commission.id },
+        data: {
+          status: CommissionStatus.collectible,
+          orderCompletedAt: completedAt
+        }
+      });
 
-    // Publish event
-    await outboxService.commissionCollectible({
-      id: updated.id,
-      ledgerNumber: updated.ledgerNumber,
-      orderId: updated.orderId,
-      sellerId: updated.sellerId,
-      commissionAmount: updated.commissionAmount,
-      orderCompletedAt: completedAt
+      await outboxService.commissionCollectible({
+        id: updated.id,
+        ledgerNumber: updated.ledgerNumber,
+        orderId: updated.orderId,
+        sellerId: updated.sellerId,
+        commissionAmount: updated.commissionAmount,
+        orderCompletedAt: completedAt
+      }, tx);
+
+      return updated;
     });
-
-    return updated;
   }
 
   /**
@@ -165,6 +150,7 @@ export class CommissionService {
       };
     }
 
+    const collectedAt = new Date();
     const collected = await prisma.$transaction(async (tx) => {
       const results: CommissionLedger[] = [];
 
@@ -174,27 +160,19 @@ export class CommissionService {
           data: {
             status: CommissionStatus.collected,
             settlementId: data.settlementId,
-            collectedAt: new Date()
+            collectedAt
           }
         });
 
-        // Publish event
-        await tx.serviceOutbox.create({
-          data: {
-            aggregateType: 'Commission',
-            aggregateId: updated.id,
-            eventType: 'commission.collected',
-            payload: {
-              commissionId: updated.id,
-              ledgerNumber: updated.ledgerNumber,
-              orderId: updated.orderId,
-              sellerId: updated.sellerId,
-              commissionAmount: Number(updated.commissionAmount),
-              settlementId: updated.settlementId,
-              collectedAt: updated.collectedAt?.toISOString()
-            }
-          }
-        });
+        await outboxService.commissionCollected({
+          id: updated.id,
+          ledgerNumber: updated.ledgerNumber,
+          orderId: updated.orderId,
+          sellerId: updated.sellerId,
+          commissionAmount: updated.commissionAmount,
+          settlementId: updated.settlementId,
+          collectedAt: collectedAt
+        }, tx);
 
         results.push(updated);
       }
@@ -227,18 +205,22 @@ export class CommissionService {
       throw new Error('Cannot waive commission that has already been collected');
     }
 
-    const updated = await this.repository.waive(commission.id);
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.commissionLedger.update({
+        where: { id: commission.id },
+        data: { status: CommissionStatus.waived }
+      });
 
-    // Publish event
-    await outboxService.commissionWaived({
-      id: updated.id,
-      ledgerNumber: updated.ledgerNumber,
-      orderId: updated.orderId,
-      sellerId: updated.sellerId,
-      reason
+      await outboxService.commissionWaived({
+        id: updated.id,
+        ledgerNumber: updated.ledgerNumber,
+        orderId: updated.orderId,
+        sellerId: updated.sellerId,
+        reason
+      }, tx);
+
+      return updated;
     });
-
-    return updated;
   }
 
   /**
@@ -255,17 +237,21 @@ export class CommissionService {
       return commission; // Already refunded
     }
 
-    const updated = await this.repository.markAsRefunded(commission.id);
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.commissionLedger.update({
+        where: { id: commission.id },
+        data: { status: CommissionStatus.refunded }
+      });
 
-    // Publish event
-    await outboxService.commissionRefunded({
-      id: updated.id,
-      ledgerNumber: updated.ledgerNumber,
-      orderId: updated.orderId,
-      sellerId: updated.sellerId
+      await outboxService.commissionRefunded({
+        id: updated.id,
+        ledgerNumber: updated.ledgerNumber,
+        orderId: updated.orderId,
+        sellerId: updated.sellerId
+      }, tx);
+
+      return updated;
     });
-
-    return updated;
   }
 
   /**

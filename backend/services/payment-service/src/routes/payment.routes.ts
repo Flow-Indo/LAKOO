@@ -14,7 +14,18 @@ router.use(gatewayOrInternalAuth);
 router.post('/',
   [
     body('orderId').isUUID().withMessage('orderId must be a valid UUID'),
-    body('userId').isUUID().withMessage('userId must be a valid UUID'),
+    // Gateway requests derive userId from auth headers; internal requests must provide it.
+    body('userId')
+      .if((_value, { req }) => (req as any).user?.role === 'internal')
+      .exists()
+      .withMessage('userId is required for internal calls')
+      .bail()
+      .isUUID()
+      .withMessage('userId must be a valid UUID'),
+    body('userId')
+      .optional()
+      .isUUID()
+      .withMessage('userId must be a valid UUID'),
     body('amount').isFloat({ min: 0.01 }).withMessage('amount must be greater than 0'),
     body('idempotencyKey').isString().notEmpty().withMessage('idempotencyKey is required'),
     body('paymentMethod').optional().isIn([
@@ -24,13 +35,6 @@ router.post('/',
   ],
   validateRequest,
   controller.createPayment
-);
-
-// Get payment by ID
-router.get('/:id',
-  [param('id').isUUID().withMessage('Invalid payment ID')],
-  validateRequest,
-  controller.getPaymentById
 );
 
 // Get payment by order ID
@@ -78,7 +82,18 @@ router.post('/refunds',
   [
     body('paymentId').isUUID().withMessage('paymentId must be a valid UUID'),
     body('orderId').isUUID().withMessage('orderId must be a valid UUID'),
-    body('userId').isUUID().withMessage('userId must be a valid UUID'),
+    // Gateway requests derive userId from auth headers; internal requests must provide it.
+    body('userId')
+      .if((_value, { req }) => (req as any).user?.role === 'internal')
+      .exists()
+      .withMessage('userId is required for internal calls')
+      .bail()
+      .isUUID()
+      .withMessage('userId must be a valid UUID'),
+    body('userId')
+      .optional()
+      .isUUID()
+      .withMessage('userId must be a valid UUID'),
     body('reason').isIn(['order_cancelled', 'customer_request', 'item_defective', 'wrong_item'])
       .withMessage('Invalid refund reason'),
     body('idempotencyKey').isString().notEmpty().withMessage('idempotencyKey is required'),
@@ -89,16 +104,24 @@ router.post('/refunds',
   controller.createRefund
 );
 
+// Route ordering: most-specific to least-specific (prevents /:id collisions)
+router.get('/refunds/order/:orderId',
+  [param('orderId').isUUID().withMessage('Invalid order ID')],
+  validateRequest,
+  controller.getRefundsByOrder
+);
+
 router.get('/refunds/:id',
   [param('id').isUUID().withMessage('Invalid refund ID')],
   validateRequest,
   controller.getRefundById
 );
 
-router.get('/refunds/order/:orderId',
-  [param('orderId').isUUID().withMessage('Invalid order ID')],
+// Get payment by ID (keep last to avoid catching /order, /user, /refunds, etc.)
+router.get('/:id',
+  [param('id').isUUID().withMessage('Invalid payment ID')],
   validateRequest,
-  controller.getRefundsByOrder
+  controller.getPaymentById
 );
 
 export default router;

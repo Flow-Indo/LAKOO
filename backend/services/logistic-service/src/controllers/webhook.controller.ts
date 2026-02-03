@@ -64,13 +64,6 @@ export class WebhookController {
     this.shipmentRepository = new ShipmentRepository();
   }
 
-  /**
-   * @swagger
-   * /api/webhooks/biteship:
-   *   post:
-   *     summary: Handle Biteship webhook events
-   *     tags: [Webhooks]
-   */
   handleBiteshipWebhook = async (req: Request, res: Response) => {
     // Note: Webhooks intentionally catch errors and return 200 for reliability
     try {
@@ -186,13 +179,6 @@ export class WebhookController {
     });
   }
 
-  /**
-   * @swagger
-   * /api/webhooks/biteship/test:
-   *   post:
-   *     summary: Test endpoint for Biteship webhook (dev only)
-   *     tags: [Webhooks]
-   */
   testBiteshipWebhook = async (req: Request, res: Response) => {
     if (process.env.NODE_ENV === 'production') {
       return res.status(404).json({

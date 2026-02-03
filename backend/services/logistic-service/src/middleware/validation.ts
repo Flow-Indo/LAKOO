@@ -29,6 +29,24 @@ export const validateRequest = (
 // Zod Schemas
 // =============================================================================
 
+const emptyToUndefined = (value: unknown) => (value === '' || value === null ? undefined : value);
+
+const zCoerceInt = (schema: z.ZodNumber) => z.preprocess(emptyToUndefined, schema);
+const zCoerceNumber = (schema: z.ZodNumber) => z.preprocess(emptyToUndefined, schema);
+
+const zCoerceBoolean = z.preprocess((value: unknown) => {
+  const cleaned = emptyToUndefined(value);
+  if (cleaned === undefined) return undefined;
+
+  if (typeof cleaned === 'string') {
+    const lowered = cleaned.trim().toLowerCase();
+    if (lowered === 'true' || lowered === '1') return true;
+    if (lowered === 'false' || lowered === '0') return false;
+  }
+
+  return cleaned;
+}, z.boolean());
+
 const addressSchema = z.object({
   name: z.string().min(1),
   phone: z.string().min(1),
@@ -37,8 +55,8 @@ const addressSchema = z.object({
   city: z.string().min(1),
   province: z.string().min(1),
   postalCode: z.string().min(1),
-  latitude: z.number().optional(),
-  longitude: z.number().optional()
+  latitude: zCoerceNumber(z.coerce.number()).optional(),
+  longitude: zCoerceNumber(z.coerce.number()).optional()
 });
 
 export const createShipmentSchema = z.object({
@@ -49,14 +67,14 @@ export const createShipmentSchema = z.object({
   courierName: z.string().optional(),
   serviceType: z.string().optional(),
   serviceName: z.string().optional(),
-  shippingCost: z.number().positive(),
-  insuranceCost: z.number().min(0).optional(),
-  codAmount: z.number().min(0).optional(),
-  weightGrams: z.number().int().positive(),
-  lengthCm: z.number().positive().optional(),
-  widthCm: z.number().positive().optional(),
-  heightCm: z.number().positive().optional(),
-  itemCount: z.number().int().positive().optional(),
+  shippingCost: zCoerceNumber(z.coerce.number().positive()),
+  insuranceCost: zCoerceNumber(z.coerce.number().min(0)).optional(),
+  codAmount: zCoerceNumber(z.coerce.number().min(0)).optional(),
+  weightGrams: zCoerceInt(z.coerce.number().int().positive()),
+  lengthCm: zCoerceNumber(z.coerce.number().positive()).optional(),
+  widthCm: zCoerceNumber(z.coerce.number().positive()).optional(),
+  heightCm: zCoerceNumber(z.coerce.number().positive()).optional(),
+  itemCount: zCoerceInt(z.coerce.number().int().positive()).optional(),
   itemDescription: z.string().optional(),
   origin: addressSchema.optional(),
   destination: addressSchema,
@@ -74,11 +92,11 @@ export const createShipmentInternalSchema = createShipmentSchema.extend({
 export const getRatesSchema = z.object({
   originPostalCode: z.string().min(1),
   destPostalCode: z.string().min(1),
-  weightGrams: z.number().int().positive(),
-  lengthCm: z.number().positive().optional(),
-  widthCm: z.number().positive().optional(),
-  heightCm: z.number().positive().optional(),
-  itemValue: z.number().positive().optional(),
+  weightGrams: zCoerceInt(z.coerce.number().int().positive()),
+  lengthCm: zCoerceNumber(z.coerce.number().positive()).optional(),
+  widthCm: zCoerceNumber(z.coerce.number().positive()).optional(),
+  heightCm: zCoerceNumber(z.coerce.number().positive()).optional(),
+  itemValue: zCoerceNumber(z.coerce.number().positive()).optional(),
   couriers: z.array(z.string()).optional()
 });
 
@@ -102,6 +120,27 @@ export const updateShipmentStatusSchema = z.object({
   signature: z.string().optional()
 });
 
+export const updateShipmentSchema = z.object({
+  trackingNumber: z.string().min(1).optional(),
+  waybillId: z.string().min(1).optional(),
+  biteshipOrderId: z.string().min(1).optional(),
+  status: updateShipmentStatusSchema.shape.status.optional(),
+  estimatedDelivery: z.preprocess(emptyToUndefined, z.union([z.string().min(1), z.date()])).optional(),
+  failureReason: z.string().min(1).optional(),
+  receiverName: z.string().min(1).optional(),
+  proofOfDeliveryUrl: z.string().url().optional(),
+  signature: z.string().min(1).optional(),
+  internalNotes: z.string().optional(),
+  metadata: z.record(z.any()).optional()
+});
+
+export const bookShipmentSchema = z.object({
+  trackingNumber: z.string().min(1).optional(),
+  waybillId: z.string().min(1).optional(),
+  biteshipOrderId: z.string().min(1).optional(),
+  estimatedDelivery: z.preprocess(emptyToUndefined, z.union([z.string().min(1), z.date()])).optional()
+});
+
 export const createTrackingEventSchema = z.object({
   status: z.string().min(1),
   statusCode: z.string().optional(),
@@ -112,24 +151,49 @@ export const createTrackingEventSchema = z.object({
   eventTime: z.string().datetime()
 });
 
+export const markDeliveredSchema = z.object({
+  receiverName: z.string().min(1).optional(),
+  proofOfDeliveryUrl: z.string().url().optional(),
+  signature: z.string().min(1).optional()
+});
+
+export const markFailedSchema = z.object({
+  failureReason: z.string().min(1)
+});
+
+export const toggleCourierSchema = z.object({
+  isActive: zCoerceBoolean
+});
+
+export const createCourierServiceSchema = z.object({
+  serviceCode: z.string().min(1),
+  serviceName: z.string().min(1),
+  serviceType: z.string().optional(),
+  estimatedDays: z.string().optional(),
+  isActive: zCoerceBoolean.optional(),
+  displayOrder: zCoerceInt(z.coerce.number().int()).optional()
+});
+
 export const createCourierSchema = z.object({
   courierCode: z.string().min(1),
   courierName: z.string().min(1),
-  isActive: z.boolean().optional(),
+  isActive: zCoerceBoolean.optional(),
   apiEndpoint: z.string().url().optional(),
   apiKey: z.string().optional(),
-  supportsCod: z.boolean().optional(),
-  supportsInsurance: z.boolean().optional(),
-  supportsPickup: z.boolean().optional(),
-  supportsDropoff: z.boolean().optional(),
-  supportsRealTimeTracking: z.boolean().optional(),
-  hasFixedRates: z.boolean().optional(),
-  rateMultiplier: z.number().positive().optional(),
+  supportsCod: zCoerceBoolean.optional(),
+  supportsInsurance: zCoerceBoolean.optional(),
+  supportsPickup: zCoerceBoolean.optional(),
+  supportsDropoff: zCoerceBoolean.optional(),
+  supportsRealTimeTracking: zCoerceBoolean.optional(),
+  hasFixedRates: zCoerceBoolean.optional(),
+  rateMultiplier: zCoerceNumber(z.coerce.number().positive()).optional(),
   logoUrl: z.string().url().optional(),
-  displayOrder: z.number().int().optional(),
+  displayOrder: zCoerceInt(z.coerce.number().int()).optional(),
   pickupCutoffTime: z.string().optional(),
   settings: z.record(z.any()).optional()
 });
+
+export const updateCourierSchema = createCourierSchema.partial().omit({ courierCode: true });
 
 export const createWarehouseSchema = z.object({
   code: z.string().min(1),
@@ -141,12 +205,14 @@ export const createWarehouseSchema = z.object({
   city: z.string().min(1),
   province: z.string().min(1),
   postalCode: z.string().min(1),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
-  isDefault: z.boolean().optional(),
-  isActive: z.boolean().optional(),
+  latitude: zCoerceNumber(z.coerce.number()).optional(),
+  longitude: zCoerceNumber(z.coerce.number()).optional(),
+  isDefault: zCoerceBoolean.optional(),
+  isActive: zCoerceBoolean.optional(),
   operatingHours: z.string().optional()
 });
+
+export const updateWarehouseSchema = createWarehouseSchema.partial().omit({ code: true });
 
 // =============================================================================
 // Zod Validation Middleware
@@ -155,7 +221,8 @@ export const createWarehouseSchema = z.object({
 export function validate(schema: z.ZodSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      schema.parse(req.body);
+      const parsed = schema.parse(req.body);
+      (req as any).body = parsed;
       return next();
     } catch (error) {
       if (error instanceof z.ZodError) {

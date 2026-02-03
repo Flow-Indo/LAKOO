@@ -3,8 +3,6 @@
 # Development Environment
 # ========================================
 
-version: '3.8'
-
 services:
   payment-service:
     build:
@@ -14,23 +12,20 @@ services:
     restart: unless-stopped
     ports:
       - "3007:3007"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=development
       - PORT=3007
-      - DATABASE_URL=postgresql://postgres:postgres@payment-db:5432/payment_db?schema=public
       - REDIS_URL=redis://redis:6379
       - KAFKA_BROKERS=kafka:9092
       - AUTH_SERVICE_URL=http://auth-service:3001
-      - ORDER_SERVICE_URL=http://order-service:3005
-      - WAREHOUSE_SERVICE_URL=http://warehouse-service:3011
-      - NOTIFICATION_SERVICE_URL=http://notification-service:3009
+      - ORDER_SERVICE_URL=http://order-service:3006
+      - WAREHOUSE_SERVICE_URL=http://warehouse-service:3012
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3008
       - GATEWAY_SECRET_KEY=${GATEWAY_SECRET_KEY:-dev-gateway-key}
       - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
-      - XENDIT_SECRET_KEY=${XENDIT_SECRET_KEY}
-      - XENDIT_WEBHOOK_TOKEN=${XENDIT_WEBHOOK_TOKEN}
     depends_on:
-      payment-db:
-        condition: service_healthy
       redis:
         condition: service_healthy
     networks:
@@ -42,26 +37,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
-
-  payment-db:
-    image: postgres:15-alpine
-    container_name: payment-db
-    restart: unless-stopped
-    ports:
-      - "5437:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=payment_db
-    volumes:
-      - payment-db-data:/var/lib/postgresql/data
-    networks:
-      - payment-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -82,22 +57,20 @@ services:
 
   # Database schema sync service (runs once)
   payment-migrate:
+    profiles: ["migrate"]
     build:
       context: .
       dockerfile: Dockerfile
+      target: builder
     container_name: payment-migrate
-    command: npx prisma db push
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@payment-db:5432/payment_db?schema=public
-    depends_on:
-      payment-db:
-        condition: service_healthy
+    command: sh -lc "pnpm -s run db:push"
+    env_file:
+      - .env
     networks:
       - payment-network
     restart: "no"
 
 volumes:
-  payment-db-data:
   payment-redis-data:
 
 networks:

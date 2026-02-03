@@ -36,9 +36,21 @@ function tryServiceAuth(req: AuthenticatedRequest): boolean {
     throw new UnauthorizedError('SERVICE_SECRET not configured');
   }
 
-  // Source-of-truth verification logic synced from backend/shared/typescript/utils/serviceAuth.ts
-  verifyServiceToken(tokenHeader, serviceSecret);
-  req.user = { id: serviceNameHeader, role: 'internal' };
+  try {
+    const { serviceName: tokenServiceName } = verifyServiceToken(tokenHeader, serviceSecret);
+
+    // Prevent header spoofing: the signed token serviceName must match x-service-name
+    if (tokenServiceName !== serviceNameHeader) {
+      throw new UnauthorizedError('Service name mismatch');
+    }
+
+    // Do not trust x-service-name beyond matching; use the signed token identity
+    req.user = { id: tokenServiceName, role: 'internal' };
+  } catch (err: any) {
+    if (err instanceof UnauthorizedError) throw err;
+    throw new UnauthorizedError('Invalid service authentication token');
+  }
+
   return true;
 }
 
@@ -204,3 +216,10 @@ export const gatewayOrInternalAuth = (
 
   return next(new UnauthorizedError('Authentication required'));
 };
+
+/**
+ * Backwards-compatible aliases used by routes/controllers.
+ */
+export const authenticate = gatewayAuth;
+export const requireAdmin = requireRole('admin');
+export const requireInternalAuth = internalServiceAuth;

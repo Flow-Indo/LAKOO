@@ -1,7 +1,12 @@
 import { prisma } from '../lib/prisma';
 import { CreateRefundDTO } from '../types';
+import { Prisma } from '../generated/prisma';
 
 export class RefundRepository {
+  private getDb(tx?: Prisma.TransactionClient) {
+    return tx ?? prisma;
+  }
+
   private generateRefundNumber(): string {
     const date = new Date();
     const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '');
@@ -9,10 +14,10 @@ export class RefundRepository {
     return `REF-${dateStr}-${random}`;
   }
 
-  async create(data: CreateRefundDTO, payment: any) {
+  async create(data: CreateRefundDTO, payment: any, tx?: Prisma.TransactionClient) {
     const refundNumber = this.generateRefundNumber();
 
-    return prisma.refund.create({
+    return this.getDb(tx).refund.create({
       data: {
         refundNumber,
         paymentId: data.paymentId,

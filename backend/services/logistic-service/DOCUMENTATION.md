@@ -116,7 +116,7 @@ Outbox correctness:
 
 ## 9) Docker
 - `Dockerfile`: uses **pnpm** (corepack) and `pnpm-lock.yaml` (good).
-- `docker-compose.yml`: app + db + one-shot `db push`.
+- `docker-compose.yml`: app (DB is expected to be Neon/remote). Optional `logistic-migrate` runs under the `migrate` profile (`docker compose --profile migrate ...`).
 
 ## 10) Tests
 - Smoke / DB-backed endpoint sweep: `node backend/smoke/run-neon-full.mjs`

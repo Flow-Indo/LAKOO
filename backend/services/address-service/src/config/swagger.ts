@@ -154,11 +154,85 @@ const options: swaggerJsdoc.Options = {
             success: { type: 'boolean', example: false },
             error: { type: 'string', example: 'Error message' }
           }
+        },
+        Province: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            code: { type: 'string' },
+            name: { type: 'string' },
+            altNames: { type: 'array', items: { type: 'string' } },
+            latitude: { type: 'number' },
+            longitude: { type: 'number' },
+            isActive: { type: 'boolean' },
+            createdAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        City: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            provinceId: { type: 'string', format: 'uuid' },
+            code: { type: 'string' },
+            name: { type: 'string' },
+            type: { type: 'string', enum: ['kota', 'kabupaten'] },
+            altNames: { type: 'array', items: { type: 'string' } },
+            latitude: { type: 'number' },
+            longitude: { type: 'number' },
+            isActive: { type: 'boolean' },
+            createdAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        District: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            cityId: { type: 'string', format: 'uuid' },
+            code: { type: 'string' },
+            name: { type: 'string' },
+            altNames: { type: 'array', items: { type: 'string' } },
+            latitude: { type: 'number' },
+            longitude: { type: 'number' },
+            isActive: { type: 'boolean' },
+            createdAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        Village: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            districtId: { type: 'string', format: 'uuid' },
+            code: { type: 'string' },
+            name: { type: 'string' },
+            type: { type: 'string', enum: ['kelurahan', 'desa'] },
+            postalCode: { type: 'string' },
+            altNames: { type: 'array', items: { type: 'string' } },
+            latitude: { type: 'number' },
+            longitude: { type: 'number' },
+            isActive: { type: 'boolean' },
+            createdAt: { type: 'string', format: 'date-time' }
+          }
+        },
+        PostalCode: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            postalCode: { type: 'string' },
+            villageName: { type: 'string' },
+            districtName: { type: 'string' },
+            cityName: { type: 'string' },
+            provinceName: { type: 'string' },
+            latitude: { type: 'number' },
+            longitude: { type: 'number' },
+            biteshipAreaId: { type: 'string' },
+            createdAt: { type: 'string', format: 'date-time' }
+          }
         }
       }
     }
   },
-  apis: ['./src/routes/*.ts'],
+  // Support both local dev (tsx/ts-node, TS sources) and Docker/prod (node dist, JS output)
+  apis: ['./src/routes/*.ts', './dist/routes/*.js'],
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

@@ -19,14 +19,6 @@ export class AdminController {
   // =============================================================================
   // Shipment Management
   // =============================================================================
-
-  /**
-   * @swagger
-   * /api/admin/shipments:
-   *   get:
-   *     summary: Get all shipments (admin)
-   *     tags: [Admin - Shipments]
-   */
   getAllShipments = asyncHandler(async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -41,13 +33,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/shipments/{id}:
-   *   put:
-   *     summary: Update shipment (admin)
-   *     tags: [Admin - Shipments]
-   */
   updateShipment = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const shipment = await this.shipmentService.updateShipment(id, req.body);
@@ -58,13 +43,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/shipments/{id}/status:
-   *   put:
-   *     summary: Update shipment status (admin)
-   *     tags: [Admin - Shipments]
-   */
   updateShipmentStatus = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const { status, ...additionalData } = req.body;
@@ -81,13 +59,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/shipments/{id}/tracking:
-   *   post:
-   *     summary: Add manual tracking event (admin)
-   *     tags: [Admin - Shipments]
-   */
   addTrackingEvent = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const trackingEvent = await this.shipmentService.addTrackingEvent({
@@ -102,13 +73,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/shipments/{id}/delivered:
-   *   post:
-   *     summary: Mark shipment as delivered (admin)
-   *     tags: [Admin - Shipments]
-   */
   markDelivered = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const { receiverName, proofOfDeliveryUrl, signature } = req.body;
@@ -126,13 +90,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/shipments/{id}/failed:
-   *   post:
-   *     summary: Mark shipment as failed (admin)
-   *     tags: [Admin - Shipments]
-   */
   markFailed = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const { failureReason } = req.body;
@@ -145,13 +102,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/shipments/stats:
-   *   get:
-   *     summary: Get shipment statistics (admin)
-   *     tags: [Admin - Shipments]
-   */
   getShipmentStats = asyncHandler(async (req: Request, res: Response) => {
     const startDate = req.query.startDate
       ? new Date(req.query.startDate as string)
@@ -171,14 +121,6 @@ export class AdminController {
   // =============================================================================
   // Courier Management
   // =============================================================================
-
-  /**
-   * @swagger
-   * /api/admin/couriers:
-   *   get:
-   *     summary: Get all couriers (admin)
-   *     tags: [Admin - Couriers]
-   */
   getAllCouriers = asyncHandler(async (req: Request, res: Response) => {
     const includeInactive = req.query.includeInactive === 'true';
     const couriers = includeInactive
@@ -191,13 +133,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/couriers:
-   *   post:
-   *     summary: Create courier integration (admin)
-   *     tags: [Admin - Couriers]
-   */
   createCourier = asyncHandler(async (req: Request, res: Response) => {
     const courier = await this.courierRepository.create(req.body);
 
@@ -207,13 +142,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/couriers/{id}:
-   *   put:
-   *     summary: Update courier integration (admin)
-   *     tags: [Admin - Couriers]
-   */
   updateCourier = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const courier = await this.courierRepository.update(id, req.body);
@@ -224,13 +152,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/couriers/{id}/toggle:
-   *   post:
-   *     summary: Toggle courier active status (admin)
-   *     tags: [Admin - Couriers]
-   */
   toggleCourier = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const { isActive } = req.body;
@@ -243,13 +164,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/couriers/{id}/services:
-   *   post:
-   *     summary: Add courier service (admin)
-   *     tags: [Admin - Couriers]
-   */
   addCourierService = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const service = await this.courierRepository.addService({
@@ -266,14 +180,6 @@ export class AdminController {
   // =============================================================================
   // Warehouse Management
   // =============================================================================
-
-  /**
-   * @swagger
-   * /api/admin/warehouses:
-   *   get:
-   *     summary: Get all warehouses (admin)
-   *     tags: [Admin - Warehouses]
-   */
   getAllWarehouses = asyncHandler(async (_req: Request, res: Response) => {
     const warehouses = await this.warehouseRepository.findAll();
 
@@ -283,13 +189,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/warehouses:
-   *   post:
-   *     summary: Create warehouse (admin)
-   *     tags: [Admin - Warehouses]
-   */
   createWarehouse = asyncHandler(async (req: Request, res: Response) => {
     const warehouse = await this.warehouseRepository.create(req.body);
 
@@ -299,13 +198,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/warehouses/{id}:
-   *   put:
-   *     summary: Update warehouse (admin)
-   *     tags: [Admin - Warehouses]
-   */
   updateWarehouse = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const warehouse = await this.warehouseRepository.update(id, req.body);
@@ -316,13 +208,6 @@ export class AdminController {
     });
   });
 
-  /**
-   * @swagger
-   * /api/admin/warehouses/{id}/default:
-   *   post:
-   *     summary: Set warehouse as default (admin)
-   *     tags: [Admin - Warehouses]
-   */
   setDefaultWarehouse = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
     const warehouse = await this.warehouseRepository.setDefault(id);

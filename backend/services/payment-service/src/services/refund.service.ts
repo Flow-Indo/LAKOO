@@ -7,7 +7,8 @@ import { outboxService } from './outbox.service';
 import axios from 'axios';
 import { getServiceAuthHeaders } from '../utils/serviceAuth';
 
-const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3005';
+const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3006';
+const OUTBOUND_HTTP_TIMEOUT_MS = Number.parseInt(process.env.OUTBOUND_HTTP_TIMEOUT_MS || '8000', 10);
 
 export class RefundService {
   private refundRepo: RefundRepository;
@@ -44,10 +45,11 @@ export class RefundService {
       throw new Error('Payment already has a pending refund');
     }
 
-    const refund = await this.refundRepo.create(data, payment);
-
-    // Publish refund.requested event
-    await outboxService.refundRequested(refund);
+    const refund = await prisma.$transaction(async (tx) => {
+      const created = await this.refundRepo.create(data, payment, tx);
+      await outboxService.refundRequested(created, tx);
+      return created;
+    });
 
     return refund;
   }
@@ -81,14 +83,23 @@ export class RefundService {
       }
 
       // Mark refund as completed
-      const completedRefund = await this.refundRepo.markCompleted(refundId);
+      const completedRefund = await prisma.$transaction(async (tx) => {
+        const completed = await tx.refund.update({
+          where: { id: refundId },
+          data: {
+            status: 'completed',
+            completedAt: new Date()
+          }
+        });
 
-      // Publish refund.completed event
-      await outboxService.refundCompleted({
-        ...completedRefund,
-        orderId: refund.orderId,
-        userId: refund.userId,
-        refundMethod: refund.refundMethod
+        await outboxService.refundCompleted({
+          ...completed,
+          orderId: refund.orderId,
+          userId: refund.userId,
+          refundMethod: refund.refundMethod
+        }, tx);
+
+        return completed;
       });
 
       // Update payment status
@@ -103,15 +114,22 @@ export class RefundService {
       return { success: true, refund: completedRefund, gatewayResponse };
     } catch (error: any) {
       console.error(`Refund processing failed for ${refundId}:`, error);
-      await this.refundRepo.markFailed(refundId, error.message);
+      await prisma.$transaction(async (tx) => {
+        await tx.refund.update({
+          where: { id: refundId },
+          data: {
+            status: 'failed',
+            failureReason: error.message
+          }
+        });
 
-      // Publish refund.failed event
-      await outboxService.refundFailed({
-        id: refund.id,
-        refundNumber: refund.refundNumber,
-        paymentId: refund.paymentId,
-        orderId: refund.orderId,
-        failureReason: error.message
+        await outboxService.refundFailed({
+          id: refund.id,
+          refundNumber: refund.refundNumber,
+          paymentId: refund.paymentId,
+          orderId: refund.orderId,
+          failureReason: error.message
+        }, tx);
       });
 
       await this.sendRefundNotification(refund.userId, refund.orderId, 'failed');
@@ -246,7 +264,7 @@ export class RefundService {
       await axios.put(
         `${ORDER_SERVICE_URL}/api/orders/${orderId}/status`,
         { newStatus },
-        { headers: getServiceAuthHeaders() }
+        { headers: getServiceAuthHeaders(), timeout: OUTBOUND_HTTP_TIMEOUT_MS }
       );
     } catch (error: any) {
       console.error(`Failed to update order ${orderId} status:`, error.message);

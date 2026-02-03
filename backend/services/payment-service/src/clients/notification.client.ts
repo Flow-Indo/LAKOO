@@ -22,7 +22,7 @@ type NotificationType =
   | 'account_security'
   | 'system_announcement';
 
-const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3007';
+const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3008';
 
 export interface CreateNotificationPayload {
   userId: string;

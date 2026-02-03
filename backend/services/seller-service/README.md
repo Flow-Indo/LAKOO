@@ -1,6 +1,6 @@
 # LAKU Seller Service (Go + GORM)
 
-REST API for seller profiles, products (with variants), payouts, and analytics. This service is consumed by the seller-dashboard frontend via `/api/sellers/...`.
+REST API for seller profiles, store page customization, payouts, and analytics. This service is consumed by the seller-dashboard frontend via `/api/sellers/...`.
 
 ## Quick start
 
@@ -70,24 +70,6 @@ Base: `/api/sellers/{sellerId}`
 - `POST /verification/documents`
 - `GET /verification/documents`
 
-**Products**
-- `POST /products`
-- `GET /products`
-- `GET /products/{productId}`
-- `PATCH /products/{productId}`
-- `DELETE /products/{productId}` (soft)
-- `PATCH /products/{productId}/publish`
-- `PATCH /products/{productId}/unpublish`
-- `POST /products/{productId}/copy`
-- `POST /products/{productId}/images` (S3)
-
-**Product variants**
-- `POST /products/{productId}/variants`
-- `GET /products/{productId}/variants`
-- `GET /products/{productId}/variants/{variantId}`
-- `PATCH /products/{productId}/variants/{variantId}`
-- `DELETE /products/{productId}/variants/{variantId}`
-
 **Analytics**
 - `GET /analytics/overview`
 - `GET /analytics/top-products`
@@ -102,11 +84,10 @@ Base: `/api/sellers/{sellerId}`
 
 ## Database
 - Uses Postgres + GORM; **no auto-migrations here**. Provision schema beforehand (see `backend/seller-service-schema.prisma` for reference).
-- Models: `models/*.go` (Seller, SellerProduct, SellerProductVariant, SellerPayout, SellerPayoutSchedule, etc.)
+- Models: `models/*.go` (Seller, SellerStorePage, SellerInventory, SellerPayout, SellerPayoutSchedule, etc.)
 
 ## S3 uploads
 - Logo: `/{sellerId}/shop/logo`
-- Product images: `/{sellerId}/products/{productId}/images`
 - Requires AWS creds and bucket configured.
 
 ## Common pitfalls
@@ -117,4 +98,3 @@ Base: `/api/sellers/{sellerId}`
 ## Deployment
 - Build: `go build ./...`
 - Run behind HTTPS-aware proxy if needed; service itself is HTTP.
-

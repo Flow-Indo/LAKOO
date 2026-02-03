@@ -15,7 +15,7 @@ const options: swaggerJsdoc.Options = {
 - Transaction ledger tracking
 - Phone-only authentication support
 
-**Base URL:** \`http://localhost:3006\``,
+**Base URL:** \`http://localhost:3007\``,
       contact: {
         name: 'API Support',
         email: 'support@pinduoduo.id'
@@ -23,7 +23,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:3006',
+        url: 'http://localhost:3007',
         description: 'Development server'
       },
       {
@@ -659,7 +659,8 @@ Returns all paid, non-escrowed payments within a date range.`,
       }
     }
   },
-  apis: ['./src/routes/*.ts'] // Path to the API routes
+  // Support both local dev (tsx/ts-node, TS sources) and Docker/prod (node dist, JS output)
+  apis: ['./src/routes/*.ts', './dist/routes/*.js']
 };
 
 export const swaggerSpec = swaggerJsdoc(options);

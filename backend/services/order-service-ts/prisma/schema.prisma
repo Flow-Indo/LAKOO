@@ -1,0 +1,279 @@
+// =============================================================================
+// ORDER SERVICE DATABASE SCHEMA
+// Service: order-service (Port 3006)
+// Database: order_db
+// Owner: Orders, order items, status history, returns, promotions/coupons
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("ORDER_DATABASE_URL")
+}
+
+// =============================================================================
+// ORDERS
+// =============================================================================
+
+model Order {
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderNumber         String      @unique @map("order_number") @db.VarChar(50) // ORD-20260115-XXXXX
+  userId              String      @map("user_id") @db.Uuid // Reference to Auth Service
+
+  // NOTE: Stored as VARCHAR in the current DB (legacy compatibility).
+  // Allowed values are enforced in application logic (see src/types), not as a Postgres enum.
+  orderSource         String      @default("brand") @map("order_source") @db.VarChar(20)
+  // Source references (mutually exclusive based on orderSource)
+  brandId             String?     @map("brand_id") @db.Uuid // Reference to Brand Service (house brands)
+  sellerId            String?     @map("seller_id") @db.Uuid // Reference to Seller Service (community sellers)
+
+  // Amounts
+  subtotal            Decimal     @db.Decimal(15, 2)
+  discountAmount      Decimal     @default(0) @map("discount_amount") @db.Decimal(15, 2)
+  shippingCost        Decimal     @default(0) @map("shipping_cost") @db.Decimal(15, 2)
+  taxAmount           Decimal     @default(0) @map("tax_amount") @db.Decimal(15, 2)
+  totalAmount         Decimal     @map("total_amount") @db.Decimal(15, 2)
+  currency            String      @default("IDR") @db.VarChar(3)
+
+  // Coupon/Promotion
+  couponId            String?     @map("coupon_id") @db.Uuid
+  couponCode          String?     @map("coupon_code") @db.VarChar(50)
+
+  // ==========================================================================
+  // SHIPPING ADDRESS SNAPSHOT (frozen at order time)
+  // ==========================================================================
+  shippingAddressId   String?     @map("shipping_address_id") @db.Uuid // Original address ID from Address Service
+  shippingRecipient   String      @map("shipping_recipient") @db.VarChar(255)
+  shippingPhone       String      @map("shipping_phone") @db.VarChar(20)
+  shippingStreet      String      @map("shipping_street")
+  shippingDistrict    String?     @map("shipping_district") @db.VarChar(100)
+  shippingCity        String      @map("shipping_city") @db.VarChar(100)
+  shippingProvince    String      @map("shipping_province") @db.VarChar(100)
+  shippingPostalCode  String      @map("shipping_postal_code") @db.VarChar(10)
+  shippingCountry     String      @default("Indonesia") @map("shipping_country") @db.VarChar(100)
+  shippingLatitude    Decimal?    @map("shipping_latitude") @db.Decimal(10, 8)
+  shippingLongitude   Decimal?    @map("shipping_longitude") @db.Decimal(11, 8)
+
+  // ==========================================================================
+  // USER SNAPSHOT (frozen at order time)
+  // ==========================================================================
+  customerEmail       String?     @map("customer_email") @db.VarChar(255)
+  customerPhone       String      @map("customer_phone") @db.VarChar(20)
+  customerName        String      @map("customer_name") @db.VarChar(255)
+
+  // Shipping details
+  shippingMethod      String?     @map("shipping_method") @db.VarChar(100)
+  shippingCourier     String?     @map("shipping_courier") @db.VarChar(50)
+  estimatedDelivery   DateTime?   @map("estimated_delivery") @db.Timestamptz(6)
+
+  // Status
+  // NOTE: Stored as VARCHAR in the current DB (legacy compatibility).
+  status              String      @default("pending") @map("status") @db.VarChar(20)
+
+  // Notes
+  customerNotes       String?     @map("customer_notes")
+  internalNotes       String?     @map("internal_notes")
+
+  // Timestamps
+  paidAt              DateTime?   @map("paid_at") @db.Timestamptz(6)
+  confirmedAt         DateTime?   @map("confirmed_at") @db.Timestamptz(6)
+  processedAt         DateTime?   @map("processed_at") @db.Timestamptz(6)
+  shippedAt           DateTime?   @map("shipped_at") @db.Timestamptz(6)
+  deliveredAt         DateTime?   @map("delivered_at") @db.Timestamptz(6)
+  completedAt         DateTime?   @map("completed_at") @db.Timestamptz(6)
+  cancelledAt         DateTime?   @map("cancelled_at") @db.Timestamptz(6)
+  cancelReason        String?     @map("cancel_reason") @db.VarChar(500)
+  cancelledBy         String?     @map("cancelled_by") @db.VarChar(50) // "customer", "system", "admin"
+
+  // Live commerce attribution
+  liveSessionId       String?     @map("live_session_id") @db.Uuid
+
+  // Idempotency
+  idempotencyKey      String?     @unique @map("idempotency_key") @db.VarChar(100)
+
+  // Audit
+  createdBy           String?     @map("created_by") @db.Uuid
+  updatedBy           String?     @map("updated_by") @db.Uuid
+  createdAt           DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?   @map("deleted_at") @db.Timestamptz(6)
+
+  items           OrderItem[]
+  statusHistory   OrderStatusHistory[]
+  returns         Return[]
+
+  @@index([orderNumber])
+  @@index([brandId])
+  @@index([sellerId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([userId], map: "idx_order_user_id")
+  @@map("order")
+}
+
+model OrderItem {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId             String        @map("order_id") @db.Uuid
+  // NOTE: Stored as VARCHAR in the current DB (legacy compatibility).
+  itemType            String        @default("brand_product") @map("item_type") @db.VarChar(20)
+
+  // Product references (from Product Service)
+  productId           String?       @map("product_id") @db.Uuid
+  variantId           String?       @map("variant_id") @db.Uuid
+
+  // Brand reference (from Brand Service)
+  brandId             String?       @map("brand_id") @db.Uuid
+  brandProductId      String?       @map("brand_product_id") @db.Uuid
+
+  // Seller reference (from Seller Service)
+  sellerProductId     String?       @map("seller_product_id") @db.Uuid
+  sellerId            String?       @map("seller_id") @db.Uuid
+
+  // ==========================================================================
+  // PRODUCT SNAPSHOT (frozen at order time - NEVER changes)
+  // ==========================================================================
+  snapshotProductName String        @map("snapshot_product_name") @db.VarChar(255)
+  snapshotVariantName String?       @map("snapshot_variant_name") @db.VarChar(255)
+  snapshotSku         String?       @map("snapshot_sku") @db.VarChar(100)
+  snapshotImageUrl    String?       @map("snapshot_image_url")
+  snapshotBrandName   String?       @map("snapshot_brand_name") @db.VarChar(255)
+  snapshotSellerName  String?       @map("snapshot_seller_name") @db.VarChar(255)
+
+  // Pricing
+  unitPrice           Decimal       @map("unit_price") @db.Decimal(15, 2)
+  quantity            Int
+  subtotal            Decimal       @db.Decimal(15, 2)
+  discountAmount      Decimal       @default(0) @map("discount_amount") @db.Decimal(15, 2)
+  totalAmount         Decimal       @map("total_amount") @db.Decimal(15, 2)
+
+  // Fulfillment
+  fulfilledQuantity   Int           @default(0) @map("fulfilled_quantity")
+  returnedQuantity    Int           @default(0) @map("returned_quantity")
+
+  // Timestamps
+  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId], map: "idx_order_item_order_id")
+  @@index([productId], map: "idx_order_item_product_id")
+  @@map("order_item")
+}
+
+model OrderStatusHistory {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId       String       @map("order_id") @db.Uuid
+  // NOTE: Stored as VARCHAR in the current DB (legacy compatibility).
+  fromStatus    String?      @map("from_status") @db.VarChar(20)
+  toStatus      String       @map("to_status") @db.VarChar(20)
+  reason        String?      @db.VarChar(500)
+  notes         String?
+  changedBy     String?      @map("changed_by") @db.Uuid // User ID or "system"
+  changedByType String?      @map("changed_by_type") @db.VarChar(50) // "customer", "admin", "system"
+  metadata      Json?
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId], map: "idx_order_status_history_order_id")
+  @@index([createdAt], map: "idx_order_status_history_created_at")
+  @@map("order_status_history")
+}
+
+// =============================================================================
+// RETURNS (7-day return policy)
+// =============================================================================
+
+model Return {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  returnNumber     String        @unique @map("return_number") @db.VarChar(50) // RET-20260115-XXXXX
+  orderId          String        @map("order_id") @db.Uuid
+  userId           String        @map("user_id") @db.Uuid
+
+  // Return details
+  returnType       String        @default("refund") @map("return_type") @db.VarChar(20)
+  reason           String        @map("reason") @db.VarChar(50)
+  reasonDetail     String?       @map("reason_detail") @db.VarChar(500)
+  customerNotes    String?       @map("customer_notes")
+
+  // Items being returned
+  items            Json          // Array of {orderItemId, quantity, reason}
+
+  // Amounts
+  subtotalAmount   Decimal       @map("subtotal_amount") @db.Decimal(15, 2)
+  shippingRefund   Decimal       @default(0) @map("shipping_refund") @db.Decimal(15, 2)
+  totalAmount      Decimal       @map("total_amount") @db.Decimal(15, 2)
+
+  // Return shipping
+  returnShipmentId String?       @map("return_shipment_id") @db.Uuid // Reference to Logistics Service
+  returnTrackingNo String?       @map("return_tracking_no") @db.VarChar(100)
+  returnCourier    String?       @map("return_courier") @db.VarChar(50)
+
+  // Inspection
+  inspectedAt      DateTime?     @map("inspected_at") @db.Timestamptz(6)
+  inspectedBy      String?       @map("inspected_by") @db.Uuid
+  inspectionNotes  String?       @map("inspection_notes")
+  itemCondition    String?       @map("item_condition") @db.VarChar(50)
+
+  // Status
+  status           String        @default("requested") @map("status") @db.VarChar(30)
+
+  // Evidence
+  images           Json?         // Array of image URLs
+
+  // Refund details
+  refundMethod     String?       @map("refund_method") @db.VarChar(50) // "original_payment", "wallet", "bank_transfer"
+  refundedAt       DateTime?     @map("refunded_at") @db.Timestamptz(6)
+
+  // Admin
+  approvedBy       String?       @map("approved_by") @db.Uuid
+  approvedAt       DateTime?     @map("approved_at") @db.Timestamptz(6)
+  rejectedBy       String?       @map("rejected_by") @db.Uuid
+  rejectedAt       DateTime?     @map("rejected_at") @db.Timestamptz(6)
+  rejectionReason  String?       @map("rejection_reason") @db.VarChar(500)
+
+  // Timestamps
+  requestedAt      DateTime      @default(now()) @map("requested_at") @db.Timestamptz(6)
+  deadline         DateTime      @db.Timestamptz(6) // Must be requested within 7 days
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([returnNumber], map: "idx_return_return_number")
+  @@index([orderId], map: "idx_return_order_id")
+  @@index([userId], map: "idx_return_user_id")
+  @@index([status])
+  @@map("return")
+}
+
+// =============================================================================
+// SERVICE OUTBOX (For future Kafka migration)
+// =============================================================================
+
+model ServiceOutbox {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  aggregateType String    @map("aggregate_type") @db.VarChar(100)
+  aggregateId   String    @map("aggregate_id") @db.Uuid
+  eventType     String    @map("event_type") @db.VarChar(100)
+  payload       Json
+  metadata      Json?
+  isPublished   Boolean   @default(false) @map("is_published")
+  publishedAt   DateTime? @map("published_at") @db.Timestamptz(6)
+  retryCount    Int       @default(0) @map("retry_count")
+  lastError     String?   @map("last_error")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([isPublished, createdAt], map: "idx_service_outbox_published")
+  @@index([aggregateType, aggregateId], map: "idx_service_outbox_aggregate")
+  @@map("service_outbox")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================

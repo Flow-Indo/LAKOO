@@ -16,14 +16,21 @@ export class WebhookController {
       const webhookVerificationToken = process.env.XENDIT_WEBHOOK_VERIFICATION_TOKEN || '';
       const receivedSignature = (req.headers['x-callback-token'] as string | undefined) ?? '';
 
-      // Get raw body for signature verification
-      const rawBody = JSON.stringify(req.body);
-
-      // Verify webhook signature using callback token comparison
-      if (!CryptoUtils.verifyXenditWebhook(rawBody, receivedSignature, webhookVerificationToken)) {
-        console.warn('Invalid webhook signature received');
-        res.status(403).json({ error: 'Invalid webhook signature' });
+      // Fail closed in production when the verification token is missing.
+      if (process.env.NODE_ENV === 'production' && !webhookVerificationToken) {
+        console.error('XENDIT_WEBHOOK_VERIFICATION_TOKEN not configured');
+        res.status(500).json({ error: 'Webhook verification not configured' });
         return;
+      }
+
+      // Dev fallback: allow local testing if token is intentionally unset.
+      if (!(process.env.NODE_ENV === 'development' && !webhookVerificationToken)) {
+        // Verify webhook signature using callback token comparison
+        if (!CryptoUtils.verifyXenditWebhook('', receivedSignature, webhookVerificationToken)) {
+          console.warn('Invalid webhook signature received');
+          res.status(403).json({ error: 'Invalid webhook signature' });
+          return;
+        }
       }
 
       const callbackData = req.body;
@@ -37,7 +44,7 @@ export class WebhookController {
           webhookType: webhookType,
           requestBody: {
             path: ['id'],
-            equals: eventId
+            equals: callbackData.id || eventId
           }
         }
       });
@@ -59,7 +66,7 @@ export class WebhookController {
           paymentId: payment?.id,
           action: `webhook_${webhookType.toLowerCase()}`,
           requestMethod: 'POST',
-          requestUrl: '/api/webhooks/xendit',
+          requestUrl: '/api/webhooks/xendit/invoice',
           requestBody: callbackData,
           responseStatus: 200,
           isWebhook: true,
@@ -70,29 +77,7 @@ export class WebhookController {
       if (callbackData.status === 'PAID') {
         await this.paymentService.handlePaidCallback(callbackData);
       } else if (callbackData.status === 'EXPIRED') {
-        if (payment && payment.status === 'pending') {
-          await prisma.payment.update({
-            where: { id: payment.id },
-            data: {
-              status: 'expired',
-              cancelledAt: new Date()
-            }
-          });
-
-          // Publish event for order service to handle order cancellation
-          await prisma.serviceOutbox.create({
-            data: {
-              aggregateType: 'Payment',
-              aggregateId: payment.id,
-              eventType: 'payment.expired',
-              payload: {
-                paymentId: payment.id,
-                orderId: payment.orderId,
-                userId: payment.userId
-              }
-            }
-          });
-        }
+        await this.paymentService.handleExpiredCallback(callbackData);
       }
 
       res.json({ received: true });

@@ -1,7 +1,7 @@
 import { Router, type Router as ExpressRouter } from 'express';
 import { param, query } from 'express-validator';
 import { TransactionController } from '../controllers/transaction.controller';
-import { gatewayOrInternalAuth } from '../middleware/auth';
+import { gatewayOrInternalAuth, requireRole } from '../middleware/auth';
 import { validateRequest } from '../middleware/validation';
 
 const router: ExpressRouter = Router();
@@ -58,45 +58,6 @@ router.get('/payment/:paymentId',
 
 /**
  * @swagger
- * /api/transactions/factory/{factoryId}/summary:
- *   get:
- *     tags: [Transactions]
- *     summary: Get factory transaction summary
- *     parameters:
- *       - in: path
- *         name: factoryId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *       - in: query
- *         name: startDate
- *         required: true
- *         schema:
- *           type: string
- *           format: date-time
- *       - in: query
- *         name: endDate
- *         required: true
- *         schema:
- *           type: string
- *           format: date-time
- *     responses:
- *       200:
- *         description: Transaction summary retrieved
- */
-router.get('/factory/:factoryId/summary',
-  [
-    param('factoryId').isUUID().withMessage('factoryId must be a valid UUID'),
-    query('startDate').isISO8601().withMessage('startDate is required and must be ISO8601'),
-    query('endDate').isISO8601().withMessage('endDate is required and must be ISO8601')
-  ],
-  validateRequest,
-  transactionController.getFactoryTransactionSummary
-);
-
-/**
- * @swagger
  * /api/transactions/summary:
  *   get:
  *     tags: [Transactions]
@@ -116,6 +77,7 @@ router.get('/factory/:factoryId/summary',
  *           format: date-time
  */
 router.get('/summary',
+  requireRole('admin', 'internal'),
   [
     query('startDate').isISO8601().withMessage('startDate is required and must be ISO8601'),
     query('endDate').isISO8601().withMessage('endDate is required and must be ISO8601')
@@ -141,6 +103,7 @@ router.get('/summary',
  *           type: integer
  */
 router.get('/recent',
+  requireRole('admin', 'internal'),
   [
     query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit must be 1-100'),
     query('offset').optional().isInt({ min: 0 }).withMessage('offset must be >= 0')
@@ -163,6 +126,7 @@ router.get('/recent',
  *           type: string
  */
 router.get('/:transactionCode',
+  requireRole('admin', 'internal'),
   [param('transactionCode').isString().notEmpty().withMessage('transactionCode is required')],
   validateRequest,
   transactionController.findByCode

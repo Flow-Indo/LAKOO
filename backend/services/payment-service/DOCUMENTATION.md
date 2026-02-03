@@ -1,4 +1,292 @@
-# Payment Service Documentation (`backend/services/payment-service`)
+# Payment Service Documentation
+
+**Service:** payment-service  
+**Port:** 3007  
+**Database:** payment_db (PostgreSQL)  
+**Language:** TypeScript (Node.js)  
+**Last Updated:** 2026-01-30  
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Responsibilities](#responsibilities)
+3. [Architecture](#architecture)
+4. [Core Flows](#core-flows)
+5. [API Endpoints](#api-endpoints)
+6. [Events (Outbox)](#events-outbox)
+7. [Integration Guide](#integration-guide)
+8. [Setup & Development](#setup--development)
+9. [Docker](#docker)
+10. [Troubleshooting](#troubleshooting)
+
+---
+
+## Overview
+
+The Payment Service is LAKOO's **payment ledger** + **gateway integration** layer. It handles:
+
+- Payment creation (Xendit invoice)
+- Payment status updates (Xendit webhooks)
+- Refund requests and processing workflow
+- Commission ledger accounting (0.5% by default)
+- Gateway reconciliation summaries (`SettlementRecord`)
+
+This service emits domain events using a **transactional outbox** (`ServiceOutbox`).
+
+---
+
+## Responsibilities
+
+**Owns**
+- `Payment`, `Refund`, `PaymentGatewayLog` (audit trail)
+- `CommissionLedger` (commission accounting, not cash movement)
+- `SettlementRecord` (gateway reconciliation summaries)
+- `ServiceOutbox` rows written by this service
+
+**Does NOT own**
+- Order lifecycle (order-service owns order state)
+- Seller identity + bank accounts (seller-service owns seller profile)
+- Actually moving money to sellers (wallet-service/payout worker responsibility)
+
+---
+
+## Architecture
+
+### Layers
+- Routes (`src/routes/*`): routing + `express-validator` + `validateRequest`
+- Middleware (`src/middleware/*`): auth, validation, centralized errors
+- Controllers (`src/controllers/*`): request handlers (thin)
+- Services (`src/services/*`): business logic + outbound HTTP + outbox publishing
+- Repositories (`src/repositories/*`): Prisma data access
+
+### Authentication model
+
+**Gateway trust (end-user traffic via API gateway)**
+- `x-gateway-key` must equal `GATEWAY_SECRET_KEY`
+- `x-user-id` required
+- `x-user-role` optional (e.g. `admin`)
+
+**Service-to-service (internal traffic)**
+- `x-service-auth`: `<serviceName>:<timestamp>:<signature>`
+- `x-service-name`: `<serviceName>`
+- Verified using `SERVICE_SECRET`
+- Internal identity is derived from the **signed token**, and must match `x-service-name` (prevents header spoofing).
+
+### Response format
+- Success: `{ success: true, data: ... }`
+- Errors: `{ success: false, error: string, details?: any }` (from `src/middleware/error-handler.ts`)
+
+---
+
+## Core Flows
+
+### 1) Create payment (invoice)
+
+```
+Client -> API Gateway -> payment-service (POST /api/payments)
+  -> Xendit: create invoice
+  -> payment-service: create Payment(pending) + outbox payment.created
+  -> return invoice URL to client
+```
+
+### 2) Webhook: payment paid / expired
+
+```
+Xendit -> payment-service (POST /api/webhooks/xendit/invoice)
+  -> verify x-callback-token
+  -> write PaymentGatewayLog (idempotent guard)
+  -> update Payment status + outbox payment.paid/payment.expired (transactional)
+  -> best-effort: notify order-service / notification-service
+```
+
+Notes:
+- Webhook routes are public by design; security is via `x-callback-token` verification.
+- In production, missing `XENDIT_WEBHOOK_VERIFICATION_TOKEN` fails closed.
+- Downstream services should treat the **outbox events** as the source of truth.
+
+### 3) Refunds
+- `POST /api/payments/refunds` creates a refund request and emits `refund.requested`.
+- Refund processing can be gateway-based (some methods) or manual, depending on payment method.
+
+### 4) Commission ledger (0.5%)
+
+Commission is **accounting**, not money movement:
+- `pending` -> order not yet completed
+- `collectible` -> order completed (ready to collect during payout run)
+- `collected` -> payout completed; commission deducted
+- `waived/refunded` -> business adjustments
+
+---
+
+## API Endpoints
+
+Base routes:
+- `/api/payments` (payments + refunds)
+- `/api/transactions` (history + admin summaries)
+- `/api/commissions` (commission ledger)
+- `/api/admin` (admin analytics/queries)
+- `/api/webhooks` (Xendit callbacks)
+
+### Authorization summary
+
+**Payments**
+- User-scoped: users can only read/write their own payments/refunds.
+- Internal services may operate on any user/order via `gatewayOrInternalAuth`.
+
+**Transactions**
+- User-scoped reads:
+  - `GET /api/transactions/order/:orderId`
+  - `GET /api/transactions/payment/:paymentId`
+- Admin/internal only:
+  - `GET /api/transactions/summary`
+  - `GET /api/transactions/recent`
+  - `GET /api/transactions/:transactionCode`
+
+**Commissions**
+- Write endpoints are **internal only**:
+  - `POST /api/commissions` (record)
+  - `PUT /api/commissions/order/:orderId/complete` (mark collectible)
+  - `POST /api/commissions/seller/:sellerId/collect` (mark collected)
+  - `PUT /api/commissions/order/:orderId/refund`
+- Read endpoints are **admin/internal only** (seller dashboard should query via seller-service):
+  - `GET /api/commissions/seller/:sellerId`
+  - `GET /api/commissions/seller/:sellerId/stats`
+  - `GET /api/commissions/order/:orderId`
+  - `GET /api/commissions/ledger/:ledgerNumber`
+  - `GET /api/commissions/:id`
+
+Swagger: `GET /api-docs`
+
+---
+
+## Events (Outbox)
+
+Outbox table: `ServiceOutbox` (`prisma/schema.prisma`)  
+Writer: `src/services/outbox.service.ts`
+
+Emitted event types:
+- Payment: `payment.created`, `payment.paid`, `payment.expired`, `payment.failed`, `payment.cancelled`
+- Refund: `refund.requested`, `refund.approved`, `refund.rejected`, `refund.completed`, `refund.failed`
+- Commission: `commission.recorded`, `commission.collectible`, `commission.collected`, `commission.waived`, `commission.refunded`
+- Settlement (gateway reconciliation): `settlement.completed`
+
+Important:
+- `settlement.completed` here means **gateway reconciliation**, not “seller payout settlement”.
+
+---
+
+## Integration Guide
+
+### Seller dashboard (seller-service -> payment-service)
+
+Seller dashboard should be served by **seller-service**. It should call payment-service internally:
+- Read commission ledger for a seller:
+  - `GET /api/commissions/seller/:sellerId`
+  - `GET /api/commissions/seller/:sellerId/stats`
+
+Frontend should not call payment-service commission endpoints directly.
+
+Internal request example (seller-service calling payment-service):
+```bash
+curl -s http://payment-service:3007/api/commissions/seller/<sellerId> \
+  -H "X-Service-Name: seller-service" \
+  -H "X-Service-Auth: <serviceName:timestamp:signature>"
+```
+
+Notes:
+- These headers must be generated server-side using `SERVICE_SECRET` (never from the browser).
+
+### How payouts should work (recommended)
+
+Payment-service is not the payout executor. A payout worker (seller-service or wallet-service) should:
+
+1. Determine which sellers are payable (e.g. weekly schedule).
+2. Fetch collectible commissions per seller (internal calls to payment-service).
+3. Execute payout/disbursement using wallet-service / bank transfer.
+4. After payout succeeds, mark commissions as collected:
+   - `POST /api/commissions/seller/:sellerId/collect` (internal-only)
+   - Pass a `settlementId` that references the payout record (owned by wallet/seller service).
+
+Alternative (event-driven):
+- Consume `commission.collectible` outbox events and enqueue payout runs.
+
+### payment-service ↔ order-service
+
+Payment-service may attempt to update order status after payment/refund completion. This is best-effort; the reliable integration is:
+- Consume outbox events (`payment.paid`, `refund.*`) downstream.
+
+---
+
+## Setup & Development
+
+Prereqs: Node.js 18+, pnpm, PostgreSQL
+
+### Environment variables (example)
+```env
+NODE_ENV=development
+PORT=3007
+SERVICE_NAME=payment-service
+
+# Neon / remote Postgres (recommended): include sslmode=require for Neon
+DATABASE_URL=postgresql://user:pass@your-neon-host.neon.tech/payment_db?sslmode=require
+
+GATEWAY_SECRET_KEY=your-gateway-secret-key
+SERVICE_SECRET=your-service-auth-secret
+
+AUTH_SERVICE_URL=http://localhost:3001
+ORDER_SERVICE_URL=http://localhost:3006
+WAREHOUSE_SERVICE_URL=http://localhost:3012
+NOTIFICATION_SERVICE_URL=http://localhost:3008
+
+XENDIT_SECRET_KEY=xnd_development_xxxxx
+XENDIT_WEBHOOK_VERIFICATION_TOKEN=your-webhook-verification-token
+
+PAYMENT_SUCCESS_URL=https://your-domain.com/payment/success
+PAYMENT_FAILURE_URL=https://your-domain.com/payment/failed
+
+OUTBOUND_HTTP_TIMEOUT_MS=8000
+
+ENABLE_EXPIRATION_CRON=true
+EXPIRATION_CRON_SCHEDULE=0 * * * *
+```
+
+### Commands
+From repo root:
+- Install: `pnpm -C backend/services/payment-service install`
+- Dev: `pnpm -C backend/services/payment-service dev`
+- Build: `pnpm -C backend/services/payment-service build`
+- Test: `pnpm -C backend/services/payment-service test`
+
+---
+
+## Docker
+
+- `Dockerfile`: multi-stage build, non-root user, healthcheck
+- `docker-compose.yml`: service + redis (DB is expected to be Neon/remote)
+
+Notes:
+- Docker build uses pnpm (via corepack), consistent with `pnpm-lock.yaml`.
+- Optional schema sync: `payment-migrate` runs `pnpm -s run db:push` under the `migrate` profile (`docker compose --profile migrate ...`).
+
+---
+
+## Troubleshooting
+
+**Webhook returns 403**
+- Check Xendit sends `x-callback-token`
+- Ensure `XENDIT_WEBHOOK_VERIFICATION_TOKEN` matches Xendit dashboard
+
+**Seller dashboard cannot access commissions**
+- Expected: commission endpoints are internal/admin only; route calls through seller-service.
+
+---
+
+<details>
+<summary>Legacy documentation (kept for reference)</summary>
+
+# Payment Service Documentation (Legacy)
 
 ## 1) Purpose
 - Owns payment + refund state (`Payment`, `Refund`, `PaymentGatewayLog`, settlement summaries) and exposes payment/refund APIs.
@@ -22,14 +310,14 @@ Typical request flow:
 ## 3) Runtime contracts
 
 ### Environment variables
-- **`PORT`**: listen port (code default is `3006`; Docker / common usage is `3007`).
+- **`PORT`**: listen port (code default is `3007`).
 - **`NODE_ENV`**: `development|test|production` (affects logging + dev auth bypass).
 - **`DATABASE_URL`**: Postgres connection string for Prisma.
 - **`GATEWAY_SECRET_KEY`**: verifies gateway traffic (`x-gateway-key`).
 - **`SERVICE_SECRET`**: verifies service-to-service HMAC tokens (`x-service-auth` + `x-service-name`).
 - **`XENDIT_SECRET_KEY`**: Xendit API key.
 - **`XENDIT_WEBHOOK_VERIFICATION_TOKEN`**: Xendit callback token (matches `x-callback-token`).
-- **`AUTH_SERVICE_URL`**, **`ORDER_SERVICE_URL`**, **`NOTIFICATION_SERVICE_URL`**: upstream service base URLs.
+- **`AUTH_SERVICE_URL`**, **`ORDER_SERVICE_URL`**, **`WAREHOUSE_SERVICE_URL`**, **`NOTIFICATION_SERVICE_URL`**: upstream service base URLs.
 - **`PAYMENT_SUCCESS_URL`**, **`PAYMENT_FAILURE_URL`**: Xendit redirect URLs.
 - **`ENABLE_EXPIRATION_CRON`**, **`EXPIRATION_CRON_SCHEDULE`**: expire-payment scheduler controls.
 - **`ALLOWED_ORIGINS`**: CORS allowlist (if enabled in `src/index.ts`).
@@ -63,6 +351,7 @@ Base routes:
 - **`/api/admin`** → `src/routes/admin.routes.ts`
 - **`/api/transactions`** → `src/routes/transaction.routes.ts`
 - **`/api/webhooks`** → `src/routes/webhook.routes.ts`
+- **`/api/commissions`** → `src/routes/commission.routes.ts`
 
 Payments & refunds (`/api/payments/*`):
 - Auth: `gatewayOrInternalAuth`
@@ -72,14 +361,27 @@ Payments & refunds (`/api/payments/*`):
   - Refund routes: `PaymentController.*` → `RefundService.*` → `RefundRepository.*`
   - Admin-only payment analytics routes use `requireRole('admin', 'internal')`
 
+Transactions (`/api/transactions/*`):
+- Auth: `gatewayOrInternalAuth`
+- Authorization:
+  - `GET /api/transactions/order/:orderId` and `GET /api/transactions/payment/:paymentId` are user-scoped (a user can only read their own).
+  - `GET /api/transactions/summary`, `GET /api/transactions/recent`, and `GET /api/transactions/:transactionCode` require `requireRole('admin', 'internal')`.
+
 Admin (`/api/admin/*`):
 - Auth: `gatewayAuth` + `requireRole('admin')`
 - Note: some handlers use Prisma directly (tech debt item: move to services).
+
+Commissions (`/api/commissions/*`):
+- Auth: `gatewayOrInternalAuth`
+- Authorization:
+  - Write endpoints (`record`, `complete`, `collect`, `refund`) require `requireRole('internal')` (service-to-service only).
+  - Read endpoints require `requireRole('admin', 'internal')` (seller dashboards should query via seller-service).
 
 Webhooks (`/api/webhooks/xendit/invoice`):
 - Validates `x-callback-token` using `CryptoUtils.verifyXenditWebhook(...)`
 - Performs idempotency using `PaymentGatewayLog`
 - Calls `PaymentService.handlePaidCallback(...)` for `PAID` events
+ - Calls `PaymentService.handleExpiredCallback(...)` for `EXPIRED` events
 
 ## 5) Middleware
 Files under `src/middleware/`.
@@ -110,7 +412,11 @@ Schema changes:
 - Typical emitted events (high-signal):
   - `payment.created`, `payment.paid`, `payment.expired`
   - `refund.requested`, `refund.completed`, `refund.failed`, `refund.approved`, `refund.rejected`
-  - `settlement.completed` (weekly settlement job)
+  - `settlement.completed` (gateway reconciliation settlement; `src/jobs/weekly-settlement.ts`)
+
+Note:
+- `settlement.completed` here represents **gateway reconciliation** (payments/refunds totals vs Xendit), not seller payouts.
+- Seller payout settlement is a separate workflow (wallet/disbursement) and is not implemented end-to-end in this service today.
 
 ## 8) Local development & scripts
 From repo root:
@@ -126,11 +432,10 @@ From repo root:
 ## 9) Docker
 - `Dockerfile`: multi-stage image.
 - `docker-compose.yml`: app + db + one-shot db init container (uses `prisma db push`).
-
-Known caveat:
-- This service has a **`pnpm-lock.yaml`**, but the `Dockerfile` currently uses **`npm ci`**. `npm ci` requires a `package-lock.json`. Either:
-  - switch Dockerfile to pnpm (like logistic-service), or
-  - add and maintain `package-lock.json`.
+ 
+Notes:
+- Docker build uses **pnpm** (via corepack), consistent with `pnpm-lock.yaml`.
+- The `payment-migrate` container uses the Dockerfile `builder` target to run `pnpm -s run db:push`.
 
 ## 10) Tests
 - Unit tests exist for some utils (Jest).
@@ -149,13 +454,13 @@ Known caveat:
 - [ ] **Idempotency**: Ensure order-service retries don't create duplicate commissions (already handled, but test it)
 
 #### **Settlement Job Implementation**
-- [ ] **Create weekly settlement cron job** that:
-  - Runs every Monday at 9 AM
+- [ ] **Implement seller payout settlement job** (separate from gateway reconciliation) that:
+  - Runs on a schedule (weekly/bi-weekly/monthly)
   - For each seller with collectible commissions:
     - Calls `POST /api/commissions/seller/:sellerId/collect`
     - Calculates net payout (gross earnings - commission)
-    - Creates payout record in wallet-service or transfers to bank
-    - Publishes `settlement.completed` event
+    - Creates payout/disbursement record (wallet-service or bank transfer)
+    - Publishes a dedicated payout event (do not reuse `settlement.completed`, which is gateway reconciliation)
 - [ ] **Handle settlement failures**: Rollback mechanism if payout fails mid-process
 - [ ] **Settlement notifications**: Email/WhatsApp to seller with breakdown
 - [ ] **Settlement reports**: Generate PDF invoice with commission breakdown
@@ -374,4 +679,6 @@ Known caveat:
 - `src/repositories/*`: Prisma access layer.
 - `src/utils/*`: shared helpers (incl. `CryptoUtils.verifyXenditWebhook` token compare).
 - `scripts/copy-generated-prisma.mjs`: copies generated Prisma client into `dist/`.
+
+</details>
 

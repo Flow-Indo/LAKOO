@@ -2,7 +2,7 @@
 // SELLER SERVICE DATABASE SCHEMA
 // Service: seller-service (Port 3015)
 // Database: seller_db
-// Owner: Seller accounts, seller products, inventory, payouts, verification
+// Owner: Seller accounts, store page, inventory, payouts, verification
 // =============================================================================
 
 generator client {
@@ -21,68 +21,67 @@ datasource db {
 
 model Seller {
   id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId              String             @unique @db.Uuid // Reference to Auth Service
-  sellerCode          String             @unique @db.VarChar(50) // SLR-XXXXX
+  userId              String             @unique @map("user_id") @db.Uuid // Reference to Auth Service
+  sellerCode          String             @unique @map("seller_code") @db.VarChar(50) // SLR-XXXXX
   // Shop info
-  shopName            String             @db.VarChar(255)
-  shopSlug            String             @unique @db.VarChar(255)
-  shopDescription     String?
-  shopLogoUrl         String?
-  shopBannerUrl       String?
-  shopAnnouncement    String?            @db.VarChar(500)
+  shopName            String             @map("shop_name") @db.VarChar(255)
+  shopSlug            String             @unique @map("shop_slug") @db.VarChar(255)
+  shopDescription     String?            @map("shop_description")
+  shopLogoUrl         String?            @map("shop_logo_url")
+  shopBannerUrl       String?            @map("shop_banner_url")
+  shopAnnouncement    String?            @map("shop_announcement") @db.VarChar(500)
   // Business info
-  businessName        String?            @db.VarChar(255)
-  businessType        BusinessType       @default(individual)
-  businessLicense     String?            @db.VarChar(100)
-  taxId               String?            @db.VarChar(100) // NPWP
+  businessName        String?            @map("business_name") @db.VarChar(255)
+  businessType        BusinessType       @default(individual) @map("business_type")
+  businessLicense     String?            @map("business_license") @db.VarChar(100)
+  taxId               String?            @map("tax_id") @db.VarChar(100) // NPWP
   // Contact
-  contactName         String             @db.VarChar(255)
-  contactEmail        String             @db.VarChar(255)
-  contactPhone        String             @db.VarChar(20)
-  contactWhatsapp     String?            @db.VarChar(20)
+  contactName         String             @map("contact_name") @db.VarChar(255)
+  contactEmail        String             @map("contact_email") @db.VarChar(255)
+  contactPhone        String             @map("contact_phone") @db.VarChar(20)
+  contactWhatsapp     String?            @map("contact_whatsapp") @db.VarChar(20)
   // Address (for pickup)
   address             String?
   district            String?            @db.VarChar(100)
   city                String?            @db.VarChar(100)
   province            String?            @db.VarChar(100)
-  postalCode          String?            @db.VarChar(10)
+  postalCode          String?            @map("postal_code") @db.VarChar(10)
   // Bank details (for payouts)
-  bankName            String?            @db.VarChar(100)
-  bankAccountName     String?            @db.VarChar(255)
-  bankAccountNumber   String?            @db.VarChar(50)
-  bankBranch          String?            @db.VarChar(100)
+  bankName            String?            @map("bank_name") @db.VarChar(100)
+  bankAccountName     String?            @map("bank_account_name") @db.VarChar(255)
+  bankAccountNumber   String?            @map("bank_account_number") @db.VarChar(50)
+  bankBranch          String?            @map("bank_branch") @db.VarChar(100)
   // Commission rate as decimal (0.0050 = 0.5% for LAKOO social commerce)
-  commissionRate      Decimal            @default(0.0050) @db.Decimal(5, 4)
+  commissionRate      Decimal            @default(0.0050) @map("commission_rate") @db.Decimal(5, 4)
   // Performance metrics
-  totalProducts       Int                @default(0)
-  totalOrders         Int                @default(0)
-  totalRevenue        Decimal            @default(0) @db.Decimal(15, 2)
-  avgRating           Decimal?           @db.Decimal(3, 2)
-  reviewCount         Int                @default(0)
-  responseRate        Decimal?           @db.Decimal(5, 2) // Chat response rate
-  responseTime        Int?               // Avg response time in minutes
+  totalProducts       Int                @default(0) @map("total_products")
+  totalOrders         Int                @default(0) @map("total_orders")
+  totalRevenue        Decimal            @default(0) @map("total_revenue") @db.Decimal(15, 2)
+  avgRating           Decimal?           @map("avg_rating") @db.Decimal(3, 2)
+  reviewCount         Int                @default(0) @map("review_count")
+  responseRate        Decimal?           @map("response_rate") @db.Decimal(5, 2) // Chat response rate
+  responseTime        Int?               @map("response_time") // Avg response time in minutes
   // Badges/achievements
   badges              String[]
-  isFeatured          Boolean            @default(false)
+  isFeatured          Boolean            @default(false) @map("is_featured")
   // Verification
-  verificationStatus  VerificationStatus @default(pending)
-  verifiedAt          DateTime?          @db.Timestamptz(6)
-  verifiedBy          String?            @db.Uuid
+  verificationStatus  VerificationStatus @default(pending) @map("verification_status")
+  verifiedAt          DateTime?          @map("verified_at") @db.Timestamptz(6)
+  verifiedBy          String?            @map("verified_by") @db.Uuid
   // Status
   status              SellerStatus       @default(pending)
-  suspendedAt         DateTime?          @db.Timestamptz(6)
-  suspendReason       String?            @db.VarChar(500)
+  suspendedAt         DateTime?          @map("suspended_at") @db.Timestamptz(6)
+  suspendReason       String?            @map("suspend_reason") @db.VarChar(500)
   // Settings
-  autoAcceptOrders    Boolean            @default(true)
-  vacationMode        Boolean            @default(false)
-  vacationMessage     String?            @db.VarChar(500)
-  vacationUntil       DateTime?          @db.Timestamptz(6)
+  autoAcceptOrders    Boolean            @default(true) @map("auto_accept_orders")
+  vacationMode        Boolean            @default(false) @map("vacation_mode")
+  vacationMessage     String?            @map("vacation_message") @db.VarChar(500)
+  vacationUntil       DateTime?          @map("vacation_until") @db.Timestamptz(6)
   // Audit
-  createdAt           DateTime           @default(now()) @db.Timestamptz(6)
-  updatedAt           DateTime           @updatedAt @db.Timestamptz(6)
-  deletedAt           DateTime?          @db.Timestamptz(6)
+  createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?          @map("deleted_at") @db.Timestamptz(6)
 
-  products            SellerProduct[]
   documents           SellerDocument[]
   payouts             SellerPayout[]
   payoutSchedules     SellerPayoutSchedule[]
@@ -102,22 +101,22 @@ model Seller {
 
 model SellerDocument {
   id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sellerId        String         @db.Uuid
-  documentType    SellerDocType
-  documentNumber  String?        @db.VarChar(100)
-  fileUrl         String
-  fileName        String         @db.VarChar(255)
-  fileSize        Int?
+  sellerId        String         @map("seller_id") @db.Uuid
+  documentType    SellerDocType  @map("document_type")
+  documentNumber  String?        @map("document_number") @db.VarChar(100)
+  fileUrl         String         @map("file_url")
+  fileName        String         @map("file_name") @db.VarChar(255)
+  fileSize        Int?           @map("file_size")
   // Verification
   status          DocStatus      @default(pending)
-  verifiedAt      DateTime?      @db.Timestamptz(6)
-  verifiedBy      String?        @db.Uuid
-  rejectedAt      DateTime?      @db.Timestamptz(6)
-  rejectionReason String?        @db.VarChar(500)
+  verifiedAt      DateTime?      @map("verified_at") @db.Timestamptz(6)
+  verifiedBy      String?        @map("verified_by") @db.Uuid
+  rejectedAt      DateTime?      @map("rejected_at") @db.Timestamptz(6)
+  rejectionReason String?        @map("rejection_reason") @db.VarChar(500)
   // Expiry
-  expiresAt       DateTime?      @db.Timestamptz(6)
-  createdAt       DateTime       @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime       @updatedAt @db.Timestamptz(6)
+  expiresAt       DateTime?      @map("expires_at") @db.Timestamptz(6)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
@@ -133,30 +132,30 @@ model SellerDocument {
 
 model SellerStorePage {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sellerId        String   @unique @db.Uuid
+  sellerId        String   @unique @map("seller_id") @db.Uuid
   // Page layout (JSON block-based layout like Taobao store builder)
-  // Blocks: hero_banner, product_grid, category_showcase, promo_banner, etc.
-  layoutBlocks    Json     @default("[]") // [{type, config, order}]
+  // Blocks: hero_banner, image_carousel, product_grid, product_list, text_block, divider, video, collection_link, etc.
+  layoutBlocks    Json     @default(dbgenerated("'[]'::jsonb")) @map("layout_blocks") // [{type, config, order}]
   // Draft layout (for editing without affecting live page)
-  draftLayoutBlocks Json?  // Edited version before publishing
+  draftLayoutBlocks Json?  @map("draft_layout_blocks") // Edited version before publishing
   // Theme customization
-  primaryColor    String?  @db.VarChar(7)  // Hex color
-  secondaryColor  String?  @db.VarChar(7)
-  fontFamily      String?  @db.VarChar(100)
+  primaryColor    String?  @map("primary_color") @db.VarChar(7)  // Hex color
+  secondaryColor  String?  @map("secondary_color") @db.VarChar(7)
+  fontFamily      String?  @map("font_family") @db.VarChar(100)
   // Draft theme (for editing)
-  draftPrimaryColor   String?  @db.VarChar(7)
-  draftSecondaryColor String?  @db.VarChar(7)
-  draftFontFamily     String?  @db.VarChar(100)
+  draftPrimaryColor   String?  @map("draft_primary_color") @db.VarChar(7)
+  draftSecondaryColor String?  @map("draft_secondary_color") @db.VarChar(7)
+  draftFontFamily     String?  @map("draft_font_family") @db.VarChar(100)
   // Custom content
-  customCss       String?  // Advanced users
-  draftCustomCss  String?
+  customCss       String?  @map("custom_css") // Advanced users
+  draftCustomCss  String?  @map("draft_custom_css")
   // Status
-  isPublished     Boolean  @default(false)
-  hasDraftChanges Boolean  @default(false)
-  publishedAt     DateTime? @db.Timestamptz(6)
+  isPublished     Boolean  @default(false) @map("is_published")
+  hasDraftChanges Boolean  @default(false) @map("has_draft_changes")
+  publishedAt     DateTime? @map("published_at") @db.Timestamptz(6)
   // Audit
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
@@ -164,130 +163,32 @@ model SellerStorePage {
 }
 
 // =============================================================================
-// SELLER PRODUCTS
+// SELLER INVENTORY
 // =============================================================================
-
-model SellerProduct {
-  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sellerId        String        @db.Uuid
-  // Link to warehouse product (optional - for sellers using LAKOO products)
-  warehouseProductId String?    @db.Uuid
-  // Product info
-  sku             String?       @db.VarChar(100)
-  name            String        @db.VarChar(255)
-  slug            String        @unique @db.VarChar(255)
-  description     String?
-  shortDescription String?      @db.VarChar(500)
-  // Category (reference to Product Service)
-  categoryId      String?       @db.Uuid
-  categoryName    String?       @db.VarChar(255)
-  // Pricing
-  price           Decimal       @db.Decimal(15, 2)
-  comparePrice    Decimal?      @db.Decimal(15, 2)
-  costPrice       Decimal?      @db.Decimal(15, 2) // Seller's cost
-  // Inventory
-  trackInventory  Boolean       @default(true)
-  quantity        Int           @default(0)
-  lowStockThreshold Int?        @default(5)
-  // Shipping
-  weightGrams     Int?
-  lengthCm        Decimal?      @db.Decimal(10, 2)
-  widthCm         Decimal?      @db.Decimal(10, 2)
-  heightCm        Decimal?      @db.Decimal(10, 2)
-  // Images (JSON array)
-  images          Json?         // [{url, alt, isPrimary}]
-  primaryImageUrl String?
-  // Variants
-  hasVariants     Boolean       @default(false)
-  // Status
-  status          ProductStatus @default(draft)
-  publishedAt     DateTime?     @db.Timestamptz(6)
-  // SEO
-  metaTitle       String?       @db.VarChar(255)
-  metaDescription String?
-  tags            String[]
-  // Performance
-  viewCount       Int           @default(0)
-  soldCount       Int           @default(0)
-  avgRating       Decimal?      @db.Decimal(3, 2)
-  reviewCount     Int           @default(0)
-  // Audit
-  createdAt       DateTime      @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime      @updatedAt @db.Timestamptz(6)
-  deletedAt       DateTime?     @db.Timestamptz(6)
-
-  seller    Seller                 @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  variants  SellerProductVariant[]
-  inventory SellerInventory[]
-
-  @@index([sellerId])
-  @@index([slug])
-  @@index([categoryId])
-  @@index([status])
-  @@index([deletedAt])
-  @@map("seller_product")
-}
-
-model SellerProductVariant {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  productId       String   @db.Uuid
-  sku             String?  @db.VarChar(100)
-  name            String   @db.VarChar(255)
-  // Options
-  option1Name     String?  @db.VarChar(50) // "Color"
-  option1Value    String?  @db.VarChar(100) // "Red"
-  option2Name     String?  @db.VarChar(50) // "Size"
-  option2Value    String?  @db.VarChar(100) // "M"
-  option3Name     String?  @db.VarChar(50)
-  option3Value    String?  @db.VarChar(100)
-  // Pricing
-  price           Decimal  @db.Decimal(15, 2)
-  comparePrice    Decimal? @db.Decimal(15, 2)
-  costPrice       Decimal? @db.Decimal(15, 2)
-  // Inventory
-  quantity        Int      @default(0)
-  // Shipping
-  weightGrams     Int?
-  // Image
-  imageUrl        String?
-  // Status
-  isActive        Boolean  @default(true)
-  sortOrder       Int      @default(0)
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
-
-  product   SellerProduct     @relation(fields: [productId], references: [id], onDelete: Cascade)
-  inventory SellerInventory[]
-
-  @@index([productId])
-  @@index([sku])
-  @@map("seller_product_variant")
-}
 
 model SellerInventory {
   id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sellerId          String    @db.Uuid
-  productId         String    @db.Uuid
-  variantId         String?   @db.Uuid
+  sellerId          String    @map("seller_id") @db.Uuid
+  // References Product Service IDs (product_db), not a local seller_product table.
+  productId         String    @map("product_id") @db.Uuid
+  variantId         String?   @map("variant_id") @db.Uuid
   // Quantities
   quantity          Int       @default(0)
-  reservedQuantity  Int       @default(0)
-  availableQuantity Int       @default(0)
+  reservedQuantity  Int       @default(0) @map("reserved_quantity")
+  availableQuantity Int       @default(0) @map("available_quantity")
   // Location
   location          String?   @db.VarChar(100)
   // Tracking
-  lastRestockedAt   DateTime? @db.Timestamptz(6)
-  lastSoldAt        DateTime? @db.Timestamptz(6)
+  lastRestockedAt   DateTime? @map("last_restocked_at") @db.Timestamptz(6)
+  lastSoldAt        DateTime? @map("last_sold_at") @db.Timestamptz(6)
   // Version for optimistic locking
   version           Int       @default(0)
-  createdAt         DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt         DateTime  @updatedAt @db.Timestamptz(6)
-
-  product SellerProduct         @relation(fields: [productId], references: [id], onDelete: Cascade)
-  variant SellerProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@unique([sellerId, productId, variantId])
   @@index([sellerId])
+  @@index([productId])
   @@map("seller_inventory")
 }
 
@@ -297,39 +198,39 @@ model SellerInventory {
 
 model SellerPayout {
   id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sellerId        String       @db.Uuid
-  payoutNumber    String       @unique @db.VarChar(50) // PAY-20260115-XXXXX
+  sellerId        String       @map("seller_id") @db.Uuid
+  payoutNumber    String       @unique @map("payout_number") @db.VarChar(50) // PAY-20260115-XXXXX
   // Period
-  periodStart     DateTime     @db.Date
-  periodEnd       DateTime     @db.Date
+  periodStart     DateTime     @map("period_start") @db.Date
+  periodEnd       DateTime     @map("period_end") @db.Date
   // Amounts
-  grossAmount     Decimal      @db.Decimal(15, 2) // Total sales
-  commissionAmount Decimal     @default(0) @db.Decimal(15, 2) // Commission (0% for LAKOO)
-  adjustmentAmount Decimal     @default(0) @db.Decimal(15, 2) // Returns, chargebacks, etc.
-  netAmount       Decimal      @db.Decimal(15, 2) // Final payout amount
+  grossAmount     Decimal      @map("gross_amount") @db.Decimal(15, 2) // Total sales
+  commissionAmount Decimal     @default(0) @map("commission_amount") @db.Decimal(15, 2) // Commission (0% for LAKOO)
+  adjustmentAmount Decimal     @default(0) @map("adjustment_amount") @db.Decimal(15, 2) // Returns, chargebacks, etc.
+  netAmount       Decimal      @map("net_amount") @db.Decimal(15, 2) // Final payout amount
   // Order summary
-  orderCount      Int
-  itemCount       Int
+  orderCount      Int          @map("order_count")
+  itemCount       Int          @map("item_count")
   // Bank details snapshot
-  bankName        String       @db.VarChar(100)
-  bankAccountName String       @db.VarChar(255)
-  bankAccountNumber String     @db.VarChar(50)
+  bankName        String       @map("bank_name") @db.VarChar(100)
+  bankAccountName String       @map("bank_account_name") @db.VarChar(255)
+  bankAccountNumber String     @map("bank_account_number") @db.VarChar(50)
   // Status
   status          PayoutStatus @default(pending)
-  approvedAt      DateTime?    @db.Timestamptz(6)
-  approvedBy      String?      @db.Uuid
-  processedAt     DateTime?    @db.Timestamptz(6)
-  paidAt          DateTime?    @db.Timestamptz(6)
-  rejectedAt      DateTime?    @db.Timestamptz(6)
-  rejectionReason String?      @db.VarChar(500)
+  approvedAt      DateTime?    @map("approved_at") @db.Timestamptz(6)
+  approvedBy      String?      @map("approved_by") @db.Uuid
+  processedAt     DateTime?    @map("processed_at") @db.Timestamptz(6)
+  paidAt          DateTime?    @map("paid_at") @db.Timestamptz(6)
+  rejectedAt      DateTime?    @map("rejected_at") @db.Timestamptz(6)
+  rejectionReason String?      @map("rejection_reason") @db.VarChar(500)
   // Transfer reference
-  transferReference String?    @db.VarChar(255)
-  transferProofUrl String?
+  transferReference String?    @map("transfer_reference") @db.VarChar(255)
+  transferProofUrl String?     @map("transfer_proof_url")
   // Notes
   notes           String?
-  internalNotes   String?
-  createdAt       DateTime     @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime     @updatedAt @db.Timestamptz(6)
+  internalNotes   String?      @map("internal_notes")
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   seller Seller           @relation(fields: [sellerId], references: [id])
   items  SellerPayoutItem[]
@@ -343,14 +244,14 @@ model SellerPayout {
 
 model SellerPayoutItem {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  payoutId    String   @db.Uuid
-  orderId     String   @db.Uuid
-  orderNumber String   @db.VarChar(50)
-  orderDate   DateTime @db.Timestamptz(6)
-  grossAmount Decimal  @db.Decimal(15, 2)
+  payoutId    String   @map("payout_id") @db.Uuid
+  orderId     String   @map("order_id") @db.Uuid
+  orderNumber String   @map("order_number") @db.VarChar(50)
+  orderDate   DateTime @map("order_date") @db.Timestamptz(6)
+  grossAmount Decimal  @map("gross_amount") @db.Decimal(15, 2)
   commission  Decimal  @default(0) @db.Decimal(15, 2)
-  netAmount   Decimal  @db.Decimal(15, 2)
-  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  netAmount   Decimal  @map("net_amount") @db.Decimal(15, 2)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   payout SellerPayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
 
@@ -361,19 +262,19 @@ model SellerPayoutItem {
 
 model SellerPayoutSchedule {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sellerId        String   @db.Uuid
+  sellerId        String   @map("seller_id") @db.Uuid
   // Schedule type
   frequency       PayoutFrequency @default(weekly)
-  dayOfWeek       Int?     // 0-6 for weekly
-  dayOfMonth      Int?     // 1-31 for monthly
+  dayOfWeek       Int?     @map("day_of_week") // 0-6 for weekly
+  dayOfMonth      Int?     @map("day_of_month") // 1-31 for monthly
   // Minimum amount
-  minPayoutAmount Decimal  @default(50000) @db.Decimal(15, 2) // Min Rp 50,000
+  minPayoutAmount Decimal  @default(50000) @map("min_payout_amount") @db.Decimal(15, 2) // Min Rp 50,000
   // Status
-  isActive        Boolean  @default(true)
-  nextPayoutDate  DateTime? @db.Date
-  lastPayoutDate  DateTime? @db.Date
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+  isActive        Boolean  @default(true) @map("is_active")
+  nextPayoutDate  DateTime? @map("next_payout_date") @db.Date
+  lastPayoutDate  DateTime? @map("last_payout_date") @db.Date
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   seller Seller @relation(fields: [sellerId], references: [id], onDelete: Cascade)
 
@@ -387,28 +288,28 @@ model SellerPayoutSchedule {
 
 model SellerDailyStat {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sellerId        String   @db.Uuid
+  sellerId        String   @map("seller_id") @db.Uuid
   date            DateTime @db.Date
   // Traffic
-  pageViews       Int      @default(0)
-  uniqueVisitors  Int      @default(0)
-  productViews    Int      @default(0)
+  pageViews       Int      @default(0) @map("page_views")
+  uniqueVisitors  Int      @default(0) @map("unique_visitors")
+  productViews    Int      @default(0) @map("product_views")
   // Conversion
-  addToCartCount  Int      @default(0)
-  checkoutCount   Int      @default(0)
-  orderCount      Int      @default(0)
-  conversionRate  Decimal? @db.Decimal(5, 2)
+  addToCartCount  Int      @default(0) @map("add_to_cart_count")
+  checkoutCount   Int      @default(0) @map("checkout_count")
+  orderCount      Int      @default(0) @map("order_count")
+  conversionRate  Decimal? @map("conversion_rate") @db.Decimal(5, 2)
   // Revenue
-  grossRevenue    Decimal  @default(0) @db.Decimal(15, 2)
-  netRevenue      Decimal  @default(0) @db.Decimal(15, 2)
-  avgOrderValue   Decimal? @db.Decimal(15, 2)
+  grossRevenue    Decimal  @default(0) @map("gross_revenue") @db.Decimal(15, 2)
+  netRevenue      Decimal  @default(0) @map("net_revenue") @db.Decimal(15, 2)
+  avgOrderValue   Decimal? @map("avg_order_value") @db.Decimal(15, 2)
   // Items
-  itemsSold       Int      @default(0)
+  itemsSold       Int      @default(0) @map("items_sold")
   // Returns
-  returnCount     Int      @default(0)
-  returnAmount    Decimal  @default(0) @db.Decimal(15, 2)
-  createdAt       DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt       DateTime @updatedAt @db.Timestamptz(6)
+  returnCount     Int      @default(0) @map("return_count")
+  returnAmount    Decimal  @default(0) @map("return_amount") @db.Decimal(15, 2)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@unique([sellerId, date])
   @@index([date])
@@ -421,16 +322,16 @@ model SellerDailyStat {
 
 model ServiceOutbox {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  aggregateType String    @db.VarChar(100)
-  aggregateId   String    @db.Uuid
-  eventType     String    @db.VarChar(100)
+  aggregateType String    @map("aggregate_type") @db.VarChar(100)
+  aggregateId   String    @map("aggregate_id") @db.Uuid
+  eventType     String    @map("event_type") @db.VarChar(100)
   payload       Json
   metadata      Json?
-  isPublished   Boolean   @default(false)
-  publishedAt   DateTime? @db.Timestamptz(6)
-  retryCount    Int       @default(0)
-  lastError     String?
-  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
+  isPublished   Boolean   @default(false) @map("is_published")
+  publishedAt   DateTime? @map("published_at") @db.Timestamptz(6)
+  retryCount    Int       @default(0) @map("retry_count")
+  lastError     String?   @map("last_error")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([isPublished, createdAt])
   @@index([aggregateType, aggregateId])
@@ -478,15 +379,6 @@ enum DocStatus {
   verified
   rejected
   expired
-}
-
-enum ProductStatus {
-  draft
-  pending_review
-  active
-  inactive
-  out_of_stock
-  suspended
 }
 
 enum PayoutStatus {

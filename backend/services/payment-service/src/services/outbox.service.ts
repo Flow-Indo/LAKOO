@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma';
+import { Prisma } from '../generated/prisma';
 
 /**
  * Outbox Service
@@ -189,6 +190,10 @@ export interface CommissionRefundedPayload {
 // =============================================================================
 
 export class OutboxService {
+  private getDb(tx?: Prisma.TransactionClient) {
+    return tx ?? prisma;
+  }
+
   /**
    * Publish an event to the outbox
    */
@@ -197,7 +202,8 @@ export class OutboxService {
     aggregateId: string,
     eventType: EventType,
     payload: Record<string, any>,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    tx?: Prisma.TransactionClient
   ): Promise<void> {
     const data: any = {
       aggregateType,
@@ -211,7 +217,7 @@ export class OutboxService {
       data.metadata = metadata;
     }
 
-    await prisma.serviceOutbox.create({
+    await this.getDb(tx).serviceOutbox.create({
       data: {
         ...data
       }
@@ -233,7 +239,7 @@ export class OutboxService {
     gatewayTransactionId: string | null;
     expiresAt: Date | null;
     createdAt: Date;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: PaymentCreatedPayload = {
       paymentId: payment.id,
       paymentNumber: payment.paymentNumber,
@@ -247,7 +253,7 @@ export class OutboxService {
       createdAt: payment.createdAt.toISOString()
     };
 
-    await this.publish('Payment', payment.id, 'payment.created', payload);
+    await this.publish('Payment', payment.id, 'payment.created', payload, undefined, tx);
   }
 
   async paymentPaid(payment: {
@@ -260,7 +266,7 @@ export class OutboxService {
     netAmount: any;
     gatewayTransactionId: string | null;
     paidAt: Date | null;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: PaymentPaidPayload = {
       paymentId: payment.id,
       paymentNumber: payment.paymentNumber,
@@ -273,7 +279,7 @@ export class OutboxService {
       paidAt: payment.paidAt?.toISOString() || new Date().toISOString()
     };
 
-    await this.publish('Payment', payment.id, 'payment.paid', payload);
+    await this.publish('Payment', payment.id, 'payment.paid', payload, undefined, tx);
   }
 
   async paymentExpired(payment: {
@@ -281,7 +287,7 @@ export class OutboxService {
     paymentNumber: string;
     orderId: string;
     userId: string;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: PaymentExpiredPayload = {
       paymentId: payment.id,
       paymentNumber: payment.paymentNumber,
@@ -290,7 +296,7 @@ export class OutboxService {
       expiredAt: new Date().toISOString()
     };
 
-    await this.publish('Payment', payment.id, 'payment.expired', payload);
+    await this.publish('Payment', payment.id, 'payment.expired', payload, undefined, tx);
   }
 
   async paymentFailed(payment: {
@@ -300,7 +306,7 @@ export class OutboxService {
     userId: string;
     failureReason: string | null;
     failureCode: string | null;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: PaymentFailedPayload = {
       paymentId: payment.id,
       paymentNumber: payment.paymentNumber,
@@ -311,7 +317,7 @@ export class OutboxService {
       failedAt: new Date().toISOString()
     };
 
-    await this.publish('Payment', payment.id, 'payment.failed', payload);
+    await this.publish('Payment', payment.id, 'payment.failed', payload, undefined, tx);
   }
 
   // =============================================================================
@@ -327,7 +333,7 @@ export class OutboxService {
     amount: any;
     reason: string | null;
     createdAt: Date;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: RefundRequestedPayload = {
       refundId: refund.id,
       refundNumber: refund.refundNumber,
@@ -339,7 +345,7 @@ export class OutboxService {
       createdAt: refund.createdAt.toISOString()
     };
 
-    await this.publish('Refund', refund.id, 'refund.requested', payload);
+    await this.publish('Refund', refund.id, 'refund.requested', payload, undefined, tx);
   }
 
   async refundApproved(refund: {
@@ -349,7 +355,7 @@ export class OutboxService {
     orderId: string;
     approvedAt: Date | null;
     approvedBy: string | null;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: RefundApprovedPayload = {
       refundId: refund.id,
       refundNumber: refund.refundNumber,
@@ -359,7 +365,7 @@ export class OutboxService {
       approvedBy: refund.approvedBy
     };
 
-    await this.publish('Refund', refund.id, 'refund.approved', payload);
+    await this.publish('Refund', refund.id, 'refund.approved', payload, undefined, tx);
   }
 
   async refundRejected(refund: {
@@ -370,7 +376,7 @@ export class OutboxService {
     rejectedAt: Date | null;
     rejectedBy: string | null;
     rejectionReason: string | null;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: RefundRejectedPayload = {
       refundId: refund.id,
       refundNumber: refund.refundNumber,
@@ -381,7 +387,7 @@ export class OutboxService {
       rejectionReason: refund.rejectionReason
     };
 
-    await this.publish('Refund', refund.id, 'refund.rejected', payload);
+    await this.publish('Refund', refund.id, 'refund.rejected', payload, undefined, tx);
   }
 
   async refundCompleted(refund: {
@@ -394,7 +400,7 @@ export class OutboxService {
     refundMethod: string;
     gatewayRefundId: string | null;
     completedAt: Date | null;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: RefundCompletedPayload = {
       refundId: refund.id,
       refundNumber: refund.refundNumber,
@@ -407,7 +413,7 @@ export class OutboxService {
       completedAt: refund.completedAt?.toISOString() || new Date().toISOString()
     };
 
-    await this.publish('Refund', refund.id, 'refund.completed', payload);
+    await this.publish('Refund', refund.id, 'refund.completed', payload, undefined, tx);
   }
 
   async refundFailed(refund: {
@@ -416,7 +422,7 @@ export class OutboxService {
     paymentId: string;
     orderId: string;
     failureReason: string;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: RefundFailedPayload = {
       refundId: refund.id,
       refundNumber: refund.refundNumber,
@@ -426,7 +432,7 @@ export class OutboxService {
       failedAt: new Date().toISOString()
     };
 
-    await this.publish('Refund', refund.id, 'refund.failed', payload);
+    await this.publish('Refund', refund.id, 'refund.failed', payload, undefined, tx);
   }
 
   // =============================================================================
@@ -444,7 +450,7 @@ export class OutboxService {
     commissionRate: any;
     commissionAmount: any;
     createdAt: Date;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: CommissionRecordedPayload = {
       commissionId: commission.id,
       ledgerNumber: commission.ledgerNumber,
@@ -458,7 +464,7 @@ export class OutboxService {
       createdAt: commission.createdAt.toISOString()
     };
 
-    await this.publish('Commission', commission.id, 'commission.recorded', payload);
+    await this.publish('Commission', commission.id, 'commission.recorded', payload, undefined, tx);
   }
 
   async commissionCollectible(commission: {
@@ -468,7 +474,7 @@ export class OutboxService {
     sellerId: string;
     commissionAmount: any;
     orderCompletedAt: Date;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: CommissionCollectiblePayload = {
       commissionId: commission.id,
       ledgerNumber: commission.ledgerNumber,
@@ -478,7 +484,7 @@ export class OutboxService {
       orderCompletedAt: commission.orderCompletedAt.toISOString()
     };
 
-    await this.publish('Commission', commission.id, 'commission.collectible', payload);
+    await this.publish('Commission', commission.id, 'commission.collectible', payload, undefined, tx);
   }
 
   async commissionCollected(commission: {
@@ -489,7 +495,7 @@ export class OutboxService {
     commissionAmount: any;
     settlementId: string | null;
     collectedAt: Date;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: CommissionCollectedPayload = {
       commissionId: commission.id,
       ledgerNumber: commission.ledgerNumber,
@@ -500,7 +506,7 @@ export class OutboxService {
       collectedAt: commission.collectedAt.toISOString()
     };
 
-    await this.publish('Commission', commission.id, 'commission.collected', payload);
+    await this.publish('Commission', commission.id, 'commission.collected', payload, undefined, tx);
   }
 
   async commissionWaived(commission: {
@@ -509,7 +515,7 @@ export class OutboxService {
     orderId: string;
     sellerId: string;
     reason: string;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: CommissionWaivedPayload = {
       commissionId: commission.id,
       ledgerNumber: commission.ledgerNumber,
@@ -519,7 +525,7 @@ export class OutboxService {
       waivedAt: new Date().toISOString()
     };
 
-    await this.publish('Commission', commission.id, 'commission.waived', payload);
+    await this.publish('Commission', commission.id, 'commission.waived', payload, undefined, tx);
   }
 
   async commissionRefunded(commission: {
@@ -527,7 +533,7 @@ export class OutboxService {
     ledgerNumber: string;
     orderId: string;
     sellerId: string;
-  }): Promise<void> {
+  }, tx?: Prisma.TransactionClient): Promise<void> {
     const payload: CommissionRefundedPayload = {
       commissionId: commission.id,
       ledgerNumber: commission.ledgerNumber,
@@ -536,7 +542,7 @@ export class OutboxService {
       refundedAt: new Date().toISOString()
     };
 
-    await this.publish('Commission', commission.id, 'commission.refunded', payload);
+    await this.publish('Commission', commission.id, 'commission.refunded', payload, undefined, tx);
   }
 }
 
