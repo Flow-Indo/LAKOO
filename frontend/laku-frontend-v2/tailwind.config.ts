@@ -20,6 +20,7 @@ const config: Config = {
         'laku-red-dark': '#D84315',
         'laku-gray': '#757575',
         'laku-gray-light': '#F5F5F5',
+        'laku-feed': '#f5f5f7',
         primary: {
           DEFAULT: '#FF6B6B',
           dark: '#FF4444',

@@ -5,10 +5,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { content } = await request.json();
+    const { id: postId } = await params;
 
     // Validate input
     if (!content || content.trim().length === 0) {
@@ -26,7 +27,7 @@ export async function POST(
     // Mock response - replace with actual database logic
     const newComment = {
       id: Date.now().toString(),
-      postId: params.id,
+      postId: postId,
       content: content.trim(),
       author: {
         id: 'user-123', // From session

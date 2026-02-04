@@ -12,7 +12,7 @@ interface RelatedPost {
 }
 
 interface RelatedPostsProps {
-  posts: RelatedPost[];
+  posts?: RelatedPost[];
 }
 
 const formatNumber = (num: number): string => {

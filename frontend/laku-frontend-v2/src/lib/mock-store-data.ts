@@ -10,7 +10,7 @@ export const mockStoreProducts: StoreProduct[] = [
     discount: 31,
     rating: 4.8,
     reviewCount: 234,
-    sold: 1200,
+    sold: '1.2K+',
     category: 'T-Shirts',
     tags: ['Cotton', 'Casual', 'Basic'],
     isBestSeller: true,
@@ -23,7 +23,7 @@ export const mockStoreProducts: StoreProduct[] = [
     price: 299000,
     rating: 4.6,
     reviewCount: 156,
-    sold: 800,
+    sold: '800+',
     category: 'Jeans',
     tags: ['Denim', 'Slim Fit', 'Dark Blue'],
     shipping: { free: true, express: false }
@@ -37,7 +37,7 @@ export const mockStoreProducts: StoreProduct[] = [
     discount: 18,
     rating: 4.9,
     reviewCount: 89,
-    sold: 450,
+    sold: '450+',
     category: 'Shoes',
     tags: ['Running', 'Athletic', 'Performance'],
     isNew: true,
@@ -50,7 +50,7 @@ export const mockStoreProducts: StoreProduct[] = [
     price: 165000,
     rating: 4.7,
     reviewCount: 312,
-    sold: 2100,
+    sold: '2.1K+',
     category: 'Accessories',
     tags: ['Leather', 'RFID', 'Classic'],
     isBestSeller: true,
@@ -65,7 +65,7 @@ export const mockStoreProducts: StoreProduct[] = [
     discount: 25,
     rating: 4.5,
     reviewCount: 178,
-    sold: 950,
+    sold: '950+',
     category: 'Hoodies',
     tags: ['Winter', 'Fleece', 'Warm'],
     shipping: { free: true, express: true }
@@ -77,7 +77,7 @@ export const mockStoreProducts: StoreProduct[] = [
     price: 195000,
     rating: 4.4,
     reviewCount: 267,
-    sold: 1.5,
+    sold: '1.5K+',
     category: 'Accessories',
     tags: ['Sunglasses', 'UV Protection', 'Stylish'],
     shipping: { free: false, express: false }
@@ -224,6 +224,22 @@ export const storeAssets: Record<
     productShowImages: { src: string; y?: string; x?: string; scale?: number }[];
     shirts: string[];
     pants: string[];
+    shirtsProducts?: Array<{
+      id: string;
+      src: string;
+      name: string;
+      variation: string;
+      price: number;
+      originalPrice: number;
+    }>;
+    pantsProducts?: Array<{
+      id: string;
+      src: string;
+      name: string;
+      variation: string;
+      price: number;
+      originalPrice: number;
+    }>;
   }
 > = {
   'store-001': {

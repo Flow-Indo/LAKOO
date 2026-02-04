@@ -1,21 +1,21 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
 
 export function DevAuthProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, setMockUser } = useAuthStore();
+  const [hasLoggedIn, setHasLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Only auto-login in development mode
-    if (process.env.NODE_ENV === 'development') {
-      // Check if user is already authenticated
-      if (!isAuthenticated) {
-        console.log('🔧 DEV MODE: Auto-logging in mock user');
-        setMockUser();
-      }
+    // Always auto-login for testing purposes (works on Vercel too)
+    // This bypasses authentication for easy testing
+    if (!isAuthenticated && !hasLoggedIn) {
+      console.log('🔧 DEV MODE: Auto-logging in mock user for testing');
+      setMockUser();
+      setHasLoggedIn(true);
     }
-  }, [isAuthenticated, setMockUser]);
+  }, [isAuthenticated, setMockUser, hasLoggedIn]);
 
   return <>{children}</>;
 }

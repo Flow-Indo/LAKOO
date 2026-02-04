@@ -63,7 +63,7 @@ export function InfiniteProductFeed({ initialProducts = [], hasMore = false }: I
         <div className="full-bleed">
           <div className="flex" style={{ columnGap: '3px', rowGap: '3px', padding: 0, margin: 0, width: '100%', boxSizing: 'border-box' }}>
           {/* Left column */}
-          <div className="flex-1 flex flex-col" style={{ columnGap: '3px', rowGap: '3px' }}>
+          <div className="pl-1 pr-0.5 flex-1 flex flex-col" style={{ columnGap: '3px', rowGap: '7px' }}>
             {products.filter((_, i) => i % 2 === 0).map((product, idx) => (
               <div key={`${product.id}-left-${idx}`} style={{ width: '100%' }}>
                 <ProductCard product={product} />
@@ -72,7 +72,7 @@ export function InfiniteProductFeed({ initialProducts = [], hasMore = false }: I
           </div>
 
           {/* Right column */}
-          <div className="flex-1 flex flex-col" style={{ columnGap: '3px', rowGap: '3px' }}>
+          <div className="pr-1 pl-0.5 flex-1 flex flex-col" style={{ columnGap: '3px', rowGap: '7px' }}>
             {products.filter((_, i) => i % 2 === 1).map((product, idx) => (
               <div key={`${product.id}-right-${idx}`} style={{ width: '100%' }}>
                 <ProductCard product={product} />

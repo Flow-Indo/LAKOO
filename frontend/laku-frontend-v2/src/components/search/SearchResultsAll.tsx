@@ -12,6 +12,7 @@ interface SearchResultsAllProps {
 // Define post type for XiaohongshuPost
 interface Post {
   id: string;
+  slug: string;
   image: string;
   title: string;
   author: {

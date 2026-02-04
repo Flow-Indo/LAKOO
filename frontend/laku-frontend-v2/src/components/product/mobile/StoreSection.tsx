@@ -1,6 +1,8 @@
-import Image from 'next/image';
+'use client';
+
 import Link from 'next/link';
 import { Store, ShoppingBag } from 'lucide-react';
+import { SafeImage } from '@/components/shared/SafeImage';
 
 interface StoreSectionProps {
   seller: {
@@ -77,12 +79,10 @@ export function StoreSection({ seller, sold }: StoreSectionProps) {
           <Link href={`/store/${seller.id}`} className="flex-shrink-0">
             <div className="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden">
               {seller.logo ? (
-                <Image
+                <SafeImage
                   src={seller.logo}
                   alt={seller.name}
-                  width={56}
-                  height={56}
-                  className="object-cover"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">

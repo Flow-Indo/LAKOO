@@ -19,7 +19,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={productHref} className="block w-full">
-      <div className="bg-white rounded-lg overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow w-full">
+      <div className="bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-md transition-shadow w-full">
         {/* Image Container - enforce either square (1:1) or tall (1:1.5) aspect ratio */}
         {(() => {
           // Prefer explicit product.imageTall when provided (deterministic from mock-data).

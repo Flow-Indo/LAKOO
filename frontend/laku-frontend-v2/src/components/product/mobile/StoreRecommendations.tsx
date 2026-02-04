@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { SafeImage } from '@/components/shared/SafeImage';
 
 interface StoreRecommendationsProps {
   storeId: string;
@@ -112,15 +112,14 @@ export function StoreRecommendations({ storeId, products }: StoreRecommendations
       <div className="grid grid-cols-3 gap-2">
         {filtered.map((product) => (
           <Link key={product.id} href={`/product/${product.id}`}>
-            <div className="bg-white rounded-lg overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
               {/* Image Container */}
               <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                <Image
+                <SafeImage
                   src={product.image}
                   alt={product.name}
-                  fill
                   className="object-cover hover:scale-105 transition-transform duration-300"
-                  sizes="33vw"
+                  fill
                 />
               </div>
               

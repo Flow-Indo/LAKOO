@@ -65,13 +65,26 @@ function transformToProductPageData(product: any) {
   }));
 
   // Create seller data
-  const storeSlug = product.brand.toLowerCase().replace(/\s+/g, '-');
+  // Handle special case for WEAR THREEK (should be 'wearthreek' not 'wear-threek')
+  let storeSlug = product.brand.toLowerCase().replace(/\s+/g, '-');
+  
+  // Check if there's a store with the hyphenated version
+  if (storesData[storeSlug]) {
+    // good, use this slug
+  } else {
+    // Try without hyphen (for WEAR THREEK -> wearthreek)
+    const noHyphenSlug = product.brand.toLowerCase().replace(/\s+/g, '');
+    if (storesData[noHyphenSlug]) {
+      storeSlug = noHyphenSlug;
+    }
+  }
+  
   const storeInfo = storesData[storeSlug] || {};
   
   const seller = {
-    id: `store-${storeSlug}`,
+    id: storeSlug, // Use just the slug for correct linking (e.g., "cult-suri")
     name: product.brand,
-    logo: `/stores/${storeSlug}-logo.jpg`,
+    logo: product.productImages[0] || '/viena/atasan1-removebg-preview.png', // Use main product image as store logo
     rating: product.productData.rating,
     followers: storeInfo.followers || 50000,
     totalSold: storeInfo.totalSold || 0,

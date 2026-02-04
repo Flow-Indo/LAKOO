@@ -6,11 +6,11 @@ import { useRouter } from 'next/navigation';
 
 interface PostHeaderProps {
   author: {
-    id: string;
+    id?: string;
     name: string;
     avatar: string;
     followerCount: number;
-    isFollowing: boolean;
+    isFollowing?: boolean;
   };
 }
 
@@ -25,7 +25,7 @@ const formatFollowerCount = (count: number): string => {
 
 export default function PostHeader({ author }: PostHeaderProps) {
   const router = useRouter();
-  const [isFollowing, setIsFollowing] = useState(author.isFollowing);
+  const [isFollowing, setIsFollowing] = useState(author.isFollowing ?? false);
 
   const handleShare = () => {
     if (navigator.share) {

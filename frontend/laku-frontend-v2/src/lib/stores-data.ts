@@ -9,7 +9,7 @@ export const storesData: Record<string, StoreData> = {
     tagline: 'Elegant Fashion for Modern Women',
     description: 'CULT SURI menghadirkan koleksi fashion elegan dengan sentuhan modern untuk wanita Indonesia. Setiap piece dirancang dengan detail yang indah dan material premium.',
     coverImage: '/products/CULT SURI - Coco Top Chiffon Dengan Scarf Detail/cult_produk.webp',
-    logoImage: '/stores/cult-suri-logo.png',
+    logoImage: '/products/CULT SURI - Coco Top Chiffon Dengan Scarf Detail/cult_produk.webp',
     
     instagram: '@cultsuri',
     website: 'https://cultsuri.com',
@@ -38,13 +38,14 @@ export const storesData: Record<string, StoreData> = {
     tagline: 'Contemporary Indonesian Fashion',
     description: 'Karakiri adalah brand fashion Indonesia yang mengusung konsep contemporary dengan sentuhan lokal. Kami menghadirkan pieces yang versatile dan mudah dipadukan.',
     coverImage: '/products/Karakiri - Jolie Pants | Wide Leg Trousers | Culotte Pants/kara_produk.webp',
-    logoImage: '/stores/karakiri-logo.png',
+    logoImage: '/products/Karakiri - Jolie Pants | Wide Leg Trousers | Culotte Pants/kara_produk.webp',
     
     instagram: '@karakiri.id',
     website: 'https://karakiri.id',
     location: 'Bandung, Indonesia',
     
     followers: 89000,
+    totalSold: 50000,
     productsCount: 62,
     rating: 4.9,
     
@@ -66,13 +67,14 @@ export const storesData: Record<string, StoreData> = {
     tagline: 'Feminine & Sophisticated Style',
     description: 'RUE menghadirkan koleksi fashion feminine dengan desain yang sophisticated. Setiap piece dirancang untuk wanita yang ingin tampil anggun dalam setiap kesempatan.',
     coverImage: '/products/RUE - Sheer Top Atasan Lengan Panjang Boatneck Longsleeve/rue_produk.webp',
-    logoImage: '/stores/rue-logo.png',
+    logoImage: '/products/RUE - Sheer Top Atasan Lengan Panjang Boatneck Longsleeve/rue_produk.webp',
     
     instagram: '@rue.indonesia',
     website: 'https://rue-fashion.com',
     location: 'Surabaya, Indonesia',
     
     followers: 67000,
+    totalSold: 35000,
     productsCount: 35,
     rating: 4.7,
     
@@ -94,13 +96,14 @@ export const storesData: Record<string, StoreData> = {
     tagline: 'Y2K Fashion & Streetwear',
     description: 'WEAR THREEK adalah brand streetwear yang terinspirasi dari era Y2K. Kami menghadirkan fashion yang bold, trendy, dan expressive untuk generasi muda Indonesia.',
     coverImage: '/products/WEAR THREEK - Britney Low Waist Jeans/wearthreek_produk.webp',
-    logoImage: '/stores/wearthreek-logo.png',
+    logoImage: '/products/WEAR THREEK - Britney Low Waist Jeans/wearthreek_produk.webp',
     
     instagram: '@wearthreek',
     website: 'https://wearthreek.com',
     location: 'Jakarta, Indonesia',
     
     followers: 156000,
+    totalSold: 85000,
     productsCount: 85,
     rating: 4.9,
     
