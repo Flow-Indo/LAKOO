@@ -19,7 +19,7 @@ interface MobileStorePageProps {
 }
 
 export function MobileStorePage({ store, showBottomNav = true }: MobileStorePageProps) {
-  const [activeTab, setActiveTab] = useState<StoreTab>('products');
+  const [activeTab, setActiveTab] = useState<StoreTab>('home');
   const [filters, setFilters] = useState<StoreFilter>({});
   const [sortBy, setSortBy] = useState<StoreSortOption>('recommended');
   const [isFollowing, setIsFollowing] = useState<boolean>(!!store.isFollowing);

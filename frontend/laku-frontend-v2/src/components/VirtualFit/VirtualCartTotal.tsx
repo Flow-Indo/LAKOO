@@ -16,15 +16,16 @@ interface Props {
   onSelectAll: (checked: boolean) => void;
   summary: Summary;
   onCheckout?: () => void;
+  popupOpen?: boolean;
 }
 
-export default function VirtualCartTotal({ selectAll, onSelectAll, summary, onCheckout }: Props) {
+export default function VirtualCartTotal({ selectAll, onSelectAll, summary, onCheckout, popupOpen }: Props) {
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value);
 
   return (
     // sticky footer across sizes (positioned above BottomNav) - match CartTotalSticky markup
-    <div className="fixed bottom-16 left-0 right-0 z-[9999] md:hidden">
+    <div className={`fixed bottom-16 left-0 right-0 md:hidden ${popupOpen ? 'z-10' : 'z-[9999]'}`}>
       <div className="bg-white rounded-t-lg p-3 flex items-center justify-between w-full border-b border-gray-200">
         <div className="flex items-center gap-[10px]">
           <label

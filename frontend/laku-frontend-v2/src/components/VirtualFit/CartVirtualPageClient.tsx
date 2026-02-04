@@ -19,6 +19,7 @@ export default function CartVirtualPageClient() {
   const [selectedShirtId, setSelectedShirtId] = useState<string | undefined>(() => initialShirts[0]?.id);
   const [selectedPantId, setSelectedPantId] = useState<string | undefined>(() => initialPants[0]?.id);
   const [selectMode, setSelectMode] = useState<boolean>(false);
+  const [popupOpen, setPopupOpen] = useState<boolean>(false);
   // use central cart store for selection
   const selectedIds = useCartStore(state => state.selectedIds);
   const toggleSelect = useCartStore(state => state.toggleSelectItem);
@@ -70,7 +71,7 @@ export default function CartVirtualPageClient() {
   return (
     <div className="min-h-screen bg-white-50 flex flex-col">
       
-      <div className="flex-1 min-h-0 overflow-auto pb-[72px]">
+      <div className="flex-1 min-h-0 overflow-auto pb-[0px]">
         <PreviewFit
           shirts={shirts}
           pants={pants}
@@ -116,9 +117,13 @@ export default function CartVirtualPageClient() {
               });
             }
           }}
+          onPopupOpenChange={(open: boolean) => {
+            // set a top-level flag in parent if needed
+            setPopupOpen(open);
+          }}
         />
       </div>
-      <VirtualCartTotal selectAll={selectAll} onSelectAll={onSelectAll} summary={summary} onCheckout={() => { console.log('checkout'); }} />
+      <VirtualCartTotal popupOpen={popupOpen} selectAll={selectAll} onSelectAll={onSelectAll} summary={summary} onCheckout={() => { console.log('checkout'); }} />
     </div>
   );
 }

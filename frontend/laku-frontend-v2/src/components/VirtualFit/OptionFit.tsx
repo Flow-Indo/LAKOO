@@ -2,6 +2,7 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { Trash2, ChevronRight } from 'lucide-react';
+import SeeAllPopUp from './SeeAllPopUp';
 
 type FitProduct = {
   id: string;
@@ -24,6 +25,7 @@ interface Props {
   selectedIds?: string[];
   onToggleSelect?: (id: string) => void;
   onRemoveProduct?: (type: 'shirt' | 'pant', id: string) => void;
+  onPopupOpenChange?: (open: boolean) => void;
 }
 
 export default function OptionFit({
@@ -37,6 +39,7 @@ export default function OptionFit({
   selectedIds = [],
   onToggleSelect,
   onRemoveProduct,
+  onPopupOpenChange,
 }: Props) {
   const selectedShirt = shirts.find(s => s.id === selectedShirtId) ?? shirts[0];
   const selectedPant = pants.find(p => p.id === selectedPantId) ?? pants[0];
@@ -44,6 +47,31 @@ export default function OptionFit({
   const [showAllPants, setShowAllPants] = useState<boolean>(false);
   const [removingIds, setRemovingIds] = useState<string[]>([]);
  
+  useEffect(() => {
+    onPopupOpenChange?.(showAllTops || showAllPants);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAllTops, showAllPants]);
+
+  const rootRef = useRef<HTMLElement | null>(null);
+
+  function findScrollParent(startEl: HTMLElement | null): HTMLElement | null {
+    let el = startEl?.parentElement ?? null;
+    while (el && el !== document.body && el !== document.documentElement) {
+      try {
+        const style = window.getComputedStyle(el);
+        const overflowY = style.overflowY;
+        if ((overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay') && el.scrollHeight > el.clientHeight) {
+          return el;
+        }
+      } catch {
+        // ignore
+      }
+      el = el.parentElement;
+    }
+    return null;
+  }
+ 
+
   // Implement continuous carousel per row using tripled slides (like CarouselVerOne)
   const shirtInnerRef = useRef<HTMLDivElement | null>(null);
   const pantInnerRef = useRef<HTMLDivElement | null>(null);
@@ -111,6 +139,8 @@ export default function OptionFit({
     if (shirts.length <= 1) return;
     shirtStartXRef.current = clientX;
     shirtIsDraggingRef.current = true;
+    // sync previous translate to current to avoid jump when starting a drag
+    shirtPrevTranslate.current = shirtCurrentTranslate.current;
     if (shirtInnerRef.current) shirtInnerRef.current.style.transition = 'none';
   }
 
@@ -151,6 +181,8 @@ export default function OptionFit({
     if (pants.length <= 1) return;
     pantStartXRef.current = clientX;
     pantIsDraggingRef.current = true;
+    // sync previous translate to current to avoid jump when starting a drag
+    pantPrevTranslate.current = pantCurrentTranslate.current;
     if (pantInnerRef.current) pantInnerRef.current.style.transition = 'none';
   }
 
@@ -235,7 +267,7 @@ export default function OptionFit({
 
   return (
     <>
-    <section className="max-w-7xl mx-auto px-4 py-2.5 bg-[#F7F7F7] grid grid-cols-1 gap-1">
+    <section ref={rootRef} className="max-w-7xl mx-auto px-4 py-2.5 bg-[#F7F7F7] grid grid-cols-1 gap-1">
       <div className="w-full overflow-hidden">
         <div
           ref={shirtInnerRef}
@@ -356,106 +388,30 @@ export default function OptionFit({
         </div>
       </div>
     </section>
-    <div
-      className={`fixed inset-x-0 bottom-0 h-1/2 bg-white z-50 shadow-xl overflow-auto transform transition-transform transition-opacity duration-300 ease-out ${showAllTops ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}
-      aria-hidden={!showAllTops}
-    >
-      <div className="px-4 py-3 border-b flex items-center justify-between">
-        <h3 className="text-lg font-semibold">All Tops</h3>
-        <button
-          type="button"
-          className="px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded"
-          onClick={() => setShowAllTops(false)}
-          aria-label="Close"
-        >
-          Close
-        </button>
-      </div>
-      <div className="p-4 space-y-3">
-        {shirts.map((t) => (
-          <div
-            key={t.id}
-            className="flex items-center gap-3 p-2 border rounded hover:bg-gray-50 cursor-pointer"
-            onClick={() => {
-              onSelectShirt(t.id);
-              setShowAllTops(false);
-            }}
-          >
-            <div className="w-16 h-16 rounded border p-1 flex items-center justify-center bg-white">
-              <img src={t.src} alt={t.name} className="object-contain w-full h-full" />
-            </div>
-            <div className="flex-1">
-              <div className="text-sm font-bold text-gray-900">{t.name}</div>
-              <div className="text-sm text-gray-600">{t.variation}</div>
-            </div>
-            <div className="text-red-600 font-semibold flex flex-col items-end">
-              <div>Rp{t.price?.toLocaleString()}</div>
-              <button
-                type="button"
-                aria-label="Delete"
-                className="mt-2 text-sm text-gray-500 hover:text-red-500"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemoveProduct?.('shirt', t.id);
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-    <div
-      className={`fixed inset-x-0 bottom-0 h-1/2 bg-white z-50 shadow-xl overflow-auto transform transition-transform transition-opacity duration-300 ease-out ${showAllPants ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}
-      aria-hidden={!showAllPants}
-    >
-      <div className="px-4 py-3 border-b flex items-center justify-between">
-        <h3 className="text-lg font-semibold">All Pants</h3>
-        <button
-          type="button"
-          className="px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded"
-          onClick={() => setShowAllPants(false)}
-          aria-label="Close"
-        >
-          Close
-        </button>
-      </div>
-      <div className="p-4 space-y-3">
-        {pants.map((pt) => (
-          <div
-            key={pt.id}
-            className="flex items-center gap-3 p-2 border rounded hover:bg-gray-50 cursor-pointer"
-            onClick={() => {
-              onSelectPant(pt.id);
-              setShowAllPants(false);
-            }}
-          >
-            <div className="w-16 h-16 rounded border p-1 flex items-center justify-center bg-white">
-              <img src={pt.src} alt={pt.name} className="object-contain w-full h-full" />
-            </div>
-            <div className="flex-1">
-              <div className="text-sm font-bold text-gray-900">{pt.name}</div>
-              <div className="text-sm text-gray-600">{pt.variation}</div>
-            </div>
-            <div className="text-red-600 font-semibold flex flex-col items-end">
-              <div>Rp{pt.price?.toLocaleString()}</div>
-              <button
-                type="button"
-                aria-label="Delete"
-                className="mt-2 text-sm text-gray-500 hover:text-red-500"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemoveProduct?.('pant', pt.id);
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    <SeeAllPopUp
+      open={showAllTops}
+      title="All Tops"
+      items={shirts}
+      onClose={() => setShowAllTops(false)}
+      onSelect={(id: string) => {
+        onSelectShirt(id);
+        setShowAllTops(false);
+      }}
+      onRemove={(id: string) => onRemoveProduct?.('shirt', id)}
+      itemType="shirt"
+    />
+    <SeeAllPopUp
+      open={showAllPants}
+      title="All Pants"
+      items={pants}
+      onClose={() => setShowAllPants(false)}
+      onSelect={(id: string) => {
+        onSelectPant(id);
+        setShowAllPants(false);
+      }}
+      onRemove={(id: string) => onRemoveProduct?.('pant', id)}
+      itemType="pant"
+    />
     </>
   );
 }
