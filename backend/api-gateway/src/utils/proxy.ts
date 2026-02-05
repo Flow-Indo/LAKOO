@@ -14,12 +14,33 @@ const forwardHeaders = (proxyReq: any, req: any) => {
     proxyReq.setHeader('x-gateway-auth', gatewayKey)
 }
 
+function forwardParsedBody(proxyReq: any, req: any) {
+    const method = String(req.method || 'GET').toUpperCase();
+    if (method === 'GET' || method === 'HEAD') return;
+
+    if (!req.body) return;
+
+    const contentType = String(proxyReq.getHeader('Content-Type') || req.headers['content-type'] || '').toLowerCase();
+    if (!contentType.includes('application/json')) return;
+
+    try {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+    } catch (err) {
+        console.warn('Failed to forward parsed JSON body to upstream service:', err);
+    }
+}
+
 export const createServiceProxy = (target: string, pathRewrite?: any) => 
   createProxyMiddleware({
     target,
     changeOrigin: true,
     pathRewrite,
-    onProxyReq: forwardHeaders,
+    onProxyReq: (proxyReq: any, req: any) => {
+      forwardHeaders(proxyReq, req);
+      forwardParsedBody(proxyReq, req);
+    },
     onError: (err: any, req: any, res: any) => {
       console.error('Service error:', err.message);
       res.status(503).json({ error: 'Service unavailable' });
