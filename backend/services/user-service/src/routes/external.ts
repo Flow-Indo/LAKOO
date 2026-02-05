@@ -1,14 +1,14 @@
 import {Router,  type Request, type Response} from 'express';
-import { UserController } from '@src/controllers/user_controller';
-import { getUserParamsSchema, getUserBodyLoginSchema, getUserBodySignUpSchema } from '@shared/schemas/user_zodSchema';
-import { validate } from '@shared/middleware/validateZodMiddleware';
+import { UserController } from '@src/controllers/user_controller.js';
+import {  getUserBodyLoginSchema } from '@shared/schemas/user_zodSchema.js';
+import { validate } from '@shared/middleware/validateZodMiddleware.js';
 
 const externalRouter = Router();
 
 const controller = new UserController();
 
 
-externalRouter.get("/", validate(getUserParamsSchema), controller.findUser);
+externalRouter.get("/:identifier", controller.findUser);
 externalRouter.post("/verify", validate(getUserBodyLoginSchema), controller.verifyUser);
 
 

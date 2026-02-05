@@ -1,9 +1,7 @@
-import { UserController } from "@src/controllers/user_controller";
+import { UserController } from "@src/controllers/user_controller.js";
 import { Router } from "express";
-import { getUserBodySignUpSchema } from "@shared/schemas/user_zodSchema";
-import { validate } from '@shared/middleware/validateZodMiddleware';
-
-
+import { getUserBodySignUpSchema } from "@shared/schemas/user_zodSchema.js";
+import { validate } from '@shared/middleware/validateZodMiddleware.js';
 
 const internalRouter = Router();
 const controller = new UserController();

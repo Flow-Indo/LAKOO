@@ -1,5 +1,5 @@
-import { UserResponseDTO } from "@src/types/response_dto";
-import { UserRepository } from "@src/repositories/user_repository";
+import { UserResponseDTO } from "@src/types/response_dto.js";
+import { UserRepository } from "@src/repositories/user_repository.js";
 import bcrypt from 'bcrypt';
 
 export class UserService {
@@ -9,9 +9,31 @@ export class UserService {
         this.user_repository = new UserRepository();
     }
 
-    async findUser(phoneNumber: string) {
+    async findUserByPhoneNumber(phoneNumber: string): Promise<UserResponseDTO | null> {
         try {
             const user = await this.user_repository.findByPhoneNumber(phoneNumber);
+
+            if(!user) {
+                return null;
+            }
+
+            const userResponse : UserResponseDTO = {
+                userId: user.id,
+                phoneNumber: user.phoneNumber,
+                firstName: user.firstName ?? '',
+                lastName: user.lastName,
+                role: user.role
+            }
+
+            return userResponse;
+        } catch {
+            return null;
+        }
+    }
+
+    async findUserByID(userID: string) : Promise<UserResponseDTO | null> {
+        try {
+            const user = await this.user_repository.findByUserID(userID);
 
             if(!user) {
                 return null;

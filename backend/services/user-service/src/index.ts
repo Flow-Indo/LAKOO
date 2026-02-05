@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { externalRouter } from '@src/routes/external';
-import { internalRouter } from '@src/routes/internal';
+import { externalRouter } from '@src/routes/external.js';
+import { internalRouter } from '@src/routes/internal.js';
 
 dotenv.config();
 

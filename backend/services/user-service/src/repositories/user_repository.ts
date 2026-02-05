@@ -1,7 +1,7 @@
-import { prisma } from '@src/lib/prisma';
+import { prisma } from '@src/lib/prisma.js';
 import bcrypt from 'bcrypt';
 import { error } from 'console';
-import { UserRole } from '@src/models/models';
+import { UserRole } from '@src/models/models.js';
 
 
 export class UserRepository {
@@ -10,6 +10,25 @@ export class UserRepository {
         try {
             return prisma.user.findUnique({
                 where: { phoneNumber: phoneNumber },
+                select: {
+                    id: true,
+                    phoneNumber: true,
+                    firstName: true,
+                    lastName: true,
+                    role: true,
+                    passwordHash: true
+                }
+            })
+        } catch(error) {
+            throw error;
+        }
+        
+    }
+
+    async findByUserID (userID: string) {
+        try {
+            return prisma.user.findUnique({
+                where: { id : userID },
                 select: {
                     id: true,
                     phoneNumber: true,

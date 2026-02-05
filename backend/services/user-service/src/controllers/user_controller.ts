@@ -1,6 +1,7 @@
 import { type Request, type Response} from 'express';
-import { UserService } from '@src/services/user_service';
-import { UserResponseDTO } from '@src/types/response_dto';
+import { UserService } from '@src/services/user_service.js';
+import { UserResponseDTO } from '@src/types/response_dto.js';
+import { findUserSchema } from '@shared/schemas/user_zodSchema.js';
 
 
 export class UserController {
@@ -12,8 +13,15 @@ export class UserController {
    findUser = async(req: Request, res: Response) => {
         try {
             //parse and validate params using zod
-            const { phoneNumber } = req.params;
-            const user : UserResponseDTO | null = await this.userService.findUser(phoneNumber as string);
+            const validated = findUserSchema.parse(req.query);
+
+            let user : UserResponseDTO | null = null;
+
+            if(validated.phoneNumber) {
+                user = await this.userService.findUserByPhoneNumber(validated.phoneNumber);
+            } else if(validated.userId) {
+                user = await this.userService.findUserByID(validated.userId);
+            }
 
             if(!user) {
                 res.status(404).json({
