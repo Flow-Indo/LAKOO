@@ -8,7 +8,7 @@ import (
 
 type CartServiceInterface interface {
 	AddToCart(ctx context.Context, userId string, request types.CartItemRequest) error
-	RemoveFromCart(userId string, productId string) error
+	RemoveFromCart(userId string, sku string) error
 	GetActiveCart(userId string) (*types.CartResponseDTO, error)
 	ClearCart(userId string) error
 }

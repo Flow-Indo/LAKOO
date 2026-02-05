@@ -37,9 +37,9 @@ func (s *CartService) AddToCart(ctx context.Context, userId string, request type
 	if err != nil {
 		return err
 	}
-	//check is no product, or check if requested quantity > stock quantity
-	if productResponse == nil || productResponse.StockQuantity < request.Quantity {
-		return errors.New("Requested quantity exceeds the stock quantity for this product")
+	// //check is no product, or check if requested quantity > stock quantity
+	if productResponse == nil {
+		return errors.New("product not found")
 	}
 
 	//check if seller product or brand
@@ -58,13 +58,38 @@ func (s *CartService) AddToCart(ctx context.Context, userId string, request type
 		return err
 	}
 
+	userUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return fmt.Errorf("invalid user ID format: %w", err)
+	}
+	//create cart if user does not have an active cart
+	if existingActiveCart == nil {
+		newCart := &models.Cart{
+			UserID:         &userUUID,
+			Status:         models.CartStatusActive,
+			Currency:       "IDR",
+			ItemCount:      1,
+			Total:          float64(request.Quantity),
+			DiscountAmount: 0,
+			LastActivityAt: time.Now(),
+			CreatedAt:      time.Now(),
+			UpdatedAt:      time.Now(),
+		}
+
+		if err := s.repository.CreateCart(newCart); err != nil {
+			return err
+		}
+	}
+
+	//if active cart is available now
 	if existingActiveCart != nil {
 		currentPrice := productResponse.Price
 		priceChanged := false
 
 		for _, cartItem := range existingActiveCart.Items {
-			//if product exists already in the cart
-			if cartItem.ProductID.String() == request.ProductID && cartItem.ItemType == itemType {
+			//if product of same sku exists already in the cart
+			//if it is the same sku and same item type
+			if cartItem.ItemType == itemType && cartItem.SnapshotSKU == &productResponse.SKU {
 				priceChanged = cartItem.SnapshotUnitPrice != currentPrice
 
 				cartItem.Quantity += request.Quantity
@@ -86,11 +111,15 @@ func (s *CartService) AddToCart(ctx context.Context, userId string, request type
 					return fmt.Errorf("Unable to update cart for productID: %v", request.ProductID)
 				}
 
+				if err := s.repository.RecalculateCartTotals(existingActiveCart.ID); err != nil {
+					return err
+				}
+
 				return nil
 			}
 		}
 
-		//if product didnt exist in the cart
+		//if product sku didnt exist in the cart
 
 		productID, _ := uuid.Parse(productResponse.ID)
 		newCartItem := &models.CartItem{
@@ -109,7 +138,7 @@ func (s *CartService) AddToCart(ctx context.Context, userId string, request type
 			PriceChanged:       false,
 			PriceLastCheckedAt: time.Now(),
 			Subtotal:           currentPrice * float64(request.Quantity),
-			IsAvailable:        true,
+			IsAvailable:        productResponse.StockQuantity >= 1,
 			//Availability message
 			//SnapshotVariantName
 			//SnapshotSellerName
@@ -118,13 +147,20 @@ func (s *CartService) AddToCart(ctx context.Context, userId string, request type
 			SnapshotImageURL:    &productResponse.ImageURL,
 			SnapshotSKU:         &productResponse.SKU,
 		}
+		if !newCartItem.IsAvailable {
+			message := "product is not available"
+			newCartItem.AvailabilityMessage = &message
+		}
 		//add item count
 		existingActiveCart.ItemCount += 1
 
 		if err := s.repository.CreateCartItem(userId, existingActiveCart.ID.String(), newCartItem); err != nil {
 			return fmt.Errorf("Unable to create cartItem for productID: %v", productResponse.ID)
 		}
-	} else { //if user does not have an active cart
+
+		if err := s.repository.RecalculateCartTotals(existingActiveCart.ID); err != nil {
+			return err
+		}
 
 	}
 
@@ -137,16 +173,54 @@ func (s *CartService) GetActiveCart(userId string) (*types.CartResponseDTO, erro
 		return nil, err
 	}
 
+	if cart == nil {
+		return &types.CartResponseDTO{
+			ItemCount: 0,
+			Items:     []models.CartItem{},
+			Total:     0,
+		}, nil
+	}
+
 	return s.parseToCartResponse(cart), nil
 
 }
 
-func (s *CartService) RemoveFromCart(userId string, productId string) error {
-	return nil
+func (s *CartService) RemoveFromCart(userId string, sku string) error {
+	cart, err := s.repository.GetActiveCartByUserId(userId)
+	if err != nil {
+		return err
+	}
+
+	if cart == nil {
+		return errors.New("no active cart found")
+	}
+
+	skuUUID, err := uuid.Parse(sku)
+	if err != nil {
+		return fmt.Errorf("invalid product ID format: %w", err)
+	}
+
+	if err := s.repository.RemoveCartItem(cart.ID, skuUUID); err != nil {
+		return err
+	}
+
+	return s.repository.RecalculateCartTotals(cart.ID)
 }
 
 func (s *CartService) ClearCart(userId string) error {
-	return nil
+	cart, err := s.repository.GetActiveCartByUserId(userId)
+	if err != nil {
+		return err
+	}
+	if cart == nil {
+		return nil
+	}
+
+	if err := s.repository.DeleteAllCartItems(cart.ID); err != nil {
+		return err
+	}
+
+	return s.repository.RecalculateCartTotals(cart.ID)
 }
 
 func (s *CartService) parseToCartResponse(cart *models.Cart) *types.CartResponseDTO {

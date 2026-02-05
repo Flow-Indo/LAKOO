@@ -14,22 +14,22 @@ import (
 )
 
 type ProductHTTPClient struct {
-	GatewayURL    string
-	httpClient    *http.Client
-	serviceName   string
-	serviceSecret string
+	ProductServiceURL string
+	httpClient        *http.Client
+	serviceName       string
+	serviceSecret     string
 }
 
 type ProductHTTPClientConfig struct {
-	GatewayURL    string
-	Timeout       time.Duration
-	ServiceName   string
-	ServiceSecret string
+	ProductServiceURL string
+	Timeout           time.Duration
+	ServiceName       string
+	ServiceSecret     string
 }
 
 func NewProductHTTPClient(config ProductHTTPClientConfig) client.ProductServiceClient {
 	return &ProductHTTPClient{
-		GatewayURL: config.GatewayURL,
+		ProductServiceURL: config.ProductServiceURL,
 		httpClient: &http.Client{
 			Timeout: config.Timeout,
 		},
@@ -45,7 +45,7 @@ func (c *ProductHTTPClient) addServiceHeaders(req *http.Request) {
 }
 
 func (c *ProductHTTPClient) GetProductByIdBase(ctx context.Context, productId string) (*types.ProductResponseDTO, error) {
-	url := fmt.Sprintf("%s/api/v1/products/productsBase/%s", c.GatewayURL, productId)
+	url := fmt.Sprintf("%s/api/product/productsBase/%s", c.ProductServiceURL, productId)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {

@@ -54,6 +54,10 @@ func (h *CartHandler) AddToCart(w http.ResponseWriter, r *http.Request) {
 		utils.WriteJSONResponse(w, http.StatusInternalServerError, err)
 	}
 
+	utils.WriteJSONResponse(w, http.StatusOK, map[string]any{
+		"success": true,
+	})
+
 }
 
 func (h *CartHandler) GetActiveCart(w http.ResponseWriter, r *http.Request) {

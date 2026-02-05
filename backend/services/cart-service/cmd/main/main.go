@@ -30,10 +30,10 @@ func main() {
 	})
 
 	productClient := clients.NewProductHTTPClient(clients.ProductHTTPClientConfig{
-		GatewayURL:    config.Envs.GATEWAY_URL,
-		Timeout:       5 * time.Second,
-		ServiceName:   "product-service",
-		ServiceSecret: config.Envs.SERVICE_SECRET,
+		ProductServiceURL: config.Envs.PRODUCT_SERVICE_URL,
+		Timeout:           5 * time.Second,
+		ServiceName:       "product-service",
+		ServiceSecret:     config.Envs.SERVICE_SECRET,
 	})
 
 	cartRepository := repository.NewCartRepository(database)
