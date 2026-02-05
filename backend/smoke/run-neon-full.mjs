@@ -133,10 +133,19 @@ function randomSchema(prefix) {
   return `smoke_${prefix}_${Date.now()}_${rnd}`;
 }
 
+function generateGatewayToken(secret) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const message = `apiGateway:${timestamp}`;
+  const signature = crypto.createHmac('sha256', secret).update(message).digest('hex');
+  return `apiGateway:${timestamp}:${signature}`;
+}
+
 function gatewayHeaders(gatewayKey, userId, role) {
   return {
     'content-type': 'application/json',
+    // Back-compat: send both legacy and HMAC gateway headers
     'x-gateway-key': gatewayKey,
+    'x-gateway-auth': generateGatewayToken(gatewayKey),
     'x-user-id': userId,
     'x-user-role': role
   };
@@ -171,7 +180,7 @@ async function runNeonFull() {
   }
 
   const serviceSecret = process.env.SERVICE_SECRET || 'dev-service-secret';
-  const gatewayKey = process.env.GATEWAY_SECRET_KEY || 'dev-gateway-key';
+  const gatewayKey = process.env.GATEWAY_SECRET || process.env.GATEWAY_SECRET_KEY || 'dev-gateway-secret';
 
   const schemaMode = (process.env.SMOKE_SCHEMA_MODE || 'isolated').toLowerCase();
   const schemas =
@@ -215,6 +224,8 @@ async function runNeonFull() {
         DATABASE_URL: urls.payment,
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'payment-service',
+        GATEWAY_SECRET: gatewayKey,
+        GATEWAY_SECRET: gatewayKey,
         GATEWAY_SECRET_KEY: gatewayKey,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       }
@@ -229,6 +240,8 @@ async function runNeonFull() {
         DATABASE_URL: urls.brand,
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'brand-service',
+        GATEWAY_SECRET: gatewayKey,
+        GATEWAY_SECRET: gatewayKey,
         GATEWAY_SECRET_KEY: gatewayKey,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       }
@@ -243,6 +256,8 @@ async function runNeonFull() {
         ADDRESS_DATABASE_URL: urls.address,
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'address-service',
+        GATEWAY_SECRET: gatewayKey,
+        GATEWAY_SECRET: gatewayKey,
         GATEWAY_SECRET_KEY: gatewayKey,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       }
@@ -257,6 +272,8 @@ async function runNeonFull() {
         LOGISTICS_DATABASE_URL: urls.logistic,
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'logistic-service',
+        GATEWAY_SECRET: gatewayKey,
+        GATEWAY_SECRET: gatewayKey,
         GATEWAY_SECRET_KEY: gatewayKey,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       }
@@ -271,6 +288,8 @@ async function runNeonFull() {
         DATABASE_URL: urls.review,
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'review-service',
+        GATEWAY_SECRET: gatewayKey,
+        GATEWAY_SECRET: gatewayKey,
         GATEWAY_SECRET_KEY: gatewayKey,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       }
@@ -285,6 +304,8 @@ async function runNeonFull() {
         DATABASE_URL: urls.warehouse,
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'warehouse-service',
+        GATEWAY_SECRET: gatewayKey,
+        GATEWAY_SECRET: gatewayKey,
         GATEWAY_SECRET_KEY: gatewayKey,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       }

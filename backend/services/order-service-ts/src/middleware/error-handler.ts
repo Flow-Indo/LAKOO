@@ -52,8 +52,11 @@ export const errorHandler = (
   _next: NextFunction
 ) => {
   console.error(`[ERROR] ${req.method} ${req.path}:`, {
+    name: err.name,
     message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    // Keep stack traces in container logs even in production (response remains sanitized).
+    stack: err.stack,
+    ...(typeof (err as any)?.code === 'string' ? { code: (err as any).code } : {}),
   });
 
   if (err instanceof AppError) {
@@ -125,4 +128,3 @@ export const asyncHandler = (
     Promise.resolve(fn(req, res, next)).catch(next);
   };
 };
-

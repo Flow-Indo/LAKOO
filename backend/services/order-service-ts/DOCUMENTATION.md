@@ -70,7 +70,7 @@ routes → controllers → services → repositories → prisma
 
 Auth (Gold Standard):
 
-- **Gateway trust (user-facing):** `x-gateway-key`, `x-user-id`, optional `x-user-role`
+- **Gateway trust (user-facing):** `x-gateway-auth`, `x-user-id`, optional `x-user-role`
 - **Service-to-service HMAC (internal):** `X-Service-Auth`, `X-Service-Name` signed with `SERVICE_SECRET`
 
 ---
@@ -87,6 +87,9 @@ Auth (Gold Standard):
    - writes orders + orderItems + outbox event `order.created`
 3. Order-service calls `payment-service` to create invoice(s)
 4. On success, order-service transitions each order to `awaiting_payment`
+
+Notes:
+- If you want the payment invoice amount to include shipping/tax, pass `shippingCost` and `taxAmount` in the `POST /api/orders` request. These checkout-level charges are allocated across split orders (by subtotal share).
 
 #### Idempotency (safe retry)
 
@@ -202,6 +205,9 @@ Endpoint used:
 
 Order-service calls payment-service to create invoice(s).  
 payment-service calls order-service to set `paid` when webhook confirms payment.
+
+Note:
+- Order-service passes customer snapshot fields in the `metadata` when creating a payment (so payment-service does not need to call back into order-service, avoiding circular dependency failures in development).
 
 Env:
 - `PAYMENT_SERVICE_URL` (default `http://localhost:3007`)

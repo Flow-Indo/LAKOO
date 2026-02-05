@@ -92,12 +92,23 @@ export const createShipmentInternalSchema = createShipmentSchema.extend({
 export const getRatesSchema = z.object({
   originPostalCode: z.string().min(1),
   destPostalCode: z.string().min(1),
-  weightGrams: zCoerceInt(z.coerce.number().int().positive()),
+  productId: z.string().uuid().optional(),
+  variantId: z.string().uuid().optional(),
+  quantity: zCoerceInt(z.coerce.number().int().positive()).optional(),
+  weightGrams: zCoerceInt(z.coerce.number().int().positive()).optional(),
   lengthCm: zCoerceNumber(z.coerce.number().positive()).optional(),
   widthCm: zCoerceNumber(z.coerce.number().positive()).optional(),
   heightCm: zCoerceNumber(z.coerce.number().positive()).optional(),
   itemValue: zCoerceNumber(z.coerce.number().positive()).optional(),
   couriers: z.array(z.string()).optional()
+}).superRefine((val, ctx) => {
+  if (!val.weightGrams && !val.productId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['weightGrams'],
+      message: 'weightGrams is required when productId is not provided'
+    });
+  }
 });
 
 export const updateShipmentStatusSchema = z.object({

@@ -14,7 +14,7 @@ interface EnvConfig {
   databaseUrl: string;
 
   // Auth (required in production)
-  gatewaySecretKey?: string;
+  gatewaySecret?: string;
   serviceSecret?: string;
 }
 
@@ -38,19 +38,19 @@ function validateConfig(): EnvConfig {
   const databaseUrl = getRequiredEnv('ADDRESS_DATABASE_URL');
 
   // Auth keys required in production
-  let gatewaySecretKey: string | undefined;
+  let gatewaySecret: string | undefined;
   let serviceSecret: string | undefined;
 
   if (isProduction) {
-    gatewaySecretKey = getRequiredEnv('GATEWAY_SECRET_KEY');
+    gatewaySecret = getRequiredEnv('GATEWAY_SECRET');
     serviceSecret = getRequiredEnv('SERVICE_SECRET');
   } else {
-    gatewaySecretKey = getOptionalEnv('GATEWAY_SECRET_KEY');
+    gatewaySecret = getOptionalEnv('GATEWAY_SECRET');
     serviceSecret = getOptionalEnv('SERVICE_SECRET');
 
-    if (!gatewaySecretKey && !serviceSecret) {
+    if (!gatewaySecret && !serviceSecret) {
       console.warn(
-        'WARNING: Running without GATEWAY_SECRET_KEY and SERVICE_SECRET. ' +
+        'WARNING: Running without GATEWAY_SECRET and SERVICE_SECRET. ' +
         'Authentication is bypassed in development mode.'
       );
     }
@@ -60,7 +60,7 @@ function validateConfig(): EnvConfig {
     port: parseInt(getOptionalEnv('PORT', '3010') as string, 10),
     nodeEnv,
     databaseUrl,
-    gatewaySecretKey,
+    gatewaySecret,
     serviceSecret
   };
 }

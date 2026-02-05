@@ -2,6 +2,7 @@ import { prisma } from '../lib/prisma';
 import type { Product } from '../generated/prisma';
 import { CreateProductDTO, UpdateProductDTO, ProductQuery, CreateVariantDTO } from '../types';
 import slugify from 'slugify';
+import { withRetry } from '../lib/retry';
 
 // Generate unique product code
 function generateProductCode(): string {
@@ -95,35 +96,79 @@ export class ProductRepository {
   }
 
   async findBySlug(slug: string) {
-    return prisma.product.findUnique({
-      where: { slug },
-      include: {
-        category: true,
-        images: {
-          orderBy: { displayOrder: 'asc' }
-        },
-        variants: {
-          where: { deletedAt: null },
-          orderBy: { sortOrder: 'asc' }
+    return withRetry(
+      () =>
+        prisma.product.findUnique({
+          where: { slug },
+          include: {
+            category: true,
+            images: {
+              orderBy: { displayOrder: 'asc' }
+            },
+            variants: {
+              where: { deletedAt: null },
+              orderBy: { sortOrder: 'asc' }
+            }
+          }
+        }),
+      {
+        retries: 2,
+        minDelayMs: 50,
+        maxDelayMs: 250,
+        factor: 2,
+        jitterRatio: 0.2,
+        isRetryable: (err) => {
+          const anyErr = err as any;
+          const message = String(anyErr?.message || '');
+          const code = String(anyErr?.code || '');
+          return (
+            code === 'P1017' ||
+            message.includes('Server has closed the connection') ||
+            message.includes('Connection terminated unexpectedly') ||
+            message.includes('ECONNRESET') ||
+            message.includes('ETIMEDOUT')
+          );
         }
       }
-    });
+    );
   }
 
   async findById(id: string) {
-    return prisma.product.findUnique({
-      where: { id },
-      include: {
-        category: true,
-        images: {
-          orderBy: { displayOrder: 'asc' }
-        },
-        variants: {
-          where: { deletedAt: null },
-          orderBy: { sortOrder: 'asc' }
+    return withRetry(
+      () =>
+        prisma.product.findUnique({
+          where: { id },
+          include: {
+            category: true,
+            images: {
+              orderBy: { displayOrder: 'asc' }
+            },
+            variants: {
+              where: { deletedAt: null },
+              orderBy: { sortOrder: 'asc' }
+            }
+          }
+        }),
+      {
+        retries: 2,
+        minDelayMs: 50,
+        maxDelayMs: 250,
+        factor: 2,
+        jitterRatio: 0.2,
+        isRetryable: (err) => {
+          const anyErr = err as any;
+          const message = String(anyErr?.message || '');
+          const code = String(anyErr?.code || '');
+          return (
+            code === 'P1017' ||
+            message.includes('Server has closed the connection') ||
+            message.includes('Connection terminated unexpectedly') ||
+            message.includes('ECONNRESET') ||
+            message.includes('ETIMEDOUT')
+          );
         }
       }
-    });
+    );
   }
 
   async update(id: string, data: UpdateProductDTO) {

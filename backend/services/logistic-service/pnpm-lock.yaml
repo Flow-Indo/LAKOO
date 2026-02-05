@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@prisma/client':
-        specifier: ^5.10.0
+        specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
       axios:
         specifier: ^1.6.5
@@ -73,7 +73,7 @@ importers:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@20.19.30)
       prisma:
-        specifier: ^5.10.0
+        specifier: ^5.22.0
         version: 5.22.0
       ts-jest:
         specifier: ^29.1.1

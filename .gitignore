@@ -1,18 +1,44 @@
-# Node modules
+# ===========================
+# Dependencies
+# ===========================
 node_modules/
-**/node_modules/
 
-# Environment variables
+# ===========================
+# Environment & Secrets
+# ===========================
 .env
 **/.env
+DB_Connection.txt
 
-# Build output
+# ===========================
+# Build Output
+# ===========================
 dist/
 build/
-**/dist/
-**/build/
+frontend/out/
 
+# ===========================
+# Prisma Generated
+# ===========================
+**/prisma/generated/
+**/src/generated/
+
+# ===========================
+# Compiled Output
+# (shared/typescript tsc emits .js/.d.ts alongside source)
+# ===========================
+backend/shared/typescript/**/*.js
+backend/shared/typescript/**/*.d.ts
+backend/shared/typescript/**/*.map
+
+# ===========================
+# TypeScript
+# ===========================
+*.tsbuildinfo
+
+# ===========================
 # Logs
+# ===========================
 logs/
 *.log
 npm-debug.log*
@@ -20,65 +46,51 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# OS files
+# ===========================
+# OS & Editor
+# ===========================
 .DS_Store
 Thumbs.db
-
-# IDE files
 .vscode/
 .idea/
 *.swp
 
-# Prisma generated files
-**/prisma/generated/
-**/src/generated/
-**/src/generated/prisma/
+# ===========================
+# Binary & Media
+# ===========================
+*.pptx
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
 
-# TypeScript
-*.tsbuildinfo
+# ===========================
+# Windows & Temp Artifacts
+# ===========================
+~$*
+nul
+_tmp_*
 
-## Node modules
-node_modules/
-**/node_modules/
+# ===========================
+# Legacy Root-Level Schemas
+# (live schemas are in backend/services/*/prisma/)
+# ===========================
+/*-schema.prisma
 
-# Environment variables
-.env
-**/.env
+# ===========================
+# Local Dev / Tooling
+# ===========================
+Modelfile.*
+.claude/settings.local.json
 
-# Build output
-dist/
-build/
-**/dist/
-**/build/
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-
-# Prisma generated files
-**/prisma/generated/
-**/src/generated/
-**/src/generated/prisma/
-
-# TypeScript
-*.tsbuildinfo
-
-#air hot reload for go
+# ===========================
+# Go
+# ===========================
 .air.toml
 .air.conf
 
-
-
+# ===========================
+# npm lock (project uses pnpm)
+# ===========================
+package-lock.json

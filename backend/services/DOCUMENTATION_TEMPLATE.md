@@ -16,7 +16,7 @@ Use this exact section order and headings for every service `DOCUMENTATION.md`.
 - List env vars used by code (and defaults if any)
 
 ### Authentication & authorization (gateway + service-to-service)
-- Gateway headers: `x-gateway-key`, `x-user-id`, `x-user-role`
+- Gateway headers: `x-gateway-auth` (HMAC), `x-user-id`, `x-user-role`
 - Service-to-service headers: `x-service-auth`, `x-service-name` + `SERVICE_SECRET`
 - Role values (use `internal` consistently for internal calls)
 

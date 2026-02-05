@@ -1,0 +1,277 @@
+# ========================================
+# LAKOO Microservices Stack (Docker-only)
+#
+# Goal: run the main services with Docker (no pnpm/go setup on the host).
+# - Uses each service's own `.env` where present.
+# - Creates/uses a shared Docker network named `microservices-network`.
+#
+# Usage:
+#   docker compose -f backend/docker-compose.stack.yml up -d --build
+#   docker compose -f backend/docker-compose.stack.yml ps
+#
+# Optional (if you publish images to a registry):
+#   set LAKOO_IMAGE_REGISTRY=ghcr.io/<you>/lakoo
+#   set LAKOO_IMAGE_TAG=latest
+#   docker compose -f backend/docker-compose.stack.yml pull
+#   docker compose -f backend/docker-compose.stack.yml up -d --no-build
+# ========================================
+
+name: lakoo
+
+services:
+  api-gateway:
+    image: ${LAKOO_IMAGE_REGISTRY:-lakoo}/api-gateway:${LAKOO_IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: backend/api-gateway/Dockerfile
+    container_name: api-gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      API_GATEWAY_PORT: 3000
+      GATEWAY_SECRET: ${GATEWAY_SECRET:-dev-gateway-secret}
+      SERVICE_SECRET: ${SERVICE_SECRET:-dev-service-secret}
+      SERVICE_AUTH_MAX_SKEW_SECONDS: ${SERVICE_AUTH_MAX_SKEW_SECONDS:-86400}
+      GATEWAY_PROXY_TIMEOUT_MS: ${GATEWAY_PROXY_TIMEOUT_MS:-30000}
+      GATEWAY_LOG_REQUESTS: ${GATEWAY_LOG_REQUESTS:-false}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
+      ENABLE_TEST_TOKEN_ENDPOINT: ${ENABLE_TEST_TOKEN_ENDPOINT:-true}
+      DISABLE_BLACKLIST: ${DISABLE_BLACKLIST:-true}
+      BLACKLIST_STRICT: ${BLACKLIST_STRICT:-false}
+      CART_SERVICE_URL: ${CART_SERVICE_URL:-http://cart-service:3003}
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-http://auth-service:3001}
+      ORDER_SERVICE_URL: ${ORDER_SERVICE_URL:-http://order-service:3006}
+      PRODUCT_SERVICE_URL: ${PRODUCT_SERVICE_URL:-http://product-service:3002}
+      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL:-http://payment-service:3007}
+      ADDRESS_SERVICE_URL: ${ADDRESS_SERVICE_URL:-http://address-service:3010}
+      LOGISTIC_SERVICE_URL: ${LOGISTIC_SERVICE_URL:-http://logistic-service:3009}
+    depends_on:
+      - order-service
+      - product-service
+      - payment-service
+      - address-service
+      - logistic-service
+      - cart-service
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  order-service:
+    image: ${LAKOO_IMAGE_REGISTRY:-lakoo}/order-service:${LAKOO_IMAGE_TAG:-local}
+    build:
+      context: services/order-service-ts
+      dockerfile: Dockerfile
+    container_name: order-service
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    env_file:
+      - services/order-service-ts/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3006
+      ALLOWED_ORIGINS: http://localhost:3000
+      GATEWAY_SECRET: ${GATEWAY_SECRET:-dev-gateway-secret}
+      SERVICE_SECRET: ${SERVICE_SECRET:-dev-service-secret}
+      GATEWAY_AUTH_MAX_SKEW_SECONDS: ${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
+      SERVICE_NAME: order-service
+      DEBUG_CHECKOUT: ${DEBUG_CHECKOUT:-false}
+      OUTBOUND_HTTP_TIMEOUT_MS: ${OUTBOUND_HTTP_TIMEOUT_MS:-5000}
+      PAYMENT_SERVICE_TIMEOUT_MS: ${PAYMENT_SERVICE_TIMEOUT_MS:-20000}
+      PAYMENT_SERVICE_RETRIES: ${PAYMENT_SERVICE_RETRIES:-1}
+      AUTH_SERVICE_TIMEOUT_MS: ${AUTH_SERVICE_TIMEOUT_MS:-1000}
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-http://auth-service:3001}
+      PRODUCT_SERVICE_URL: ${PRODUCT_SERVICE_URL:-http://product-service:3002}
+      CART_SERVICE_URL: ${CART_SERVICE_URL:-http://cart-service:3003}
+      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL:-http://payment-service:3007}
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3006/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  product-service:
+    image: ${LAKOO_IMAGE_REGISTRY:-lakoo}/product-service:${LAKOO_IMAGE_TAG:-local}
+    build:
+      context: services/product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    env_file:
+      - services/product-service/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      ALLOWED_ORIGINS: http://localhost:3000
+      GATEWAY_SECRET: ${GATEWAY_SECRET:-dev-gateway-secret}
+      SERVICE_SECRET: ${SERVICE_SECRET:-dev-service-secret}
+      GATEWAY_AUTH_MAX_SKEW_SECONDS: ${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
+      SERVICE_NAME: product-service
+      WAREHOUSE_SERVICE_URL: ${WAREHOUSE_SERVICE_URL:-http://warehouse-service:3012}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:3008}
+      SELLER_SERVICE_URL: ${SELLER_SERVICE_URL:-http://seller-service:3015}
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  payment-service:
+    image: ${LAKOO_IMAGE_REGISTRY:-lakoo}/payment-service:${LAKOO_IMAGE_TAG:-local}
+    build:
+      context: services/payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    restart: unless-stopped
+    ports:
+      - "3007:3007"
+    env_file:
+      - services/payment-service/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3007
+      REDIS_URL: redis://redis:6379
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      ORDER_SERVICE_URL: http://order-service:3006
+      WAREHOUSE_SERVICE_URL: ${WAREHOUSE_SERVICE_URL:-http://warehouse-service:3012}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:3008}
+      GATEWAY_SECRET: ${GATEWAY_SECRET:-dev-gateway-secret}
+      SERVICE_SECRET: ${SERVICE_SECRET:-dev-service-secret}
+      GATEWAY_AUTH_MAX_SKEW_SECONDS: ${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
+      SERVICE_NAME: payment-service
+    depends_on:
+      - redis
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: payment-redis
+    restart: unless-stopped
+    ports:
+      - "6387:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - payment-redis-data:/data
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  address-service:
+    image: ${LAKOO_IMAGE_REGISTRY:-lakoo}/address-service:${LAKOO_IMAGE_TAG:-local}
+    build:
+      context: services/address-service
+      dockerfile: Dockerfile
+    container_name: address-service
+    restart: unless-stopped
+    ports:
+      - "3010:3010"
+    env_file:
+      - services/address-service/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3010
+      GATEWAY_SECRET: ${GATEWAY_SECRET:-dev-gateway-secret}
+      SERVICE_SECRET: ${SERVICE_SECRET:-dev-service-secret}
+      GATEWAY_AUTH_MAX_SKEW_SECONDS: ${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
+      SERVICE_NAME: address-service
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  logistic-service:
+    image: ${LAKOO_IMAGE_REGISTRY:-lakoo}/logistic-service:${LAKOO_IMAGE_TAG:-local}
+    build:
+      context: services/logistic-service
+      dockerfile: Dockerfile
+    container_name: logistic-service
+    restart: unless-stopped
+    ports:
+      - "3009:3009"
+    env_file:
+      - services/logistic-service/.env
+    environment:
+      NODE_ENV: production
+      PORT: 3009
+      ALLOWED_ORIGINS: http://localhost:3000
+      GATEWAY_SECRET: ${GATEWAY_SECRET:-dev-gateway-secret}
+      SERVICE_SECRET: ${SERVICE_SECRET:-dev-service-secret}
+      GATEWAY_AUTH_MAX_SKEW_SECONDS: ${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
+      SERVICE_NAME: logistic-service
+      PRODUCT_SERVICE_URL: http://product-service:3002
+      ORDER_SERVICE_URL: http://order-service:3006
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:3008}
+      BITESHIP_BASE_URL: ${BITESHIP_BASE_URL:-https://api.biteship.com/v1}
+      ALLOW_UNCONFIGURED_SHIPPING_RATES: ${ALLOW_UNCONFIGURED_SHIPPING_RATES:-true}
+      RATE_CACHE_TTL_HOURS: ${RATE_CACHE_TTL_HOURS:-24}
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3009/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  cart-service:
+    image: ${LAKOO_IMAGE_REGISTRY:-lakoo}/cart-service:${LAKOO_IMAGE_TAG:-local}
+    build:
+      context: services/cart-service
+      dockerfile: Dockerfile
+    container_name: cart-service
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    env_file:
+      - services/cart-service/.env.example
+    environment:
+      CART_SERVICE_PORT: :3003
+      GIN_MODE: release
+      GATEWAY_URL: http://api-gateway:3000
+      SERVICE_SECRET: ${SERVICE_SECRET:-dev-service-secret}
+    networks:
+      - microservices
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  payment-redis-data:
+
+networks:
+  microservices:
+    name: microservices-network
+    driver: bridge

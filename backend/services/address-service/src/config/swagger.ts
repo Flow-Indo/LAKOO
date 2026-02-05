@@ -23,8 +23,8 @@ const options: swaggerJsdoc.Options = {
         gatewayAuth: {
           type: 'apiKey',
           in: 'header',
-          name: 'x-gateway-key',
-          description: 'Gateway authentication key'
+          name: 'x-gateway-auth',
+          description: 'Gateway HMAC token (apiGateway:timestamp:signature)'
         },
         internalServiceAuth: {
           type: 'apiKey',

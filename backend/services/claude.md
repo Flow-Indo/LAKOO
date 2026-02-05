@@ -8,7 +8,7 @@ If a service drifts, use the checklists here to bring it back to the standard.
 1. **Bootstrap (`src/index.ts`)**: helmet + morgan, strict CORS via `ALLOWED_ORIGINS`, swagger, `/health`, consistent 404 + error handler, graceful shutdown, `x-powered-by` disabled.
 2. **Prisma (`src/lib/prisma.ts`)**: per-service Prisma client singleton (generated client), consistent logging, `beforeExit` disconnect.
 3. **Auth (`src/middleware/auth.ts`)**:
-   - **Gateway trust** for user traffic (`x-gateway-key`, `x-user-id`, `x-user-role`)
+   - **Gateway trust** for user traffic (`x-gateway-auth`, `x-user-id`, `x-user-role`)
    - **Service-to-service token auth** for internal traffic (`X-Service-Auth`, `X-Service-Name`, `SERVICE_SECRET`)
 4. **Validation (`src/middleware/validation.ts`)**: `express-validator` + `validateRequest` always wired after validators.
 5. **Outbox (`src/services/outbox.service.ts`)**: domain events written to `ServiceOutbox` (transactional when possible).
@@ -117,16 +117,38 @@ export class ForbiddenError extends Error {
   }
 }
 
+function verifyGatewayToken(token: string, secret: string): boolean {
+  const parts = token.split(':');
+  if (parts.length !== 3) return false;
+
+  const [gatewayName, timestampStr, signature] = parts;
+  const timestamp = parseInt(timestampStr!, 10);
+  if (!Number.isFinite(timestamp)) return false;
+
+  const now = Math.floor(Date.now() / 1000);
+  if (now - timestamp > 300) return false;
+
+  const message = `${gatewayName}:${timestamp}`;
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(message)
+    .digest('hex');
+
+  const sigBuf = Buffer.from(signature!, 'hex');
+  const expectedBuf = Buffer.from(expectedSignature, 'hex');
+  return sigBuf.length === expectedBuf.length && crypto.timingSafeEqual(sigBuf, expectedBuf);
+}
+
 /**
  * Gateway authentication - trusts that API Gateway has validated the JWT
  * and forwarded user info via headers.
  */
 export const gatewayAuth = (req: Request, res: Response, next: NextFunction) => {
-  const expectedKey = process.env.GATEWAY_SECRET_KEY;
-  const gatewayKey = req.headers['x-gateway-key'] as string | undefined;
+  const gatewaySecret = process.env.GATEWAY_SECRET;
+  const gatewayToken = req.headers['x-gateway-auth'] as string | undefined;
 
-  // In development without gateway key configured, allow requests through
-  if (process.env.NODE_ENV === 'development' && !expectedKey) {
+  // In development without gateway configured, allow requests through
+  if (process.env.NODE_ENV === 'development' && !gatewaySecret) {
     req.user = {
       id: (req.headers['x-user-id'] as string) || 'dev-user',
       role: (req.headers['x-user-role'] as string) || 'user'
@@ -134,9 +156,9 @@ export const gatewayAuth = (req: Request, res: Response, next: NextFunction) => 
     return next();
   }
 
-  // Verify gateway key
-  if (!gatewayKey || gatewayKey !== expectedKey) {
-    return next(new UnauthorizedError('Invalid gateway key'));
+  // Verify gateway token (HMAC: apiGateway:timestamp:signature)
+  if (!gatewaySecret || !gatewayToken || !verifyGatewayToken(gatewayToken, gatewaySecret)) {
+    return next(new UnauthorizedError('Invalid gateway token'));
   }
 
   // Extract user info from headers (set by API Gateway after JWT validation)
@@ -155,14 +177,14 @@ export const gatewayAuth = (req: Request, res: Response, next: NextFunction) => 
  * For endpoints that can be called by gateway OR internal services
  */
 export const gatewayOrInternalAuth = (req: Request, res: Response, next: NextFunction) => {
-  const expectedGatewayKey = process.env.GATEWAY_SECRET_KEY;
-  const gatewayKey = req.headers['x-gateway-key'] as string | undefined;
+  const gatewaySecret = process.env.GATEWAY_SECRET;
+  const gatewayToken = req.headers['x-gateway-auth'] as string | undefined;
   const token = req.headers['x-service-auth'] as string | undefined;
   const serviceName = req.headers['x-service-name'] as string | undefined;
   const serviceSecret = process.env.SERVICE_SECRET;
 
   // Development mode bypass
-  if (process.env.NODE_ENV === 'development' && !expectedGatewayKey && !serviceSecret) {
+  if (process.env.NODE_ENV === 'development' && !gatewaySecret && !serviceSecret) {
     req.user = {
       id: (req.headers['x-user-id'] as string) || 'dev-user',
       role: (req.headers['x-user-role'] as string) || 'user'
@@ -170,8 +192,8 @@ export const gatewayOrInternalAuth = (req: Request, res: Response, next: NextFun
     return next();
   }
 
-  // Check gateway key first
-  if (gatewayKey && gatewayKey === expectedGatewayKey) {
+  // Check gateway token first
+  if (gatewayToken && gatewaySecret && verifyGatewayToken(gatewayToken, gatewaySecret)) {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) {
       return next(new UnauthorizedError('Missing user identification'));
@@ -421,7 +443,7 @@ NODE_ENV=development
 DATABASE_URL="postgresql://user:pass@localhost:5432/dbname"
 
 # Authentication (Gateway Trust Model)
-GATEWAY_SECRET_KEY=your-gateway-secret
+GATEWAY_SECRET=your-gateway-secret
 
 # Internal service-to-service auth (HMAC token)
 SERVICE_SECRET=your-service-secret

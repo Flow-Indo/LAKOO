@@ -4,7 +4,7 @@
 - Owns payment + refund state (`Payment`, `Refund`, `PaymentGatewayLog`, settlement summaries) and exposes payment/refund APIs.
 - Integrates with **Xendit** for invoice creation and (some) refunds.
 - Emits integration events via **`ServiceOutbox`** (transactional outbox pattern).
-- Does **not** own orders or user identities (reads via `ORDER_SERVICE_URL` / `AUTH_SERVICE_URL` when needed).
+- Does **not** own orders or user identities (reads order snapshot via `ORDER_SERVICE_URL` when needed).
 
 ## 2) Architecture (layers & request flow)
 - **Routes** (`src/routes/*.routes.ts`): endpoints + `express-validator` rules + `validateRequest`.
@@ -25,11 +25,11 @@ Typical request flow:
 - **`PORT`**: listen port (code default is `3007`).
 - **`NODE_ENV`**: `development|test|production` (affects logging + dev auth bypass).
 - **`DATABASE_URL`**: Postgres connection string for Prisma.
-- **`GATEWAY_SECRET_KEY`**: verifies gateway traffic (`x-gateway-key`).
+- **`GATEWAY_SECRET`**: verifies gateway traffic (`x-gateway-auth`).
 - **`SERVICE_SECRET`**: verifies service-to-service HMAC tokens (`x-service-auth` + `x-service-name`).
 - **`XENDIT_SECRET_KEY`**: Xendit API key.
 - **`XENDIT_WEBHOOK_VERIFICATION_TOKEN`**: Xendit callback token (matches `x-callback-token`).
-- **`AUTH_SERVICE_URL`**, **`ORDER_SERVICE_URL`**, **`WAREHOUSE_SERVICE_URL`**, **`NOTIFICATION_SERVICE_URL`**: upstream service base URLs.
+- **`ORDER_SERVICE_URL`**, **`WAREHOUSE_SERVICE_URL`**, **`NOTIFICATION_SERVICE_URL`**: upstream service base URLs.
 - **`PAYMENT_SUCCESS_URL`**, **`PAYMENT_FAILURE_URL`**: Xendit redirect URLs.
 - **`ENABLE_EXPIRATION_CRON`**, **`EXPIRATION_CRON_SCHEDULE`**: expire-payment scheduler controls.
 - **`ALLOWED_ORIGINS`**: CORS allowlist (if enabled in `src/index.ts`).
@@ -37,7 +37,7 @@ Typical request flow:
 ### Authentication & authorization (gateway + service-to-service)
 Gateway-trust (external client traffic via API Gateway):
 - Gateway must inject:
-  - `x-gateway-key` (must equal `GATEWAY_SECRET_KEY`)
+  - `x-gateway-auth` (HMAC token signed with `GATEWAY_SECRET`)
   - `x-user-id` (required)
   - `x-user-role` (optional; `admin`, `user`, etc.)
 

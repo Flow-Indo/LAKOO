@@ -148,7 +148,7 @@ model CourierIntegration {
   supportsRealTimeTracking Boolean @default(true) @map("supports_real_time_tracking")
   // Rate calculation
   hasFixedRates   Boolean  @default(false) @map("has_fixed_rates")
-  rateMultiplier  Decimal  @default(1.00) @db.Decimal(5, 2) // For markup
+  rateMultiplier  Decimal  @default(1.00) @map("rate_multiplier") @db.Decimal(5, 2) // For markup
   // Display
   logoUrl         String?  @map("logo_url")
   displayOrder    Int      @default(0) @map("display_order")
@@ -190,6 +190,10 @@ model ShippingRateCache {
   originPostalCode String  @map("origin_postal_code")
   destPostalCode  String   @map("dest_postal_code")
   weightGrams     Int      @map("weight_grams")
+  // Package dimensions matter for volumetric weight; include in cache key to avoid wrong rates.
+  lengthCm        Decimal  @default(10) @map("length_cm")
+  widthCm         Decimal  @default(10) @map("width_cm")
+  heightCm        Decimal  @default(10) @map("height_cm")
   courier         String   @map("courier")
   serviceCode     String   @map("service_code")
   // Cached rate
@@ -199,7 +203,7 @@ model ShippingRateCache {
   expiresAt       DateTime @map("expires_at")
   createdAt       DateTime @default(now()) @map("created_at")
 
-  @@unique([originPostalCode, destPostalCode, weightGrams, courier, serviceCode])
+  @@unique([originPostalCode, destPostalCode, weightGrams, lengthCm, widthCm, heightCm, courier, serviceCode])
   @@index([expiresAt])
   @@map("shipping_rate_cache")
 }

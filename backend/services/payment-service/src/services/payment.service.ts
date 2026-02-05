@@ -7,8 +7,8 @@ import { outboxService } from './outbox.service';
 import axios from 'axios';
 import { getServiceAuthHeaders } from '../utils/serviceAuth';
 import { prisma } from '../lib/prisma';
+import { ForbiddenError, NotFoundError } from '../middleware/error-handler';
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
 const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || 'http://localhost:3006';
 const OUTBOUND_HTTP_TIMEOUT_MS = Number.parseInt(process.env.OUTBOUND_HTTP_TIMEOUT_MS || '8000', 10);
 
@@ -17,38 +17,6 @@ export class PaymentService {
 
   constructor() {
     this.repository = new PaymentRepository();
-  }
-
-  /**
-   * Fetch user data from auth-service
-   * In development mode without auth-service, returns mock data
-   */
-  private async fetchUser(userId: string): Promise<any> {
-    try {
-      const response = await axios.get(`${AUTH_SERVICE_URL}/api/auth/users/${userId}`, {
-        headers: getServiceAuthHeaders(),
-        timeout: OUTBOUND_HTTP_TIMEOUT_MS
-      });
-      if (!response.data.success) {
-        throw new Error(response.data.error || 'Failed to fetch user');
-      }
-      return response.data.data;
-    } catch (error: any) {
-      // In development mode, return mock user data if auth-service is unavailable
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(`[DEV] Auth service unavailable, using mock user data for ${userId}`);
-        return {
-          id: userId,
-          email: `dev-user-${userId.slice(0, 8)}@lakoo.id`,
-          phoneNumber: '+6281234567890',
-          name: 'Development User'
-        };
-      }
-      if (error.response?.status === 404) {
-        throw new Error('User not found');
-      }
-      throw new Error(`Failed to fetch user: ${error.message}`);
-    }
   }
 
   /**
@@ -66,7 +34,7 @@ export class PaymentService {
       return response.data.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
-        throw new Error('Order not found');
+        throw new NotFoundError('Order not found');
       }
       throw new Error(`Failed to fetch order: ${error.message}`);
     }
@@ -92,7 +60,7 @@ export class PaymentService {
   /**
    * Create a new payment for an order
    */
-  async createPayment(data: CreatePaymentDTO) {
+  async createPayment(data: CreatePaymentDTO, options?: { skipOrderLookup?: boolean }) {
     // Check for existing payment with same idempotency key
     if (data.idempotencyKey) {
       const existingPayment = await this.repository.findByIdempotencyKey(data.idempotencyKey);
@@ -107,9 +75,48 @@ export class PaymentService {
       }
     }
 
-    const userData = await this.fetchUser(data.userId);
+    // Option 2: do not fetch user profile from auth-service.
+    // For internal calls (order-service -> payment-service), we also avoid calling back into order-service
+    // to prevent circular dependency failures. Internal callers should pass an order snapshot via `metadata`.
+    const shouldLookupOrder = options?.skipOrderLookup !== true;
+    const order = shouldLookupOrder ? await this.fetchOrder(data.orderId) : null;
+    if (order?.userId && order.userId !== data.userId) {
+      throw new ForbiddenError('Order does not belong to authenticated user');
+    }
+
+    const customerName =
+      (data.metadata?.customerName as string | undefined) ||
+      order?.customerName ||
+      order?.shippingRecipient ||
+      order?.shippingAddress?.name ||
+      '';
+
+    const customerEmail =
+      (data.metadata?.customerEmail as string | undefined) ||
+      order?.customerEmail ||
+      '';
+
+    const customerPhone =
+      (data.metadata?.customerPhone as string | undefined) ||
+      order?.customerPhone ||
+      order?.shippingPhone ||
+      order?.shippingAddress?.phone ||
+      '';
+
     const expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
-    const userEmail = userData.email || this.generatePlaceholderEmail(userData.phoneNumber);
+    const userEmail =
+      customerEmail || this.generatePlaceholderEmailForUser(data.userId, customerPhone || undefined);
+
+    const { givenNames, surname } = this.splitCustomerName(customerName);
+    const customer =
+      givenNames || surname || customerPhone
+        ? {
+            givenNames: givenNames || 'Customer',
+            surname: surname || '',
+            email: userEmail,
+            ...(customerPhone ? { mobileNumber: customerPhone } : {})
+          }
+        : undefined;
 
     // Create Xendit invoice
     const invoiceData: CreateInvoiceRequest = {
@@ -121,13 +128,8 @@ export class PaymentService {
         ? Math.floor((expiresAt.getTime() - Date.now()) / 1000).toString()
         : '86400',
       currency: 'IDR',
-      shouldSendEmail: Boolean(userData.email),
-      customer: {
-        givenNames: userData.firstName,
-        surname: userData.lastName || '',
-        email: userEmail,
-        mobileNumber: userData.phoneNumber
-      },
+      shouldSendEmail: Boolean(customerEmail),
+      ...(customer ? { customer } : {}),
       successRedirectUrl: process.env.PAYMENT_SUCCESS_URL,
       failureRedirectUrl: process.env.PAYMENT_FAILURE_URL
     };
@@ -284,11 +286,22 @@ export class PaymentService {
   }
 
   /**
-   * Generate placeholder email for users without email
+   * Generate placeholder email when customer email is missing.
    */
-  private generatePlaceholderEmail(phoneNumber: string): string {
-    const cleanPhone = phoneNumber.replace(/[^0-9+]/g, '');
+  private generatePlaceholderEmailForUser(userId: string, phoneNumber?: string): string {
+    const safe =
+      phoneNumber && phoneNumber.trim().length > 0
+        ? phoneNumber.replace(/[^0-9+]/g, '')
+        : userId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 24);
     const domain = process.env.PLACEHOLDER_EMAIL_DOMAIN || 'lakoo.id';
-    return `noreply+${cleanPhone}@${domain}`;
+    return `noreply+${safe}@${domain}`;
+  }
+
+  private splitCustomerName(name: string): { givenNames: string; surname: string } {
+    const trimmed = (name || '').trim();
+    if (!trimmed) return { givenNames: '', surname: '' };
+    const parts = trimmed.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return { givenNames: parts[0] || '', surname: '' };
+    return { givenNames: parts[0] || '', surname: parts.slice(1).join(' ') };
   }
 }

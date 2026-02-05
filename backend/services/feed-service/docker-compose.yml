@@ -1,4 +1,7 @@
-version: '3.8'
+# ========================================
+# FEED SERVICE DOCKER COMPOSE
+# Development Environment
+# ========================================
 
 services:
   feed-service:
@@ -6,32 +9,56 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: feed-service
+    restart: unless-stopped
     ports:
       - "3018:3018"
+    env_file:
+      - .env
     environment:
       - NODE_ENV=production
       - PORT=3018
-      - FEED_DATABASE_URL=${FEED_DATABASE_URL}
-      - GATEWAY_SECRET_KEY=${GATEWAY_SECRET_KEY}
-      - SERVICE_SECRET=${SERVICE_SECRET}
-      - SERVICE_NAME=feed-service
-      - CONTENT_SERVICE_URL=http://content-service:3017
-      - PRODUCT_SERVICE_URL=http://product-service:3002
-      - NOTIFICATION_SERVICE_URL=http://notification-service:3008
-      - FEED_PAGE_SIZE=20
-      - FEED_MAX_AGE_DAYS=30
-      - TRENDING_WINDOW_HOURS=24
-      - ENABLE_BACKGROUND_JOBS=true
       - ALLOWED_ORIGINS=http://localhost:3000
-    restart: unless-stopped
+      - GATEWAY_SECRET=${GATEWAY_SECRET:-dev-gateway-secret}
+      - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
+      - GATEWAY_AUTH_MAX_SKEW_SECONDS=${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
+      - SERVICE_NAME=feed-service
+      # Inter-service URLs (container DNS on shared network)
+      - CONTENT_SERVICE_URL=${CONTENT_SERVICE_URL:-http://content-service:3017}
+      - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL:-http://product-service:3002}
+      - NOTIFICATION_SERVICE_URL=${NOTIFICATION_SERVICE_URL:-http://notification-service:3008}
+      # Feed Configuration
+      - FEED_PAGE_SIZE=${FEED_PAGE_SIZE:-20}
+      - FEED_MAX_AGE_DAYS=${FEED_MAX_AGE_DAYS:-30}
+      - TRENDING_WINDOW_HOURS=${TRENDING_WINDOW_HOURS:-24}
+      - ENABLE_BACKGROUND_JOBS=${ENABLE_BACKGROUND_JOBS:-true}
+    networks:
+      - feed-network
+      - shared-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3018/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3018/health"]
       interval: 30s
-      timeout: 3s
+      timeout: 10s
       retries: 3
-      start_period: 5s
+      start_period: 10s
+
+  # Database schema sync service (runs once)
+  feed-migrate:
+    profiles: ["migrate"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: feed-migrate
+    command: sh -lc "pnpm -s run db:push"
+    env_file:
+      - .env
+    networks:
+      - feed-network
+    restart: "no"
 
 networks:
-  default:
-    name: lakoo-network
+  feed-network:
+    driver: bridge
+  shared-network:
     external: true
+    name: microservices-network

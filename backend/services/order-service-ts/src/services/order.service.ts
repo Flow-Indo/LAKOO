@@ -35,7 +35,39 @@ export class OrderService {
     return allocations;
   }
 
+  private computeChargeAllocation(subtotals: number[], totalCharge: number): number[] {
+    if (totalCharge <= 0) return subtotals.map(() => 0);
+    const totalSubtotal = subtotals.reduce((sum, s) => sum + s, 0);
+    if (totalSubtotal <= 0) {
+      // If subtotal is not meaningful (edge cases), allocate everything to the first order.
+      return subtotals.map((_, idx) => (idx === 0 ? totalCharge : 0));
+    }
+
+    const allocations = subtotals.map((s) => Math.floor((s / totalSubtotal) * totalCharge));
+    const allocated = allocations.reduce((sum, a) => sum + a, 0);
+    const remainder = totalCharge - allocated;
+    if (remainder > 0) {
+      allocations[allocations.length - 1] = (allocations[allocations.length - 1] || 0) + remainder;
+    }
+    return allocations;
+  }
+
   async checkout(data: CheckoutOrderDTO): Promise<any> {
+    const debugCheckout = String(process.env.DEBUG_CHECKOUT || 'false').toLowerCase() === 'true';
+    const startedAt = Date.now();
+    const logStep = (step: string, extra?: Record<string, any>) => {
+      if (!debugCheckout) return;
+      const elapsedMs = Date.now() - startedAt;
+      console.log(`[order-service][checkout] ${step} (+${elapsedMs}ms)`, {
+        userId: data.userId,
+        idempotencyKey: data.idempotencyKey,
+        items: data.items?.length || 0,
+        ...(extra || {})
+      });
+    };
+
+    logStep('start');
+
     if (!data.items || data.items.length === 0) {
       throw new BadRequestError('Checkout must have at least one item');
     }
@@ -53,6 +85,7 @@ export class OrderService {
       throw new BadRequestError('idempotencyKey is required');
     }
 
+    logStep('idempotency_query_start');
     // Idempotency: allow safe retries (same as payment-service pattern).
     // If orders already exist for this checkoutKey, return them and re-use payment-service idempotency keys.
     const existingOrders = await prisma.order.findMany({
@@ -63,6 +96,7 @@ export class OrderService {
       include: { items: true },
       orderBy: { idempotencyKey: 'asc' }
     });
+    logStep('idempotency_query_done', { existingOrders: existingOrders.length });
 
     if (existingOrders.length > 0) {
       const payments: Array<{ orderId: string; orderNumber: string; [key: string]: any }> = [];
@@ -74,13 +108,20 @@ export class OrderService {
         const idx = Number.parseInt(idxStr, 10);
 
         try {
+          logStep('payment_create_start', { orderId: order.id, idx });
           const payment = await paymentClient.createPayment({
             orderId: order.id,
             userId: data.userId,
             amount: Number(order.totalAmount),
             idempotencyKey: `payment:${checkoutKey}:${Number.isFinite(idx) ? idx : 0}`,
             paymentMethod: data.paymentMethod,
-            expiresAt: data.expiresAt
+            expiresAt: data.expiresAt,
+            metadata: {
+              orderNumber: order.orderNumber,
+              customerName: order.customerName,
+              customerEmail: order.customerEmail,
+              customerPhone: order.customerPhone
+            }
           });
 
           payments.push({
@@ -88,12 +129,14 @@ export class OrderService {
             orderNumber: order.orderNumber,
             ...payment
           });
+          logStep('payment_create_done', { orderId: order.id, idx });
         } catch (error: any) {
           failedPayments.push({
             orderId: order.id,
             orderNumber: order.orderNumber,
             error: error.response?.data?.error || error.message
           });
+          logStep('payment_create_failed', { orderId: order.id, idx, error: error.response?.data?.error || error.message });
         }
       }
 
@@ -112,30 +155,32 @@ export class OrderService {
 
     let user: AuthUser;
     try {
+      logStep('fetch_user_start');
       user = await this.fetchUser(data.userId);
+      logStep('fetch_user_done');
     } catch (err: any) {
-      // Local/dev testing: allow order creation even when auth-service isn't running yet.
-      // We fall back to the checkout shipping snapshot for customer identity fields.
-      if (process.env.NODE_ENV === 'development') {
-        const fullName = (data.shippingAddress?.name || '').trim();
-        const [firstName, ...rest] = fullName.split(/\s+/).filter(Boolean);
-        user = {
-          id: data.userId,
-          firstName: firstName || undefined,
-          lastName: rest.length > 0 ? rest.join(' ') : undefined,
-          phoneNumber: data.shippingAddress?.phone || '',
-          email: null
-        };
-        console.warn('Auth-service unavailable; using shipping snapshot as customer identity (development mode).', {
-          userId: data.userId,
-          error: err?.message
-        });
-      } else {
-        throw err;
-      }
+      const requireAuthService = String(process.env.REQUIRE_AUTH_SERVICE || 'false').toLowerCase() === 'true';
+      if (requireAuthService) throw err;
+
+      // Checkout must work even if auth-service is unavailable; order stores a snapshot.
+      const fullName = (data.shippingAddress?.name || '').trim();
+      const [firstName, ...rest] = fullName.split(/\s+/).filter(Boolean);
+      user = {
+        id: data.userId,
+        firstName: firstName || undefined,
+        lastName: rest.length > 0 ? rest.join(' ') : undefined,
+        phoneNumber: data.shippingAddress?.phone || '',
+        email: null
+      };
+      console.warn('Auth-service unavailable; using shipping snapshot as customer identity.', {
+        userId: data.userId,
+        error: err?.message
+      });
+      logStep('fetch_user_fallback', { error: err?.message });
     }
 
     // Fetch product info and compute item-level prices, then group by seller (sellerId) or house-brand (null)
+    logStep('enrich_items_start');
     const enriched = await Promise.all(data.items.map(async (item) => {
       const { product, variant, unitPrice } = await this.utils.getProductAndUnitPrice(item.productId, item.variantId);
 
@@ -159,6 +204,7 @@ export class OrderService {
         }
       };
     }));
+    logStep('enrich_items_done', { items: enriched.length });
 
     const groupKeys: Array<string> = [];
     const groups = new Map<string, typeof enriched>();
@@ -172,8 +218,29 @@ export class OrderService {
     const discountAmount = Math.max(0, Math.floor(data.discountAmount || 0));
     const discounts = this.computeDiscountAllocation(groupSubtotals, discountAmount);
 
+    const shippingCostTotal = Math.max(
+      0,
+      Math.floor(
+        Number(
+          data.shippingCost ?? (data.metadata?.shippingCost as any) ?? 0
+        ) || 0
+      )
+    );
+    const taxAmountTotal = Math.max(
+      0,
+      Math.floor(
+        Number(
+          data.taxAmount ?? (data.metadata?.taxAmount as any) ?? 0
+        ) || 0
+      )
+    );
+
+    const shippingAllocations = this.computeChargeAllocation(groupSubtotals, shippingCostTotal);
+    const taxAllocations = this.computeChargeAllocation(groupSubtotals, taxAmountTotal);
+
     const baseOrderNumber = this.utils.generateOrderNumber();
 
+    logStep('db_transaction_start');
     const createdOrders = await prisma.$transaction(async (tx) => {
       const orders = [];
 
@@ -182,7 +249,9 @@ export class OrderService {
         const items = groups.get(key)!;
         const subtotal = groupSubtotals[idx]!;
         const orderDiscount = discounts[idx]!;
-        const totalAmount = subtotal - orderDiscount;
+        const orderShippingCost = shippingAllocations[idx]!;
+        const orderTaxAmount = taxAllocations[idx]!;
+        const totalAmount = subtotal + orderShippingCost + orderTaxAmount - orderDiscount;
 
         const sellerId = key === 'HOUSE_BRAND' ? null : key;
         const orderSource = sellerId ? 'seller' : 'brand';
@@ -197,8 +266,8 @@ export class OrderService {
             sellerId,
             subtotal,
             discountAmount: orderDiscount,
-            shippingCost: 0,
-            taxAmount: 0,
+            shippingCost: orderShippingCost,
+            taxAmount: orderTaxAmount,
             totalAmount,
             currency: 'IDR',
             shippingAddressId: data.shippingAddressId ?? null,
@@ -215,6 +284,8 @@ export class OrderService {
             customerPhone: user.phoneNumber,
             customerName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || data.shippingAddress.name,
             customerNotes: data.shippingNotes ?? null,
+            shippingCourier: (data.metadata?.courierCode as string | undefined) ?? null,
+            shippingMethod: (data.metadata?.serviceType as string | undefined) ?? null,
             status: 'pending',
             idempotencyKey,
             items: {
@@ -255,6 +326,7 @@ export class OrderService {
 
       return orders;
     });
+    logStep('db_transaction_done', { orders: createdOrders.length });
 
     const payments: Array<{ orderId: string; orderNumber: string; [key: string]: any }> = [];
     const failedPayments: Array<{ orderId: string; orderNumber: string; error: any }> = [];
@@ -262,13 +334,20 @@ export class OrderService {
     for (let idx = 0; idx < createdOrders.length; idx++) {
       const order = createdOrders[idx]!;
       try {
+        logStep('payment_create_start', { orderId: order.id, idx });
         const payment = await paymentClient.createPayment({
           orderId: order.id,
           userId: data.userId,
           amount: Number(order.totalAmount),
           idempotencyKey: `payment:${checkoutKey}:${idx}`,
           paymentMethod: data.paymentMethod,
-          expiresAt: data.expiresAt
+          expiresAt: data.expiresAt,
+          metadata: {
+            orderNumber: order.orderNumber,
+            customerName: order.customerName,
+            customerEmail: order.customerEmail,
+            customerPhone: order.customerPhone
+          }
         });
 
         payments.push({
@@ -276,6 +355,7 @@ export class OrderService {
           orderNumber: order.orderNumber,
           ...payment
         });
+        logStep('payment_create_done', { orderId: order.id, idx });
 
         await prisma.$transaction(async (tx) => {
           await this.repository.updateStatus({
@@ -307,20 +387,38 @@ export class OrderService {
           orderNumber: order.orderNumber,
           error: error.response?.data?.error || error.message
         });
+        logStep('payment_create_failed', { orderId: order.id, idx, error: error.response?.data?.error || error.message });
         console.error(`Failed to create payment for order ${order.id}:`, error.message);
       }
     }
 
+    logStep('orders_refresh_start');
+    const refreshedOrders = await prisma.order.findMany({
+      where: { id: { in: createdOrders.map((o) => o.id) } },
+      include: { items: true },
+      orderBy: { idempotencyKey: 'asc' }
+    });
+    logStep('orders_refresh_done', { orders: refreshedOrders.length });
+
     await cartClient.clearUserCart(data.userId);
 
+    // Order creation succeeded; payment creation is best-effort and can fail due to external gateway latency/outages.
+    // Return the created orders even if all payments failed so callers can retry payment creation idempotently.
     if (failedPayments.length === createdOrders.length) {
-      throw new BadRequestError('All payment creations failed');
+      return {
+        isExisting: false,
+        ordersCreated: createdOrders.length,
+        orders: refreshedOrders,
+        payments,
+        failedPayments,
+        message: 'Order created but payment invoice creation failed. Please retry checkout with the same idempotencyKey.'
+      };
     }
 
     return {
       isExisting: false,
       ordersCreated: createdOrders.length,
-      orders: createdOrders,
+      orders: refreshedOrders,
       payments,
       failedPayments: failedPayments.length > 0 ? failedPayments : undefined,
       message: failedPayments.length > 0

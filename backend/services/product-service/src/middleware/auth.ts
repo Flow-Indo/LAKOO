@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { UnauthorizedError, ForbiddenError } from './error-handler';
 import { verifyServiceToken } from '../utils/serviceAuth';
 
@@ -14,8 +15,40 @@ export interface AuthenticatedRequest extends Request {
 
 const SERVICE_AUTH_HEADER = 'x-service-auth';
 const SERVICE_NAME_HEADER = 'x-service-name';
+const GATEWAY_AUTH_HEADER = 'x-gateway-auth';
 const DEV_DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
 const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+/**
+ * Verify HMAC gateway token (format: apiGateway:timestamp:signature)
+ */
+function verifyGatewayToken(token: string, secret: string): boolean {
+  const parts = token.split(':');
+  if (parts.length !== 3) return false;
+
+  const [gatewayName, timestampStr, signature] = parts;
+  const timestamp = Number.parseInt(timestampStr!, 10);
+  if (!Number.isFinite(timestamp)) return false;
+
+  // Check timestamp skew (default 5 minutes). Allow override for local docker time drift.
+  const now = Math.floor(Date.now() / 1000);
+  const maxSkewSecondsRaw = process.env.GATEWAY_AUTH_MAX_SKEW_SECONDS;
+  const maxSkewSecondsParsed = maxSkewSecondsRaw ? Number.parseInt(maxSkewSecondsRaw, 10) : 300;
+  const maxSkewSeconds = Number.isFinite(maxSkewSecondsParsed) && maxSkewSecondsParsed > 0 ? maxSkewSecondsParsed : 300;
+  if (Math.abs(now - timestamp) > maxSkewSeconds) return false;
+
+  // Verify signature
+  const message = `${gatewayName}:${timestamp}`;
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(message)
+    .digest('hex');
+
+  const sigBuf = Buffer.from(signature!, 'hex');
+  const expectedBuf = Buffer.from(expectedSignature, 'hex');
+  if (sigBuf.length !== expectedBuf.length) return false;
+  return crypto.timingSafeEqual(sigBuf, expectedBuf);
+}
 
 function normalizeUuid(value?: string): string | undefined {
   if (!value) return undefined;
@@ -106,32 +139,32 @@ function tryServiceAuth(req: AuthenticatedRequest): boolean {
  * The gateway forwards user info via headers after validating JWT.
  *
  * Required headers from gateway:
- * - x-gateway-key: Shared secret to verify request came from gateway
+ * - x-gateway-auth: HMAC token (apiGateway:timestamp:signature)
  * - x-user-id: Authenticated user's ID
  * - x-user-role: User's role (optional)
  */
 export const gatewayAuth = (
   req: AuthenticatedRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
-  const gatewayKey = req.headers['x-gateway-key'] as string;
-  const expectedKey = process.env.GATEWAY_SECRET_KEY;
+  const gatewayToken = req.headers[GATEWAY_AUTH_HEADER] as string;
+  const gatewaySecret = process.env.GATEWAY_SECRET;
 
-  // In development, allow requests without gateway key
-  if (process.env.NODE_ENV === 'development' && !expectedKey) {
+  // In development, allow requests without gateway token
+  if (process.env.NODE_ENV === 'development' && !gatewaySecret) {
     req.user = devUserFromHeaders(req);
     return next();
   }
 
-  // Verify gateway key
-  if (!expectedKey) {
-    console.warn('GATEWAY_SECRET_KEY not configured');
+  // Verify gateway token
+  if (!gatewaySecret) {
+    console.warn('GATEWAY_SECRET not configured');
     return next(new UnauthorizedError('Gateway authentication not configured'));
   }
 
-  if (!gatewayKey || gatewayKey !== expectedKey) {
-    return next(new UnauthorizedError('Invalid gateway key'));
+  if (!gatewayToken || !verifyGatewayToken(gatewayToken, gatewaySecret)) {
+    return next(new UnauthorizedError('Invalid gateway token'));
   }
 
   // Extract user info from gateway headers
@@ -154,14 +187,14 @@ export const gatewayAuth = (
  */
 export const optionalGatewayAuth = (
   req: AuthenticatedRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
-  const gatewayKey = req.headers['x-gateway-key'] as string;
-  const expectedKey = process.env.GATEWAY_SECRET_KEY;
+  const gatewayToken = req.headers[GATEWAY_AUTH_HEADER] as string;
+  const gatewaySecret = process.env.GATEWAY_SECRET;
 
-  // If gateway key matches, extract user info
-  if (gatewayKey && expectedKey && gatewayKey === expectedKey) {
+  // If gateway token is valid, extract user info
+  if (gatewayToken && gatewaySecret && verifyGatewayToken(gatewayToken, gatewaySecret)) {
     const userId = req.headers['x-user-id'] as string;
     if (userId) {
       req.user = {
@@ -178,7 +211,7 @@ export const optionalGatewayAuth = (
  * Role check middleware - requires gatewayAuth to run first
  */
 export const requireRole = (...roles: string[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     if (!req.user) {
       return next(new UnauthorizedError('Not authenticated'));
     }
@@ -201,7 +234,7 @@ export const requireRole = (...roles: string[]) => {
  */
 export const internalServiceAuth = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
   try {
@@ -221,10 +254,11 @@ export const internalServiceAuth = (
  */
 export const gatewayOrInternalAuth = (
   req: AuthenticatedRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
-  const gatewayKey = req.headers['x-gateway-key'] as string;
+  const gatewayToken = req.headers[GATEWAY_AUTH_HEADER] as string;
+  const gatewaySecret = process.env.GATEWAY_SECRET;
 
   // Try internal service auth first
   try {
@@ -235,8 +269,8 @@ export const gatewayOrInternalAuth = (
     return next(err);
   }
 
-  // Try gateway auth
-  if (gatewayKey && gatewayKey === process.env.GATEWAY_SECRET_KEY) {
+  // Try gateway auth (HMAC token verification)
+  if (gatewayToken && gatewaySecret && verifyGatewayToken(gatewayToken, gatewaySecret)) {
     const userId = req.headers['x-user-id'] as string;
     if (userId) {
       req.user = {

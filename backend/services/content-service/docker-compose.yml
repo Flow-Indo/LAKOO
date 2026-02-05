@@ -1,64 +1,59 @@
 # ========================================
-# LOGISTIC SERVICE DOCKER COMPOSE
+# CONTENT SERVICE DOCKER COMPOSE
 # Development Environment
 # ========================================
 
 services:
-  logistic-service:
+  content-service:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: logistic-service
+    container_name: content-service
     restart: unless-stopped
     ports:
-      - "3009:3009"
+      - "3017:3017"
     env_file:
       - .env
     environment:
       - NODE_ENV=production
-      - PORT=3009
+      - PORT=3017
       - ALLOWED_ORIGINS=http://localhost:3000
       - GATEWAY_SECRET=${GATEWAY_SECRET:-dev-gateway-secret}
       - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
       - GATEWAY_AUTH_MAX_SKEW_SECONDS=${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
-      - ORDER_SERVICE_URL=${ORDER_SERVICE_URL:-http://order-service:3006}
+      - SERVICE_NAME=content-service
+      # Inter-service URLs (container DNS on shared network)
       - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL:-http://product-service:3002}
+      - FEED_SERVICE_URL=${FEED_SERVICE_URL:-http://feed-service:3018}
       - NOTIFICATION_SERVICE_URL=${NOTIFICATION_SERVICE_URL:-http://notification-service:3008}
-      - BITESHIP_BASE_URL=${BITESHIP_BASE_URL:-https://api.biteship.com/v1}
-      - BITESHIP_API_KEY=${BITESHIP_API_KEY:-}
-      - BITESHIP_WEBHOOK_SECRET=${BITESHIP_WEBHOOK_SECRET:-}
-      # Local dev convenience: when Biteship isn't configured, return empty rates quickly (caller can fallback).
-      - ALLOW_UNCONFIGURED_SHIPPING_RATES=${ALLOW_UNCONFIGURED_SHIPPING_RATES:-true}
-      - RATE_CACHE_TTL_HOURS=${RATE_CACHE_TTL_HOURS:-24}
     networks:
-      - logistic-network
+      - content-network
       - shared-network
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3009/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3017/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
 
   # Database schema sync service (runs once)
-  logistic-migrate:
+  content-migrate:
     profiles: ["migrate"]
     build:
       context: .
       dockerfile: Dockerfile
       target: builder
-    container_name: logistic-migrate
+    container_name: content-migrate
     command: sh -lc "pnpm -s run db:push"
     env_file:
       - .env
     networks:
-      - logistic-network
+      - content-network
     restart: "no"
 
 networks:
-  logistic-network:
+  content-network:
     driver: bridge
   shared-network:
     external: true
     name: microservices-network
-

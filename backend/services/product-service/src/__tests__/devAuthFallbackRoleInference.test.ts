@@ -14,7 +14,7 @@ describe('gatewayAuth dev fallback role inference', () => {
 
   it('infers moderator role for /api/moderation when no role headers/env', async () => {
     process.env.NODE_ENV = 'development';
-    delete process.env.GATEWAY_SECRET_KEY;
+    delete process.env.GATEWAY_SECRET;
 
     const req: any = {
       headers: {},
@@ -32,7 +32,7 @@ describe('gatewayAuth dev fallback role inference', () => {
 
   it('infers admin role for /api/admin when no role headers/env', async () => {
     process.env.NODE_ENV = 'development';
-    delete process.env.GATEWAY_SECRET_KEY;
+    delete process.env.GATEWAY_SECRET;
 
     const req: any = {
       headers: {},
@@ -48,4 +48,3 @@ describe('gatewayAuth dev fallback role inference', () => {
     expect(req.user.role).toBe('admin');
   });
 });
-

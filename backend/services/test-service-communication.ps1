@@ -113,54 +113,15 @@ if ($productId) {
 }
 
 # =============================================================================
-# STEP 4: Test Order -> Payment Communication
+# STEP 4: Test Full Order Creation Flow (Order -> Product -> Payment)
 # =============================================================================
-Write-Host "`n[Step 4] Test Order -> Payment Communication" -ForegroundColor Yellow
+Write-Host "`n[Step 4] Test Full Order Creation Flow" -ForegroundColor Yellow
 Write-Host "----------------------------------------"
 
-# Use valid RFC 4122 UUID v4 format (version=4, variant=8/9/a/b)
-$testOrderId = "00000000-0000-4000-8000-000000000099"
+$createdOrderId = $null
 $testUserId = "00000000-0000-4000-8000-000000000001"
-$idempotencyKey = "test-idem-$(Get-Date -UFormat %s)"
-
-# Use development mode headers (no service auth, just user headers)
-# The services in dev mode accept x-user-id headers without gateway key
-$headers = @{
-    "Content-Type" = "application/json"
-    "x-user-id" = $testUserId
-    "x-user-role" = "user"
-}
-
-$paymentBody = @{
-    orderId = $testOrderId
-    userId = $testUserId
-    amount = 50000
-    idempotencyKey = $idempotencyKey
-    paymentMethod = "bank_transfer"
-} | ConvertTo-Json
-
-Write-Host "Testing with dev mode headers (x-user-id)..."
-
-try {
-    $paymentResponse = Invoke-RestMethod -Uri "$PAYMENT_SERVICE/api/payments" -Method Post -Headers $headers -Body $paymentBody -TimeoutSec 10
-    Write-Host "Payment created successfully!" -ForegroundColor Green
-    Write-Host "Response: $($paymentResponse | ConvertTo-Json -Compress)"
-    Write-Host "Order -> Payment communication: SUCCESS" -ForegroundColor Green
-} catch {
-    $errorMessage = $_.Exception.Message
-    $errorResponse = $_.ErrorDetails.Message
-    Write-Host "Payment creation response: $errorResponse" -ForegroundColor Yellow
-    Write-Host "Note: This may fail if orderId doesn't exist in order_db" -ForegroundColor Yellow
-}
-
-# =============================================================================
-# STEP 5: Test Full Order Creation Flow (Order -> Product -> Payment)
-# =============================================================================
-Write-Host "`n[Step 5] Test Full Order Creation Flow" -ForegroundColor Yellow
-Write-Host "----------------------------------------"
 
 if ($productId) {
-    $orderToken = Get-ServiceToken -ServiceName "test-client"
     $orderIdempotencyKey = "order-test-$(Get-Date -UFormat %s)"
 
     $headers = @{
@@ -194,7 +155,17 @@ if ($productId) {
     try {
         $orderResponse = Invoke-RestMethod -Uri "$ORDER_SERVICE/api/orders" -Method Post -Headers $headers -Body $orderBody -TimeoutSec 30
         Write-Host "Order created successfully!" -ForegroundColor Green
-        Write-Host "Response: $($orderResponse | ConvertTo-Json -Compress -Depth 3)"
+
+        # Extract the created order ID for Step 5
+        if ($orderResponse.data -and $orderResponse.data.orders -and $orderResponse.data.orders.Count -gt 0) {
+            $createdOrderId = $orderResponse.data.orders[0].id
+            Write-Host "  Order ID: $createdOrderId" -ForegroundColor Cyan
+        } elseif ($orderResponse.data -and $orderResponse.data.id) {
+            $createdOrderId = $orderResponse.data.id
+            Write-Host "  Order ID: $createdOrderId" -ForegroundColor Cyan
+        }
+
+        Write-Host "Full order flow: SUCCESS" -ForegroundColor Green
     } catch {
         $errorMessage = $_.Exception.Message
         $errorResponse = $_.ErrorDetails.Message
@@ -203,6 +174,47 @@ if ($productId) {
     }
 } else {
     Write-Host "Skipping full order flow - no product available" -ForegroundColor Yellow
+}
+
+# =============================================================================
+# STEP 5: Test Direct Payment Creation (with real order)
+# =============================================================================
+Write-Host "`n[Step 5] Test Direct Payment Creation" -ForegroundColor Yellow
+Write-Host "----------------------------------------"
+
+if ($createdOrderId) {
+    $idempotencyKey = "test-payment-$(Get-Date -UFormat %s)"
+
+    $headers = @{
+        "Content-Type" = "application/json"
+        "x-user-id" = $testUserId
+        "x-user-role" = "user"
+    }
+
+    $paymentBody = @{
+        orderId = $createdOrderId
+        userId = $testUserId
+        amount = 50000
+        idempotencyKey = $idempotencyKey
+        paymentMethod = "bank_transfer"
+    } | ConvertTo-Json
+
+    Write-Host "Creating payment for order: $createdOrderId"
+
+    try {
+        $paymentResponse = Invoke-RestMethod -Uri "$PAYMENT_SERVICE/api/payments" -Method Post -Headers $headers -Body $paymentBody -TimeoutSec 10
+        Write-Host "Payment created successfully!" -ForegroundColor Green
+        Write-Host "  Payment URL: $($paymentResponse.data.paymentUrl)" -ForegroundColor Cyan
+        Write-Host "Order -> Payment communication: SUCCESS" -ForegroundColor Green
+    } catch {
+        $errorMessage = $_.Exception.Message
+        $errorResponse = $_.ErrorDetails.Message
+        Write-Host "Payment creation failed: $errorMessage" -ForegroundColor Yellow
+        Write-Host "Error details: $errorResponse" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "Skipping payment test - no order was created in Step 4" -ForegroundColor Yellow
+    Write-Host "Note: Step 4 must succeed to test payment creation" -ForegroundColor Yellow
 }
 
 # =============================================================================

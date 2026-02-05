@@ -12,15 +12,24 @@ services:
     restart: unless-stopped
     ports:
       - "3006:3006"
+    env_file:
+      - .env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=3006
-      - ORDER_DATABASE_URL=postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/order_db?sslmode=require
       - ALLOWED_ORIGINS=http://localhost:3000
-      - GATEWAY_SECRET_KEY=${GATEWAY_SECRET_KEY:-dev-gateway-key}
+      - GATEWAY_SECRET=${GATEWAY_SECRET:-dev-gateway-secret}
       - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
+      - GATEWAY_AUTH_MAX_SKEW_SECONDS=${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
       - SERVICE_NAME=order-service
+      # Enable to log checkout step timings to container logs.
+      - DEBUG_CHECKOUT=${DEBUG_CHECKOUT:-false}
       - OUTBOUND_HTTP_TIMEOUT_MS=${OUTBOUND_HTTP_TIMEOUT_MS:-5000}
+      # Xendit invoice creation can take >5s; allow a longer timeout (and small retry) specifically for payment calls.
+      - PAYMENT_SERVICE_TIMEOUT_MS=${PAYMENT_SERVICE_TIMEOUT_MS:-20000}
+      - PAYMENT_SERVICE_RETRIES=${PAYMENT_SERVICE_RETRIES:-1}
+      # Auth service is not ready yet; fail fast and fall back to shipping snapshot.
+      - AUTH_SERVICE_TIMEOUT_MS=${AUTH_SERVICE_TIMEOUT_MS:-1000}
       - AUTH_SERVICE_URL=${AUTH_SERVICE_URL:-http://auth-service:3001}
       - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL:-http://product-service:3002}
       - CART_SERVICE_URL=${CART_SERVICE_URL:-http://cart-service:3003}
@@ -42,8 +51,8 @@ services:
       target: builder
     container_name: order-migrate
     command: sh -lc "pnpm -s run db:push"
-    environment:
-      - ORDER_DATABASE_URL=postgresql://neondb_owner:npg_GVbUo4NiHXw1@ep-silent-boat-a1jd5w32-pooler.ap-southeast-1.aws.neon.tech/order_db?sslmode=require
+    env_file:
+      - .env
     networks:
       - order-network
     restart: "no"

@@ -23,6 +23,7 @@ export const validateRequest = (
 
 const emptyToUndefined = (value: unknown) => (value === '' || value === null ? undefined : value);
 const zCoerceNumber = (schema: z.ZodNumber) => z.preprocess(emptyToUndefined, schema);
+const zOptionalString = () => z.preprocess(emptyToUndefined, z.string().optional());
 
 export const createOrderSchema = z.object({
   // Used only for internal calls; gateway calls derive userId from auth headers.
@@ -39,14 +40,18 @@ export const createOrderSchema = z.object({
     phone: z.string().min(1),
     province: z.string().min(1),
     city: z.string().min(1),
-    district: z.string().optional(),
-    postalCode: z.string().optional(),
+    district: zOptionalString(),
+    postalCode: zOptionalString(),
     address: z.string().min(1),
     latitude: zCoerceNumber(z.coerce.number()).optional(),
     longitude: zCoerceNumber(z.coerce.number()).optional()
   }),
   shippingNotes: z.string().optional(),
   discountAmount: zCoerceNumber(z.coerce.number().min(0)).optional(),
+  // Optional checkout-level charges; if multiple orders are created (split by seller),
+  // these are allocated proportionally across the created orders.
+  shippingCost: zCoerceNumber(z.coerce.number().min(0)).optional(),
+  taxAmount: zCoerceNumber(z.coerce.number().min(0)).optional(),
   paymentMethod: z.enum([
     'bank_transfer',
     'virtual_account',
@@ -56,7 +61,8 @@ export const createOrderSchema = z.object({
     'ewallet_dana',
     'qris'
   ]).optional(),
-  expiresAt: z.string().datetime().optional()
+  expiresAt: z.string().datetime().optional(),
+  metadata: z.record(z.any()).optional()
 });
 
 export const updateOrderStatusSchema = z.object({

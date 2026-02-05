@@ -40,7 +40,7 @@ export class PaymentController {
       input.userId = authUserId;
     }
 
-    const result = await this.paymentService.createPayment(input);
+    const result = await this.paymentService.createPayment(input, { skipOrderLookup: role === 'internal' });
     res.status(result.isExisting ? 200 : 201).json({
       success: true,
       data: result

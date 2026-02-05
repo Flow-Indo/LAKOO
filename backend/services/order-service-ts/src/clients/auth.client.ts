@@ -3,6 +3,7 @@ import { getServiceAuthHeaders } from '../utils/serviceAuth';
 import { createHttpClient } from './http';
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
+const AUTH_SERVICE_TIMEOUT_MS = Number(process.env.AUTH_SERVICE_TIMEOUT_MS || 1000);
 
 export type AuthUser = {
   id: string;
@@ -16,7 +17,7 @@ export class AuthClient {
   private client: AxiosInstance;
 
   constructor() {
-    this.client = createHttpClient(AUTH_SERVICE_URL);
+    this.client = createHttpClient(AUTH_SERVICE_URL, AUTH_SERVICE_TIMEOUT_MS);
   }
 
   async fetchUser(userId: string): Promise<AuthUser> {

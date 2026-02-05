@@ -4,7 +4,7 @@
 **Port:** 3007  
 **Database:** payment_db (PostgreSQL)  
 **Language:** TypeScript (Node.js)  
-**Last Updated:** 2026-01-30  
+**Last Updated:** 2026-02-03  
 
 ---
 
@@ -64,7 +64,7 @@ This service emits domain events using a **transactional outbox** (`ServiceOutbo
 ### Authentication model
 
 **Gateway trust (end-user traffic via API gateway)**
-- `x-gateway-key` must equal `GATEWAY_SECRET_KEY`
+- `x-gateway-auth` must be a valid HMAC token signed with `GATEWAY_SECRET`
 - `x-user-id` required
 - `x-user-role` optional (e.g. `admin`)
 
@@ -90,6 +90,10 @@ Client -> API Gateway -> payment-service (POST /api/payments)
   -> payment-service: create Payment(pending) + outbox payment.created
   -> return invoice URL to client
 ```
+
+Notes:
+- payment-service does **not** fetch user profiles from auth-service; invoice customer fields are taken from the **order snapshot** (order-service). If missing, it uses a placeholder email.
+- For internal calls (order-service -> payment-service), payment-service avoids calling back into order-service; internal callers should pass customer snapshot fields in `metadata` (`customerName`, `customerEmail`, `customerPhone`, `orderNumber`).
 
 ### 2) Webhook: payment paid / expired
 
@@ -232,10 +236,9 @@ SERVICE_NAME=payment-service
 # Neon / remote Postgres (recommended): include sslmode=require for Neon
 DATABASE_URL=postgresql://user:pass@your-neon-host.neon.tech/payment_db?sslmode=require
 
-GATEWAY_SECRET_KEY=your-gateway-secret-key
+GATEWAY_SECRET=your-gateway-secret
 SERVICE_SECRET=your-service-auth-secret
 
-AUTH_SERVICE_URL=http://localhost:3001
 ORDER_SERVICE_URL=http://localhost:3006
 WAREHOUSE_SERVICE_URL=http://localhost:3012
 NOTIFICATION_SERVICE_URL=http://localhost:3008
@@ -292,7 +295,7 @@ Notes:
 - Owns payment + refund state (`Payment`, `Refund`, `PaymentGatewayLog`, settlement summaries) and exposes payment/refund APIs.
 - Integrates with **Xendit** for invoice creation and (some) refunds.
 - Emits integration events via **`ServiceOutbox`** (transactional outbox pattern).
-- Does **not** own orders or user identities (reads via `ORDER_SERVICE_URL` / `AUTH_SERVICE_URL` when needed).
+- Does **not** own orders or user identities (reads order snapshot via `ORDER_SERVICE_URL` when needed).
 
 ## 2) Architecture (layers & request flow)
 - **Routes** (`src/routes/*.routes.ts`): endpoints + `express-validator` rules + `validateRequest`.
@@ -313,11 +316,11 @@ Typical request flow:
 - **`PORT`**: listen port (code default is `3007`).
 - **`NODE_ENV`**: `development|test|production` (affects logging + dev auth bypass).
 - **`DATABASE_URL`**: Postgres connection string for Prisma.
-- **`GATEWAY_SECRET_KEY`**: verifies gateway traffic (`x-gateway-key`).
+- **`GATEWAY_SECRET`**: verifies gateway traffic (`x-gateway-auth`).
 - **`SERVICE_SECRET`**: verifies service-to-service HMAC tokens (`x-service-auth` + `x-service-name`).
 - **`XENDIT_SECRET_KEY`**: Xendit API key.
 - **`XENDIT_WEBHOOK_VERIFICATION_TOKEN`**: Xendit callback token (matches `x-callback-token`).
-- **`AUTH_SERVICE_URL`**, **`ORDER_SERVICE_URL`**, **`WAREHOUSE_SERVICE_URL`**, **`NOTIFICATION_SERVICE_URL`**: upstream service base URLs.
+- **`ORDER_SERVICE_URL`**, **`WAREHOUSE_SERVICE_URL`**, **`NOTIFICATION_SERVICE_URL`**: upstream service base URLs.
 - **`PAYMENT_SUCCESS_URL`**, **`PAYMENT_FAILURE_URL`**: Xendit redirect URLs.
 - **`ENABLE_EXPIRATION_CRON`**, **`EXPIRATION_CRON_SCHEDULE`**: expire-payment scheduler controls.
 - **`ALLOWED_ORIGINS`**: CORS allowlist (if enabled in `src/index.ts`).
@@ -325,7 +328,7 @@ Typical request flow:
 ### Authentication & authorization (gateway + service-to-service)
 Gateway-trust (external client traffic via API Gateway):
 - Gateway must inject:
-  - `x-gateway-key` (must equal `GATEWAY_SECRET_KEY`)
+  - `x-gateway-auth` (HMAC token signed with `GATEWAY_SECRET`)
   - `x-user-id` (required)
   - `x-user-role` (optional; `admin`, `user`, etc.)
 
@@ -356,7 +359,7 @@ Base routes:
 Payments & refunds (`/api/payments/*`):
 - Auth: `gatewayOrInternalAuth`
 - Examples:
-  - `POST /api/payments` → `PaymentController.createPayment` → `PaymentService.createPayment` → `PaymentRepository.*`
+  - `POST /api/payments` → `PaymentController.createPayment` → `PaymentService.createPayment` (reads order snapshot via `ORDER_SERVICE_URL`) → `PaymentRepository.*`
   - `GET /api/payments/order/:orderId` → `PaymentController.getPaymentByOrder` → `PaymentService.getPaymentByOrderId`
   - Refund routes: `PaymentController.*` → `RefundService.*` → `RefundRepository.*`
   - Admin-only payment analytics routes use `requireRole('admin', 'internal')`
@@ -665,7 +668,7 @@ Notes:
 
 ---
 
-**Last Updated**: January 27, 2026  
+**Last Updated**: February 3, 2026  
 **Commission Implementation**: ✅ Complete  
 **Next Milestone**: Settlement Job + Order Service Integration
 

@@ -23,7 +23,7 @@ Typical request flow:
 - **`PORT`**: listen port (defaults to `3009`).
 - **`NODE_ENV`**: `development|test|production`.
 - **`LOGISTICS_DATABASE_URL`**: Postgres connection string for Prisma.
-- **`GATEWAY_SECRET_KEY`**: verifies gateway traffic (`x-gateway-key`).
+- **`GATEWAY_SECRET`**: verifies gateway traffic (`x-gateway-auth`).
 - **`SERVICE_SECRET`**: verifies service-to-service HMAC (`x-service-auth` + `x-service-name`).
 - **`ALLOWED_ORIGINS`**: CORS allowlist.
 
@@ -43,7 +43,7 @@ Biteship client:
 
 ### Authentication & authorization (gateway + service-to-service)
 Gateway-trust:
-- `x-gateway-key` must equal `GATEWAY_SECRET_KEY`
+- `x-gateway-auth` must be a valid HMAC token signed with `GATEWAY_SECRET`
 - `x-user-id` required
 - `x-user-role` optional
 

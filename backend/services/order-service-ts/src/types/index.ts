@@ -39,8 +39,11 @@ export interface CheckoutOrderDTO {
   };
   shippingNotes?: string;
   discountAmount?: number;
+  shippingCost?: number;
+  taxAmount?: number;
   paymentMethod?: string;
   expiresAt?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface UpdateOrderStatusDTO {

@@ -98,13 +98,21 @@ function getServiceAuthHeaders(serviceName, secret) {
   };
 }
 
+function generateGatewayToken(secret) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const message = `apiGateway:${timestamp}`;
+  const signature = crypto.createHmac('sha256', secret).update(message).digest('hex');
+  return `apiGateway:${timestamp}:${signature}`;
+}
+
 async function assert(cond, msg) {
   if (!cond) throw new Error(msg);
 }
 
 async function runSmoke() {
   const serviceSecret = process.env.SERVICE_SECRET || 'dev-service-secret';
-  const gatewayKey = process.env.GATEWAY_SECRET_KEY || 'dev-gateway-key';
+  const gatewaySecret = process.env.GATEWAY_SECRET || process.env.GATEWAY_SECRET_KEY || 'dev-gateway-secret';
+  const gatewayToken = generateGatewayToken(gatewaySecret);
 
   const services = [
     {
@@ -118,7 +126,8 @@ async function runSmoke() {
         DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/payment_smoke?schema=public',
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'payment-service',
-        GATEWAY_SECRET_KEY: gatewayKey,
+        GATEWAY_SECRET: gatewaySecret,
+        GATEWAY_SECRET_KEY: gatewaySecret,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       },
       authProbePath: '/api/payments/__smoke'
@@ -133,7 +142,8 @@ async function runSmoke() {
         DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/brand_smoke?schema=public',
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'brand-service',
-        GATEWAY_SECRET_KEY: gatewayKey,
+        GATEWAY_SECRET: gatewaySecret,
+        GATEWAY_SECRET_KEY: gatewaySecret,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       },
       authProbePath: '/api/brands/internal/__smoke'
@@ -148,7 +158,8 @@ async function runSmoke() {
         ADDRESS_DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/address_smoke?schema=public',
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'address-service',
-        GATEWAY_SECRET_KEY: gatewayKey,
+        GATEWAY_SECRET: gatewaySecret,
+        GATEWAY_SECRET_KEY: gatewaySecret,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       },
       authProbePath: '/api/addresses/__smoke'
@@ -163,7 +174,8 @@ async function runSmoke() {
         LOGISTICS_DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/logistic_smoke?schema=public',
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'logistic-service',
-        GATEWAY_SECRET_KEY: gatewayKey,
+        GATEWAY_SECRET: gatewaySecret,
+        GATEWAY_SECRET_KEY: gatewaySecret,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       },
       authProbePath: '/api/internal/__smoke'
@@ -178,7 +190,8 @@ async function runSmoke() {
         DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/review_smoke?schema=public',
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'review-service',
-        GATEWAY_SECRET_KEY: gatewayKey,
+        GATEWAY_SECRET: gatewaySecret,
+        GATEWAY_SECRET_KEY: gatewaySecret,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       },
       authProbePath: '/api/reviews/internal/review-requests'
@@ -193,7 +206,8 @@ async function runSmoke() {
         DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/warehouse_smoke?schema=public',
         SERVICE_SECRET: serviceSecret,
         SERVICE_NAME: 'warehouse-service',
-        GATEWAY_SECRET_KEY: gatewayKey,
+        GATEWAY_SECRET: gatewaySecret,
+        GATEWAY_SECRET_KEY: gatewaySecret,
         ALLOWED_ORIGINS: 'http://localhost:3000'
       },
       authProbePath: '/api/admin/__smoke'
@@ -246,7 +260,14 @@ async function runSmoke() {
 
       // Auth: with service token headers should NOT be 401/403 (likely 404 because route doesn't exist)
       const svcHeaders = getServiceAuthHeaders(svc.env.SERVICE_NAME, serviceSecret);
-      const authed = await fetchJson(`${base}${svc.authProbePath}`, { headers: svcHeaders });
+      const authed = await fetchJson(`${base}${svc.authProbePath}`, {
+        headers: {
+          ...svcHeaders,
+          // Back-compat: some services still use `x-gateway-key` and others use `x-gateway-auth`
+          'x-gateway-key': gatewaySecret,
+          'x-gateway-auth': gatewayToken
+        }
+      });
       await assert(![401, 403].includes(authed.status), `${name}: authed probe expected not 401/403, got ${authed.status}`);
 
       results.push({ name, ok: true });

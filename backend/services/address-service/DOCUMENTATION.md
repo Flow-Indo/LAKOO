@@ -66,7 +66,7 @@ This service emits domain events using a **transactional outbox** (`ServiceOutbo
 ### Authentication model
 
 **Gateway trust (end-user traffic via API gateway)**
-- `x-gateway-key` must equal `GATEWAY_SECRET_KEY`
+- `x-gateway-auth` must be a valid HMAC token signed with `GATEWAY_SECRET`
 - `x-user-id` required
 - `x-user-role` optional (e.g. `admin`)
 
@@ -77,11 +77,11 @@ This service emits domain events using a **transactional outbox** (`ServiceOutbo
 - Internal identity is derived from the **signed token**, and must match `x-service-name` (prevents header spoofing).
 
 **Development mode bypass (local testing)**
-- When `NODE_ENV=development` and you send **no** `x-gateway-key` / `x-service-auth` headers, the service will allow the request for Swagger/local testing.
+- When `NODE_ENV=development` and you send **no** `x-gateway-auth` / `x-service-auth` headers, the service will allow the request for Swagger/local testing.
 - You can optionally set:
   - `x-user-id` (defaults to `DEV_USER_ID` or `11111111-1111-1111-1111-111111111111`)
   - `x-user-role` (defaults to `DEV_USER_ROLE` or `admin` for routes using `gatewayOrInternalAuth`)
-- If you send an auth header (e.g. `x-gateway-key`) it will still be validated (wrong keys are rejected).
+- If you send an auth header (e.g. `x-gateway-auth`) it will still be validated (wrong signatures are rejected).
 
 ### Response format
 - Success: `{ success: true, data: ... }`
@@ -407,7 +407,7 @@ SERVICE_NAME=address-service
 # Neon / remote Postgres (recommended): include sslmode=require for Neon
 ADDRESS_DATABASE_URL=postgresql://user:pass@your-neon-host.neon.tech/address_db?sslmode=require
 
-GATEWAY_SECRET_KEY=your-gateway-secret-key
+GATEWAY_SECRET=your-gateway-secret
 SERVICE_SECRET=your-service-auth-secret
 
 ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173

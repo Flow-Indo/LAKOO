@@ -141,7 +141,12 @@ export interface TrackingEventResponse {
 export interface GetRatesDTO {
   originPostalCode: string;
   destPostalCode: string;
-  weightGrams: number;
+  // Either provide weight/dimensions directly OR provide productId (and optional variantId)
+  // to fetch dimensions from product-service.
+  productId?: string;
+  variantId?: string;
+  quantity?: number;
+  weightGrams?: number;
   lengthCm?: number;
   widthCm?: number;
   heightCm?: number;

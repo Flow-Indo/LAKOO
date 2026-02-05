@@ -15,10 +15,11 @@ services:
     env_file:
       - .env
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - PORT=3010
-      - GATEWAY_SECRET_KEY=${GATEWAY_SECRET_KEY:-dev-gateway-key}
+      - GATEWAY_SECRET=${GATEWAY_SECRET:-dev-gateway-secret}
       - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
+      - GATEWAY_AUTH_MAX_SKEW_SECONDS=${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
     networks:
       - address-network
       - shared-network

@@ -292,7 +292,7 @@ All require `gatewayOrInternalAuth` + `requireRole('admin','internal')`.
 ```bash
 POST /api/drafts
 Content-Type: application/json
-x-gateway-key: your-gateway-key
+x-gateway-auth: apiGateway:timestamp:signature
 x-user-id: seller-uuid
 
 {
@@ -332,7 +332,7 @@ x-user-id: seller-uuid
 #### Approve Draft
 ```bash
 POST /api/moderation/draft-uuid/approve
-x-gateway-key: your-gateway-key
+x-gateway-auth: apiGateway:timestamp:signature
 x-user-id: moderator-uuid
 x-user-role: moderator
 
@@ -347,7 +347,7 @@ x-user-role: moderator
 }
 ```
 
-Dev note: if `NODE_ENV=development`, you can omit `x-user-id` (and even `x-gateway-key` when `GATEWAY_SECRET_KEY` is not set) and rely on `DEV_MODERATOR_ID` / `DEV_USER_ROLE`. See [Setup & Development](#setup--development).
+Dev note: if `NODE_ENV=development`, you can omit `x-user-id` (and even `x-gateway-auth` when `GATEWAY_SECRET` is not set) and rely on `DEV_MODERATOR_ID` / `DEV_USER_ROLE`. See [Setup & Development](#setup--development).
 
 ---
 
@@ -589,11 +589,12 @@ ALLOWED_ORIGINS=http://localhost:3000
 
 # Database
 DATABASE_URL="postgresql://user:pass@your-neon-host.neon.tech/product_db?sslmode=require"
+# If you use Neon pooler (host includes `-pooler`), add `&pgbouncer=true` to reduce transient connection issues.
 # Back-compat (optional): if you already use PRODUCT_DATABASE_URL, product-service maps it to DATABASE_URL on startup.
 # PRODUCT_DATABASE_URL="postgresql://user:pass@localhost:5432/product_db"
 
 # Authentication
-GATEWAY_SECRET_KEY=your-gateway-secret
+GATEWAY_SECRET=your-gateway-secret
 SERVICE_SECRET=your-service-secret
 SERVICE_NAME=product-service
 
@@ -621,7 +622,7 @@ NOTIFICATION_SERVICE_URL=http://localhost:3008
 
 Notes:
 - This service stores image URLs only; it does not upload to S3 directly.
-- Dev auth fallback: if `NODE_ENV=development` and `GATEWAY_SECRET_KEY` is not set, `gatewayAuth` will infer a role from the route prefix (`/api/drafts` → `seller`, `/api/moderation` → `moderator`, `/api/admin` → `admin`) unless you explicitly set `x-user-role` or `DEV_USER_ROLE`.
+- Dev auth fallback: if `NODE_ENV=development` and `GATEWAY_SECRET` is not set, `gatewayAuth` will infer a role from the route prefix (`/api/drafts` → `seller`, `/api/moderation` → `moderator`, `/api/admin` → `admin`) unless you explicitly set `x-user-role` or `DEV_USER_ROLE`.
 
 ### Installation
 ```bash

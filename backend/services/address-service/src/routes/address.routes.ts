@@ -14,6 +14,37 @@ import {
 const router: ExpressRouter = Router();
 const controller = new AddressController();
 
+function normalizeAddressBody(req: any, _res: any, next: any) {
+  const body = req.body;
+  if (!body || typeof body !== 'object') return next();
+
+  // Allow clients/scripts to send "order-style" address fields.
+  if (body.recipientName === undefined && typeof body.name === 'string') {
+    body.recipientName = body.name;
+  }
+  if (body.phoneNumber === undefined && typeof body.phone === 'string') {
+    body.phoneNumber = body.phone;
+  }
+
+  // Full address aliases -> streetAddress
+  if (body.streetAddress === undefined && typeof body.fullAddress === 'string') {
+    body.streetAddress = body.fullAddress;
+  }
+  if (body.streetAddress === undefined && typeof body.address === 'string') {
+    body.streetAddress = body.address;
+  }
+
+  // City/province aliases
+  if (body.cityName === undefined && typeof body.city === 'string') {
+    body.cityName = body.city;
+  }
+  if (body.provinceName === undefined && typeof body.province === 'string') {
+    body.provinceName = body.province;
+  }
+
+  next();
+}
+
 // All routes require authentication
 router.use(gatewayOrInternalAuth);
 
@@ -51,7 +82,7 @@ router.use(gatewayOrInternalAuth);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', createAddressValidators, validateRequest, controller.createAddress);
+router.post('/', normalizeAddressBody, createAddressValidators, validateRequest, controller.createAddress);
 
 /**
  * @swagger
@@ -201,7 +232,7 @@ router.get('/:id', idParamValidator, validateRequest, controller.getAddress);
  *       404:
  *         description: Address not found
  */
-router.patch('/:id', updateAddressValidators, validateRequest, controller.updateAddress);
+router.patch('/:id', normalizeAddressBody, updateAddressValidators, validateRequest, controller.updateAddress);
 
 /**
  * @swagger
