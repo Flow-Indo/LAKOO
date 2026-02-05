@@ -30,11 +30,11 @@ export function SizeHelper({ recommendedSize, sizeChart, buyerReferences }: Size
   ];
 
   return (
-    <div className="px-4 py-8 border-t border-gray-200 my-6">
+    <div className="px-4 py-4 border-t border-gray-200">
       {/* Header */}
       <div className="flex items-center justify-between mb-6 gap-2">
-        <h3 className="font-semibold text-gray-900 text-sm truncate flex-1">Ukuran</h3>
-        <div className="text-xs sm:text-sm text-gray-600 flex items-center gap-2 flex-shrink-0 ml-3">
+        <h3 className="font-semibold text-gray-900 text-[16px] truncate flex-1">Ukuran</h3>
+        <div className="py-2 text-xs sm:text-sm text-gray-600 flex items-center gap-2 flex-shrink-0 ml-3">
           <span>Saya <span className="font-medium">Tinggi 162cm | Berat 61kg</span></span>
           <button className="text-red-600 ml-2 font-medium text-xs py-1 px-2 rounded">Edit</button>
         </div>
@@ -49,8 +49,8 @@ export function SizeHelper({ recommendedSize, sizeChart, buyerReferences }: Size
       </div>
 
       {/* Fit Indicator Slider - NEW */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
+      <div className="py-4">
+        <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600">Model</span>
         </div>
         <div className="relative">
@@ -71,7 +71,7 @@ export function SizeHelper({ recommendedSize, sizeChart, buyerReferences }: Size
       <h4 className="font-medium text-gray-900 mb-8 text-sm">Tabel Ukuran <span className="text-gray-500 font-normal">cm/kg</span></h4>
 
       {/* Transposed Size Chart: sizes as columns, measurements as rows */}
-      <div className="overflow-x-auto mb-8">
+      <div className="overflow-x-auto py-4">
         <div className="px-4">
           <table className="w-full min-w-[320px] text-xs sm:text-sm border-collapse">
             <thead>

@@ -164,11 +164,11 @@ function transformToProductPageData(product: any) {
     description: voucher.description,
   }));
 
-  // Mock store products for recommendations
+  // Store products for recommendations (using real product slugs)
   const storeProducts = [
     {
-      id: 'rec-001',
-      name: product.brand + ' - Summer Beach Dress',
+      id: 'cult-suri-1',
+      name: 'CULT SURI - Coco Top Chiffon Dengan Scarf Detail',
       image: '/products/CULT SURI - Coco Top Chiffon Dengan Scarf Detail/cult_eksplor1.webp',
       price: 249000,
       originalPrice: 349000,
@@ -176,32 +176,32 @@ function transformToProductPageData(product: any) {
       sold: '2.1K',
     },
     {
-      id: 'rec-002',
-      name: product.brand + ' - Floral Blouse',
+      id: 'cult-suri-2',
+      name: 'CULT SURI - Coco Top Chiffon Dengan Scarf Detail',
       image: '/products/CULT SURI - Coco Top Chiffon Dengan Scarf Detail/cult_eksplor2.webp',
       price: 189000,
       rating: 4.5,
       sold: '890',
     },
     {
-      id: 'rec-003',
-      name: product.brand + ' - Denim Shorts',
+      id: 'karakiri-1',
+      name: 'Karakiri - Jolie Pants | Wide Leg Trousers | Culotte Pants',
       image: '/products/Karakiri - Jolie Pants | Wide Leg Trousers | Culotte Pants/kara_eksplor1.webp',
       price: 159000,
       rating: 4.6,
       sold: '1.5K',
     },
     {
-      id: 'rec-004',
-      name: product.brand + ' - Sandals',
+      id: 'karakiri-2',
+      name: 'Karakiri - Wide Leg Trousers',
       image: '/products/Karakiri - Jolie Pants | Wide Leg Trousers | Culotte Pants/kara_eksplor2.webp',
       price: 99000,
       rating: 4.4,
       sold: '3.2K',
     },
     {
-      id: 'rec-005',
-      name: product.brand + ' - Casual Pants',
+      id: 'rue-1',
+      name: 'RUE - Sheer Top Atasan Lengan Panjang Boatneck Longsleeve',
       image: '/products/RUE - Sheer Top Atasan Lengan Panjang Boatneck Longsleeve/rue_eksplor1.webp',
       price: 279000,
       originalPrice: 359000,
@@ -209,8 +209,8 @@ function transformToProductPageData(product: any) {
       sold: '1.2K',
     },
     {
-      id: 'rec-006',
-      name: product.brand + ' - Top Collection',
+      id: 'rue-2',
+      name: 'RUE - Boatneck Longsleeve Top',
       image: '/products/RUE - Sheer Top Atasan Lengan Panjang Boatneck Longsleeve/rue_eksplor2.webp',
       price: 199000,
       rating: 4.6,

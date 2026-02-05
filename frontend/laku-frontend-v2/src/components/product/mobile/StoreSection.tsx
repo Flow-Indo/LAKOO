@@ -122,7 +122,7 @@ export function StoreSection({ seller, sold }: StoreSectionProps) {
             </div>
           </div>
 
-          <button className="px-4 py-2 bg-[#FF2442] text-white rounded-lg text-[14px] font-semibold whitespace-nowrap hover:bg-[#E61E3A] transition-colors h-fit">
+          <button className="px-4 py-2 bg-[#FF2442] text-white rounded-lg text-[12px] sm:text-[14px] font-semibold whitespace-nowrap hover:bg-[#E61E3A] transition-colors h-fit">
             + Ikuti
           </button>
         </div>

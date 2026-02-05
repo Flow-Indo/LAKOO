@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { SafeImage } from '@/components/shared/SafeImage';
 
 interface StoreRecommendationsProps {
   storeId: string;
@@ -51,6 +51,9 @@ export function StoreRecommendations({ storeId, products }: StoreRecommendations
     }
     return num.toLocaleString('id-ID');
   };
+
+  // Hard limit to 6 products (3x2 grid)
+  const displayProducts = filtered.slice(0, 6);
 
   return (
     <div className="px-4 py-4 border-t border-gray-200">
@@ -110,16 +113,17 @@ export function StoreRecommendations({ storeId, products }: StoreRecommendations
 
       {/* Product Grid - 3 columns x 2 rows */}
       <div className="grid grid-cols-3 gap-2">
-        {filtered.map((product) => (
-          <Link key={product.id} href={`/product/${product.id}`}>
-            <div className="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        {displayProducts.map((product) => (
+          <Link key={product.id} href={`/product/${product.id.split('-')[0]}`}>
+            <div className="bg-white rounded-lg overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               {/* Image Container */}
               <div className="aspect-square bg-gray-100 relative overflow-hidden">
-                <SafeImage
-                  src={product.image}
+                <Image
+                  src={product.image.startsWith('/') ? product.image.substring(1) : product.image}
                   alt={product.name}
-                  className="object-cover hover:scale-105 transition-transform duration-300"
                   fill
+                  className="object-cover hover:scale-105 transition-transform duration-300"
+                  sizes="33vw"
                 />
               </div>
               
@@ -144,6 +148,11 @@ export function StoreRecommendations({ storeId, products }: StoreRecommendations
                   <span className="text-red-600 font-bold text-xs">
                     Rp {formatPrice(product.price)}
                   </span>
+                  {product.originalPrice && product.originalPrice > product.price && (
+                    <span className="text-gray-400 text-[10px] line-through">
+                      {formatPrice(product.originalPrice)}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
