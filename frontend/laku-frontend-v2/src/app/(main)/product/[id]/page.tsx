@@ -67,6 +67,25 @@ function transformToProductPageData(product: any) {
   // Create seller data
   // Handle special case for WEAR THREEK (should be 'wearthreek' not 'wear-threek')
   let storeSlug = product.brand.toLowerCase().replace(/\s+/g, '-');
+
+  // Special mapping for brand names to store slugs
+  const brandToStoreSlug: Record<string, string> = {
+    'lululemon': 'lululemon',
+    'prada': 'prada',
+    'maison margiela': 'maisonmargiela',
+    'stanley 1913': 'stanley',
+    'luxury collection': 'prada', // Combo products link to main luxury brand
+    'wearthreek': 'wearthreek',
+    'cult suri': 'cult-suri',
+    'karakiri': 'karakiri',
+    'rue': 'rue',
+  };
+
+  // Use the mapping if it exists
+  const normalizedBrand = product.brand.toLowerCase();
+  if (brandToStoreSlug[normalizedBrand]) {
+    storeSlug = brandToStoreSlug[normalizedBrand];
+  }
   
   // Check if there's a store with the hyphenated version
   if (storesData[storeSlug]) {
@@ -215,6 +234,74 @@ function transformToProductPageData(product: any) {
       price: 199000,
       rating: 4.6,
       sold: '2.8K',
+    },
+    // New Lululemon products
+    {
+      id: 'lulu-softstreme-1',
+      name: 'Lululemon - Softstreme Zip-Flared Pant',
+      image: '/products/Lululemon - Softstreme Zip-Flared Pant/softstreme_eksplor1.webp',
+      price: 1280000,
+      originalPrice: 1580000,
+      rating: 4.9,
+      sold: '2.3K',
+    },
+    {
+      id: 'lulu-swiftly-1',
+      name: 'Lululemon - Swiftly Tech Long Sleeve 2.0',
+      image: '/products/Lululemon - Swiftly Tech Long Sleeve/swiftly_eksplor1.webp',
+      price: 780000,
+      originalPrice: 980000,
+      rating: 4.9,
+      sold: '5.6K',
+    },
+    {
+      id: 'lulu-combo-1',
+      name: 'Lululemon - Softstreme + Swiftly Combo',
+      image: '/products/Lululemon - Softstreme Swiftly Combo/lulu_combo_eksplor1.webp',
+      price: 2060000,
+      originalPrice: 2560000,
+      rating: 4.9,
+      sold: '1.2K',
+    },
+    // New Prada products
+    {
+      id: 'prada-tote-1',
+      name: 'Prada - Black Medium Leather Tote Bag',
+      image: '/products/Prada - Black Medium Leather Tote Bag/prada_eksplor1.webp',
+      price: 42500000,
+      originalPrice: 48000000,
+      rating: 5.0,
+      sold: '89',
+    },
+    // New MM products
+    {
+      id: 'mm-tabi-1',
+      name: 'Maison Margiela - Tabi Leather Ballerina Flats',
+      image: '/products/Maison Margiela - Tabi Ballerina Flats/mm_eksplor1.webp',
+      price: 18900000,
+      originalPrice: 21500000,
+      rating: 4.9,
+      sold: '45',
+    },
+    // New Stanley products
+    {
+      id: 'stanley-quencher-1',
+      name: 'Stanley - x Jennie Quencher Luxe 30 OZ',
+      image: '/products/Stanley - Jennie Quencher Luxe/stanley_eksplor1.webp',
+      price: 850000,
+      originalPrice: 980000,
+      rating: 4.8,
+      sold: '3.2K',
+    },
+    // Luxury combo
+    {
+      id: 'luxury-combo-1',
+      name: 'Prada + MM + Stanley Luxury Combo',
+      image: '/products/Prada+MM+Stanley Combo/combo_eksplor1.webp',
+      price: 63350000,
+      originalPrice: 70500000,
+      rating: 5.0,
+      sold: '18',
     },
   ];
 

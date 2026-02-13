@@ -71,7 +71,7 @@ export default function CartVirtualPageClient() {
   return (
     <div className="min-h-screen bg-white-50 flex flex-col">
       
-      <div className="flex-1 min-h-0 overflow-auto pb-[0px]">
+      <div className="flex-1 min-h-0 overflow-auto">
         <PreviewFit
           shirts={shirts}
           pants={pants}

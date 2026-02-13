@@ -43,6 +43,11 @@ export interface SizeVariant {
     inseam?: string;
     bust?: string;
     sleeve?: string;
+    width?: string;
+    height?: string;
+    depth?: string;
+    handle?: string;
+    volume?: string;
   };
 }
 
@@ -124,6 +129,11 @@ export interface ProductSize {
     inseam?: string;
     bust?: string;
     sleeve?: string;
+    width?: string;
+    height?: string;
+    depth?: string;
+    handle?: string;
+    volume?: string;
   };
 }
 

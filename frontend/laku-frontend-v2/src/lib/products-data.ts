@@ -31,6 +31,11 @@ export interface ProductSize {
     inseam?: string;
     bust?: string;
     sleeve?: string;
+    width?: string;
+    height?: string;
+    depth?: string;
+    handle?: string;
+    volume?: string;
   };
 }
 
@@ -1144,6 +1149,1097 @@ export const productsData: Record<string, ProductData> = {
         {
           productSlug: 'wearthreek',
           position: { x: 45, y: 65 },
+          imageIndex: 0
+        }
+      ]
+    }
+  },
+
+  // ==================== NEW PRODUCTS ====================
+
+  // Standalone products for MARKET PAGE ONLY (not in explore feed)
+  // These are accessible when clicking tagged products in combo posts
+
+  'lulu-softstreme-pant': {
+    id: 'prod-lulu-softstreme-pant',
+    slug: 'lulu-softstreme-pant',
+    name: 'Brushed Softstreme Ribbed Mid-Rise Zip-Flared Pant Women\'s 32.5"',
+    brand: 'Lululemon',
+    description: 'Crafted with our ultra-soft Softstreme fabric, these flared pants offer a flattering mid-rise fit with a zip-front design. Perfect for both low-impact workouts and everyday wear.',
+    price: 1280000,
+    originalPrice: 1580000,
+    currency: 'Rp',
+
+    postImages: [
+      '/products/Lululemon - Softstreme Zip-Flared Pant/softstreme_eksplor1.webp',
+      '/products/Lululemon - Softstreme Zip-Flared Pant/softstreme_eksplor2.webp'
+    ],
+
+    productImages: [
+      '/Softstreme/IMG_0045.JPG',
+      '/Softstreme/IMG_0044.JPG',
+      '/Softstreme/IMG_0043.JPG',
+      '/Softstreme/IMG_0042.JPG',
+      '/Softstreme/IMG_0041.JPG',
+      '/Softstreme/IMG_0040.JPG',
+      '/Softstreme/IMG_0039.JPG'
+    ],
+
+    colors: [
+      {
+        id: 'softstreme-black',
+        name: 'Black',
+        label: 'Black',
+        image: '/Softstreme/IMG_0045.JPG',
+        stock: 15
+      },
+      {
+        id: 'softstreme-navy',
+        name: 'Navy',
+        label: 'Navy',
+        image: '/Softstreme/IMG_0044.JPG',
+        stock: 10
+      }
+    ],
+
+    sizes: [
+      {
+        id: '2',
+        name: '2',
+        price: 1280000,
+        weight: 0.35,
+        weightRecommendation: '45-52 kg',
+        measurements: {
+          waist: '64cm',
+          hip: '88cm',
+          inseam: '82cm',
+          length: '82.5cm'
+        }
+      },
+      {
+        id: '4',
+        name: '4',
+        price: 1280000,
+        weight: 0.38,
+        weightRecommendation: '52-59 kg',
+        measurements: {
+          waist: '68cm',
+          hip: '92cm',
+          inseam: '82.5cm',
+          length: '82.5cm'
+        }
+      },
+      {
+        id: '6',
+        name: '6',
+        price: 1280000,
+        weight: 0.42,
+        weightRecommendation: '59-67 kg',
+        measurements: {
+          waist: '72cm',
+          hip: '96cm',
+          inseam: '82.5cm',
+          length: '82.5cm'
+        }
+      },
+      {
+        id: '8',
+        name: '8',
+        price: 1280000,
+        weight: 0.45,
+        weightRecommendation: '67-75 kg',
+        measurements: {
+          waist: '76cm',
+          hip: '100cm',
+          inseam: '82.5cm',
+          length: '82.5cm'
+        }
+      }
+    ],
+
+    shippingOptions: [
+      {
+        id: 'jne-yes',
+        name: 'JNE Yes',
+        courier: 'JNE',
+        service: 'YES',
+        price: 35000,
+        estimatedDays: '1 Hari',
+        isFree: false,
+        isFast: true
+      },
+      {
+        id: 'jne-reg',
+        name: 'JNE Reguler',
+        courier: 'JNE',
+        service: 'Reguler',
+        price: 18000,
+        estimatedDays: '3-5 Hari',
+        isFree: true,
+        isFast: false
+      },
+      {
+        id: 'sicepat-best',
+        name: 'SiCepat BEST',
+        courier: 'SiCepat',
+        service: 'BEST',
+        price: 32000,
+        estimatedDays: '2 Hari',
+        isFree: false,
+        isFast: true
+      }
+    ],
+
+    vouchers: [
+      {
+        id: 'lulu-first',
+        code: 'LULU10',
+        discount: 10,
+        discountType: 'percentage',
+        minPurchase: 1000000,
+        maxDiscount: 150000,
+        validUntil: '2026-03-15',
+        description: 'Diskon 10% s.d. Rp 150rb'
+      }
+    ],
+
+    postData: {
+      title: 'Softstreme Flared Pant yang Super Comfortable! 💜',
+      content: ` Baru saja coba Softstreme Zip-Flared Pant dari Lululemon dan langsung jatuh cinta!
+      BahannyaSoftstreme itu bener-bener lembut dan nyaman banget. Modelnya flare下面的设计让腿部线条看起来更修长，适合各种场合穿搭。`,
+      tags: ['#Lululemon', '#Softstreme', '#FlaredPants', '#YogaStyle', '#WorkoutWear'],
+      author: {
+        name: 'Lululemon Lover',
+        avatar: '',
+        followerCount: 125000
+      },
+      location: 'Singapore',
+      editedAt: '2 jam yang lalu',
+      interactions: {
+        likes: 8934,
+        favorites: 3421,
+        comments: 567
+      }
+    },
+
+    productData: {
+      rating: 4.9,
+      reviewCount: 892,
+      sold: '2.3K+',
+      sizes: ['2', '4', '6', '8'],
+      colors: ['Black', 'Navy'],
+      category: 'Bottoms',
+      categorySlug: 'bottoms',
+      subcategory: 'Flare Pants',
+      subcategorySlug: 'flare-pants',
+      subtitle: 'Brushed Softstreme Ribbed Mid-Rise Zip-Flared Pant',
+      sku: 'LULU-SOFT-PANT-001',
+      stock: 35,
+      discountPercentage: 19,
+      badges: ['Diskon', 'Baru']
+    },
+
+    taggedProducts: {
+      tags: [
+        {
+          productSlug: 'lulu-softstreme-pant',
+          position: { x: 50, y: 50 },
+          imageIndex: 0
+        }
+      ]
+    }
+  },
+
+  'lulu-swiftly-ls': {
+    id: 'prod-lulu-swiftly-ls',
+    slug: 'lulu-swiftly-ls',
+    name: 'Swiftly Tech Long Sleeve 2.0 Crew Heathered',
+    brand: 'Lululemon',
+    description: 'Our iconic Swiftly Tech Long Sleeve now in a heathered finish. Features our Silverescent technology to keep you fresh during intense workouts. Perfect for running, training, or layering.',
+    price: 780000,
+    originalPrice: 980000,
+    currency: 'Rp',
+
+    postImages: [
+      '/products/Lululemon - Swiftly Tech Long Sleeve/swiftly_eksplor1.webp',
+      '/products/Lululemon - Swiftly Tech Long Sleeve/swiftly_eksplor2.webp',
+      '/products/Lululemon - Swiftly Tech Long Sleeve/swiftly_eksplor3.webp'
+    ],
+
+    productImages: [
+      '/Swiftly/IMG_0052.JPG',
+      '/Swiftly/IMG_0051.JPG'
+    ],
+
+    colors: [
+      {
+        id: 'swiftly-heathered-grey',
+        name: 'Heathered Grey',
+        label: 'Heathered Grey',
+        image: '/Swiftly/IMG_0052.JPG',
+        stock: 20
+      },
+      {
+        id: 'swiftly-heathered-blue',
+        name: 'Heathered Blue',
+        label: 'Heathered Blue',
+        image: '/Swiftly/IMG_0051.JPG',
+        stock: 15
+      }
+    ],
+
+    sizes: [
+      {
+        id: 'xs',
+        name: 'XS',
+        price: 780000,
+        weight: 0.22,
+        weightRecommendation: '40-48 kg',
+        measurements: {
+          bust: '84cm',
+          waist: '64cm',
+          length: '63cm',
+          sleeve: '60cm'
+        }
+      },
+      {
+        id: 's',
+        name: 'S',
+        price: 780000,
+        weight: 0.25,
+        weightRecommendation: '48-55 kg',
+        measurements: {
+          bust: '88cm',
+          waist: '68cm',
+          length: '65cm',
+          sleeve: '62cm'
+        }
+      },
+      {
+        id: 'm',
+        name: 'M',
+        price: 780000,
+        weight: 0.28,
+        weightRecommendation: '55-63 kg',
+        measurements: {
+          bust: '92cm',
+          waist: '72cm',
+          length: '67cm',
+          sleeve: '64cm'
+        }
+      },
+      {
+        id: 'l',
+        name: 'L',
+        price: 780000,
+        weight: 0.32,
+        weightRecommendation: '63-72 kg',
+        measurements: {
+          bust: '96cm',
+          waist: '76cm',
+          length: '69cm',
+          sleeve: '66cm'
+        }
+      }
+    ],
+
+    shippingOptions: [
+      {
+        id: 'jne-yes',
+        name: 'JNE Yes',
+        courier: 'JNE',
+        service: 'YES',
+        price: 30000,
+        estimatedDays: '1 Hari',
+        isFree: false,
+        isFast: true
+      },
+      {
+        id: 'jne-reg',
+        name: 'JNE Reguler',
+        courier: 'JNE',
+        service: 'Reguler',
+        price: 15000,
+        estimatedDays: '3-5 Hari',
+        isFree: true,
+        isFast: false
+      },
+      {
+        id: 'sicepat-best',
+        name: 'SiCepat BEST',
+        courier: 'SiCepat',
+        service: 'BEST',
+        price: 28000,
+        estimatedDays: '2 Hari',
+        isFree: false,
+        isFast: true
+      }
+    ],
+
+    vouchers: [
+      {
+        id: 'swiftly-new',
+        code: 'SWIFT15',
+        discount: 15,
+        discountType: 'percentage',
+        minPurchase: 700000,
+        maxDiscount: 100000,
+        validUntil: '2026-03-01',
+        description: 'Diskon 15% s.d. Rp 100rb'
+      }
+    ],
+
+    postData: {
+      title: 'Swiftly Tech Long Sleeve - Wajib Punya! ⭐',
+      content: `Swiftly Tech Long Sleeve 2.0 dari Lululemon emang besteeller banget!
+      Bahannya tech fabric yang breathable dan anti-bakteri. Cocok buat workout atau sehari-hari. Heathered finish-nya juga keren banget!`,
+      tags: ['#Lululemon', '#Swiftly', '#TechFleece', '#RunningGear', '#FitnessFashion'],
+      author: {
+        name: 'Active Lifestyle',
+        avatar: '',
+        followerCount: 98700
+      },
+      location: 'Jakarta',
+      editedAt: '4 jam yang lalu',
+      interactions: {
+        likes: 12453,
+        favorites: 5632,
+        comments: 892
+      }
+    },
+
+    productData: {
+      rating: 4.9,
+      reviewCount: 2341,
+      sold: '5.6K+',
+      sizes: ['XS', 'S', 'M', 'L'],
+      colors: ['Heathered Grey', 'Heathered Blue'],
+      category: 'Tops',
+      categorySlug: 'tops',
+      subcategory: 'Long Sleeve',
+      subcategorySlug: 'long-sleeve',
+      subtitle: 'Swiftly Tech Long Sleeve 2.0 Crew Heathered',
+      sku: 'LULU-SWIFT-LS-001',
+      stock: 45,
+      discountPercentage: 20,
+      badges: ['Diskon', 'Terlaris']
+    },
+
+    taggedProducts: {
+      tags: [
+        {
+          productSlug: 'lulu-swiftly-ls',
+          position: { x: 50, y: 51 },
+          imageIndex: 0
+        }
+      ]
+    }
+  },
+
+  'prada-tote-bag': {
+    id: 'prod-prada-tote-bag',
+    slug: 'prada-tote-bag',
+    name: 'Black Medium Leather Tote Bag',
+    brand: 'Prada',
+    description: 'Elegant black leather tote bag from Prada. Crafted in Italy with premium calf leather, featuring iconic triangular logo plaque and spacious interior for your daily essentials.',
+    price: 42500000,
+    originalPrice: 48000000,
+    currency: 'Rp',
+
+    postImages: [
+      '/products/Prada - Black Medium Leather Tote Bag/prada_eksplor1.webp',
+      '/products/Prada - Black Medium Leather Tote Bag/prada_eksplor2.webp',
+      '/products/Prada - Black Medium Leather Tote Bag/prada_eksplor3.webp',
+      '/products/Prada - Black Medium Leather Tote Bag/prada_eksplor4.webp',
+      '/products/Prada - Black Medium Leather Tote Bag/prada_eksplor5.webp'
+    ],
+
+    productImages: [
+      '/Prada/IMG_0020.JPG',
+      '/Prada/IMG_0021.JPG',
+      '/Prada/IMG_0022.JPG',
+      '/Prada/IMG_0023.JPG',
+      '/Prada/IMG_0024.JPG',
+      '/Prada/IMG_0025.JPG'
+    ],
+
+    colors: [
+      {
+        id: 'prada-black',
+        name: 'Black',
+        label: 'Black',
+        image: '/Prada/IMG_0020.JPG',
+        stock: 3
+      }
+    ],
+
+    sizes: [
+      {
+        id: 'one-size',
+        name: 'One Size',
+        price: 42500000,
+        weight: 0.85,
+        weightRecommendation: '',
+        measurements: {
+          width: '35cm',
+          height: '28cm',
+          depth: '14cm',
+          handle: '22cm'
+        }
+      }
+    ],
+
+    shippingOptions: [
+      {
+        id: 'dhl-express',
+        name: 'DHL Express',
+        courier: 'DHL',
+        service: 'Express',
+        price: 850000,
+        estimatedDays: '3-5 Hari',
+        isFree: false,
+        isFast: true
+      },
+      {
+        id: 'fedex-ip',
+        name: 'FedEx International Priority',
+        courier: 'FedEx',
+        service: 'IP',
+        price: 750000,
+        estimatedDays: '4-6 Hari',
+        isFree: false,
+        isFast: true
+      }
+    ],
+
+    vouchers: [],
+
+    postData: {
+      title: 'Prada Tote Bag - Investasi Fashion yang Worth It! 🖤',
+      content: `Finally got my hands on the Prada Medium Tote!
+      Leather quality-nya premium banget, classic black yang never goes wrong. BIsa dipake ke kantor atau dinner. Definitely worth the investment!`,
+      tags: ['#Prada', '#ToteBag', '#LuxuryBag', '#ItalianLeather', '#InvestmentPiece'],
+      author: {
+        name: 'Luxury Fashionista',
+        avatar: '',
+        followerCount: 234500
+      },
+      location: 'Milan',
+      editedAt: '1 hari yang lalu',
+      interactions: {
+        likes: 34521,
+        favorites: 12453,
+        comments: 2134
+      }
+    },
+
+    productData: {
+      rating: 5.0,
+      reviewCount: 156,
+      sold: '89+',
+      sizes: ['One Size'],
+      colors: ['Black'],
+      category: 'Bags',
+      categorySlug: 'bags',
+      subcategory: 'Tote Bags',
+      subcategorySlug: 'tote-bags',
+      subtitle: 'Black Medium Leather Tote Bag',
+      sku: 'PRADA-TOTE-001',
+      stock: 5,
+      discountPercentage: 11,
+      badges: ['Diskon', 'Luxury']
+    },
+
+    taggedProducts: {
+      tags: [
+        {
+          productSlug: 'prada-tote-bag',
+          position: { x: 90, y: 50 },
+          imageIndex: 0
+        }
+      ]
+    }
+  },
+
+  'mm-tabi-flats': {
+    id: 'prod-mm-tabi-flats',
+    slug: 'mm-tabi-flats',
+    name: 'Tabi Leather Ballerina Flats',
+    brand: 'Maison Margiela',
+    description: 'Iconic Tabi ankle tab leather ballerinas from Maison Margiela. Featuring the signature split-toe design, these shoes are a true fashion statement since 1988.',
+    price: 18900000,
+    originalPrice: 21500000,
+    currency: 'Rp',
+
+    postImages: [
+      '/products/Maison Margiela - Tabi Ballerina Flats/mm_eksplor1.webp',
+      '/products/Maison Margiela - Tabi Ballerina Flats/mm_eksplor2.webp',
+      '/products/Maison Margiela - Tabi Ballerina Flats/mm_eksplor3.webp',
+      '/products/Maison Margiela - Tabi Ballerina Flats/mm_eksplor4.webp',
+      '/products/Maison Margiela - Tabi Ballerina Flats/mm_eksplor5.webp'
+    ],
+
+    productImages: [
+      '/MM/IMG_0034.JPG',
+      '/MM/IMG_0033.JPG',
+      '/MM/IMG_0032.JPG',
+      '/MM/IMG_0031.JPG',
+      '/MM/IMG_0030.JPG'
+    ],
+
+    colors: [
+      {
+        id: 'tabi-black',
+        name: 'Black',
+        label: 'Black',
+        image: '/MM/IMG_0034.JPG',
+        stock: 4
+      },
+      {
+        id: 'tabi-white',
+        name: 'White',
+        label: 'White',
+        image: '/MM/IMG_0033.JPG',
+        stock: 2
+      }
+    ],
+
+    sizes: [
+      {
+        id: '35',
+        name: '35',
+        price: 18900000,
+        weight: 0.35,
+        weightRecommendation: '35 EU',
+        measurements: {
+          length: '22cm'
+        }
+      },
+      {
+        id: '36',
+        name: '36',
+        price: 18900000,
+        weight: 0.38,
+        weightRecommendation: '36 EU',
+        measurements: {
+          length: '23cm'
+        }
+      },
+      {
+        id: '37',
+        name: '37',
+        price: 18900000,
+        weight: 0.40,
+        weightRecommendation: '37 EU',
+        measurements: {
+          length: '24cm'
+        }
+      },
+      {
+        id: '38',
+        name: '38',
+        price: 18900000,
+        weight: 0.42,
+        weightRecommendation: '38 EU',
+        measurements: {
+          length: '25cm'
+        }
+      },
+      {
+        id: '39',
+        name: '39',
+        price: 18900000,
+        weight: 0.45,
+        weightRecommendation: '39 EU',
+        measurements: {
+          length: '26cm'
+        }
+      }
+    ],
+
+    shippingOptions: [
+      {
+        id: 'dhl-express',
+        name: 'DHL Express',
+        courier: 'DHL',
+        service: 'Express',
+        price: 650000,
+        estimatedDays: '3-5 Hari',
+        isFree: false,
+        isFast: true
+      },
+      {
+        id: 'fedex-ip',
+        name: 'FedEx International Priority',
+        courier: 'FedEx',
+        service: 'IP',
+        price: 580000,
+        estimatedDays: '4-6 Hari',
+        isFree: false,
+        isFast: true
+      }
+    ],
+
+    vouchers: [],
+
+    postData: {
+      title: 'Maison Margiela Tabi - Iconic Fashion Statement! 👠',
+      content: `Maison Margiela Tabi flats - the shoe that started it all!
+      Split-toe design yang iconic ini emang bukan untuk yang takut standout. Quality leather dan craftsmanship yang luar biasa. A must-have untuk fashion collectors!`,
+      tags: ['#MaisonMargiela', '#Tabi', '#BallerinaFlats', '#HighFashion', '#IconicDesign'],
+      author: {
+        name: 'Fashion Editor',
+        avatar: '',
+        followerCount: 456000
+      },
+      location: 'Paris',
+      editedAt: '3 hari yang lalu',
+      interactions: {
+        likes: 45678,
+        favorites: 18234,
+        comments: 3456
+      }
+    },
+
+    productData: {
+      rating: 4.9,
+      reviewCount: 89,
+      sold: '45+',
+      sizes: ['35', '36', '37', '38', '39'],
+      colors: ['Black', 'White'],
+      category: 'Shoes',
+      categorySlug: 'shoes',
+      subcategory: 'Flats',
+      subcategorySlug: 'flats',
+      subtitle: 'Tabi Leather Ballerina Flats',
+      sku: 'MM-TABI-001',
+      stock: 8,
+      discountPercentage: 12,
+      badges: ['Diskon', 'Luxury', 'Iconic']
+    },
+
+    taggedProducts: {
+      tags: [
+        {
+          productSlug: 'mm-tabi-flats',
+          position: { x: 10, y: 90 },
+          imageIndex: 0
+        }
+      ]
+    }
+  },
+
+  'stanley-quencher': {
+    id: 'prod-stanley-quencher',
+    slug: 'stanley-quencher',
+    name: 'Stanley x Jennie Quencher Luxe Tumbler 30 OZ',
+    brand: 'Stanley 1913',
+    description: 'Limited edition Stanley x Jennie Quencher Luxe Tumbler. Features Stanley\'s legendary insulation technology keeping drinks cold for 11 hours or hot for 7 hours.',
+    price: 850000,
+    originalPrice: 980000,
+    currency: 'Rp',
+
+    postImages: [
+      '/products/Stanley - Jennie Quencher Luxe/stanley_eksplor1.webp',
+      '/products/Stanley - Jennie Quencher Luxe/stanley_eksplor2.webp',
+      '/products/Stanley - Jennie Quencher Luxe/stanley_eksplor3.webp',
+      '/products/Stanley - Jennie Quencher Luxe/stanley_eksplor4.webp'
+    ],
+
+    productImages: [
+      '/Stanley/IMG_0029.JPG',
+      '/Stanley/IMG_0028.JPG',
+      '/Stanley/IMG_0027.JPG',
+      '/Stanley/IMG_0026.JPG'
+    ],
+
+    colors: [
+      {
+        id: 'quencher-nude',
+        name: ' Jennie Nude',
+        label: 'Jennie Nude',
+        image: '/Stanley/IMG_0029.JPG',
+        stock: 25
+      },
+      {
+        id: 'quencher-black',
+        name: 'Black',
+        label: 'Black',
+        image: '/Stanley/IMG_0028.JPG',
+        stock: 20
+      }
+    ],
+
+    sizes: [
+      {
+        id: '30oz',
+        name: '30 OZ',
+        price: 850000,
+        weight: 0.68,
+        weightRecommendation: '',
+        measurements: {
+          height: '10.5 inch',
+          volume: '30 oz / 887 ml'
+        }
+      }
+    ],
+
+    shippingOptions: [
+      {
+        id: 'jne-yes',
+        name: 'JNE Yes',
+        courier: 'JNE',
+        service: 'YES',
+        price: 28000,
+        estimatedDays: '1 Hari',
+        isFree: false,
+        isFast: true
+      },
+      {
+        id: 'jne-reg',
+        name: 'JNE Reguler',
+        courier: 'JNE',
+        service: 'Reguler',
+        price: 14000,
+        estimatedDays: '3-5 Hari',
+        isFree: true,
+        isFast: false
+      },
+      {
+        id: 'sicepat-reg',
+        name: 'SiCepat Reguler',
+        courier: 'SiCepat',
+        service: 'Reguler',
+        price: 12000,
+        estimatedDays: '4-6 Hari',
+        isFree: true,
+        isFast: false
+      }
+    ],
+
+    vouchers: [
+      {
+        id: 'stanley-deal',
+        code: 'STANLEY25',
+        discount: 25,
+        discountType: 'percentage',
+        minPurchase: 800000,
+        maxDiscount: 200000,
+        validUntil: '2026-02-28',
+        description: 'Diskon 25% s.d. Rp 200rb'
+      }
+    ],
+
+    postData: {
+      title: 'Stanley x Jennie Quencher - Viral Cup yang Beneran Bagus! 🧊',
+      content: `Stanley Quencher lagi viral dan bener-bener worth it!
+      Isolasi nya bener-bener top, bisa keep minuman dingin sampe 11 jam. Finishing-nya premium dan Jennie edition-nya cute banget. Wajib punya!`,
+      tags: ['#Stanley', '#Quencher', '#Jennie', '#Tumbler', '#HydrationGame'],
+      author: {
+        name: 'Lifestyle Hacks',
+        avatar: '',
+        followerCount: 178900
+      },
+      location: 'Los Angeles',
+      editedAt: '5 jam yang lalu',
+      interactions: {
+        likes: 28934,
+        favorites: 10234,
+        comments: 1876
+      }
+    },
+
+    productData: {
+      rating: 4.8,
+      reviewCount: 1567,
+      sold: '3.2K+',
+      sizes: ['30 OZ'],
+      colors: ['Jennie Nude', 'Black'],
+      category: 'Accessories',
+      categorySlug: 'accessories',
+      subcategory: 'Tumblers',
+      subcategorySlug: 'tumblers',
+      subtitle: 'x Jennie Quencher Luxe Tumbler 30 OZ',
+      sku: 'STANLEY-Q-001',
+      stock: 50,
+      discountPercentage: 13,
+      badges: ['Diskon', 'Viral', 'Terlaris']
+    },
+
+    taggedProducts: {
+      tags: [
+        {
+          productSlug: 'stanley-quencher',
+          position: { x: 90, y: 90 },
+          imageIndex: 0
+        }
+      ]
+    }
+  },
+
+  // Multi-tagged posts
+  'lulu-combo': {
+    id: 'prod-lulu-combo',
+    slug: 'lulu-combo',
+    name: 'Lululemon Softstreme + Swiftly Combo',
+    brand: 'Lululemon',
+    description: 'The perfect combination of Lululemon\'s most popular pieces: Softstreme Flared Pant and Swiftly Tech Long Sleeve. Designed for the modern active lifestyle.',
+    price: 2060000,
+    originalPrice: 2560000,
+    currency: 'Rp',
+
+    postImages: [
+      '/products/Lululemon - Softstreme Swiftly Combo/lulu_combo_eksplor1.webp',
+      '/products/Lululemon - Softstreme Swiftly Combo/lulu_combo_eksplor2.webp',
+      '/products/Lululemon - Softstreme Swiftly Combo/lulu_combo_eksplor3.webp',
+      '/products/Lululemon - Softstreme Swiftly Combo/lulu_combo_eksplor4.webp'
+    ],
+
+    productImages: [
+      '/products/Lululemon - Softstreme Swiftly Combo/lulu_combo_produk.webp',
+      '/products/Lululemon - Softstreme Swiftly Combo/lulu_combo_eksplor1.webp',
+      '/products/Lululemon - Softstreme Swiftly Combo/lulu_combo_eksplor2.webp'
+    ],
+
+    colors: [
+      {
+        id: 'combo-black',
+        name: 'Black Combo',
+        label: 'Black Combo',
+        image: '/products/Lululemon - Softstreme Swiftly Combo/lulu_combo_produk.webp',
+        stock: 10
+      }
+    ],
+
+    sizes: [
+      {
+        id: 's-combo',
+        name: 'Size S',
+        price: 2060000,
+        weight: 0.55,
+        weightRecommendation: '48-63 kg',
+        measurements: {}
+      },
+      {
+        id: 'm-combo',
+        name: 'Size M',
+        price: 2060000,
+        weight: 0.60,
+        weightRecommendation: '55-72 kg',
+        measurements: {}
+      },
+      {
+        id: 'l-combo',
+        name: 'Size L',
+        price: 2060000,
+        weight: 0.68,
+        weightRecommendation: '63-80 kg',
+        measurements: {}
+      }
+    ],
+
+    shippingOptions: [
+      {
+        id: 'jne-yes',
+        name: 'JNE Yes',
+        courier: 'JNE',
+        service: 'YES',
+        price: 40000,
+        estimatedDays: '1 Hari',
+        isFree: false,
+        isFast: true
+      },
+      {
+        id: 'jne-reg',
+        name: 'JNE Reguler',
+        courier: 'JNE',
+        service: 'Reguler',
+        price: 20000,
+        estimatedDays: '3-5 Hari',
+        isFree: true,
+        isFast: false
+      }
+    ],
+
+    vouchers: [
+      {
+        id: 'combo-save',
+        code: 'COMBO20',
+        discount: 20,
+        discountType: 'percentage',
+        minPurchase: 2000000,
+        maxDiscount: 300000,
+        validUntil: '2026-03-01',
+        description: 'Diskon 20% s.d. Rp 300rb untuk Combo'
+      }
+    ],
+
+    postData: {
+      title: 'Lululemon Softstreme + Swiftly - The Perfect Combo! 💜🖤',
+      content: `Outfit combo yang paling banyak di-request akhirnya ada!
+      Softstreme Flared Pant + Swiftly Tech Long Sleeve - the ultimate Lululemon outfit.
+      Softstreme-nya comfy dan flattering, Swiftly-nya perfect untuk workout. Bikin percaya diri dan nyaman sepanjang hari!`,
+      tags: ['#Lululemon', '#Softstreme', '#Swiftly', '#ComboDeal', '#Athleisure'],
+      author: {
+        name: 'Lululemon Indonesia',
+        avatar: '',
+        followerCount: 345000
+      },
+      location: 'Jakarta',
+      editedAt: '6 jam yang lalu',
+      interactions: {
+        likes: 45234,
+        favorites: 18234,
+        comments: 2345
+      }
+    },
+
+    productData: {
+      rating: 4.9,
+      reviewCount: 456,
+      sold: '1.2K+',
+      sizes: ['Size S', 'Size M', 'Size L'],
+      colors: ['Black Combo'],
+      category: 'Sets',
+      categorySlug: 'sets',
+      subcategory: 'Outfit Sets',
+      subcategorySlug: 'outfit-sets',
+      subtitle: 'Softstreme + Swiftly Combo',
+      sku: 'LULU-COMBO-001',
+      stock: 25,
+      discountPercentage: 20,
+      badges: ['Diskon', 'Combo', 'Terlaris']
+    },
+
+    taggedProducts: {
+      tags: [
+        {
+          productSlug: 'lulu-softstreme-pant',
+          position: { x: 57, y: 60 },
+          imageIndex: 0
+        },
+        {
+          productSlug: 'lulu-swiftly-ls',
+          position: { x: 55, y: 25 },
+          imageIndex: 0
+        }
+      ]
+    }
+  },
+
+  'prada-mm-stanley-combo': {
+    id: 'prod-prada-mm-stanley-combo',
+    slug: 'prada-mm-stanley-combo',
+    name: 'Prada + Maison Margiela + Stanley Combo',
+    brand: 'Luxury Collection',
+    description: 'The ultimate luxury lifestyle combo featuring Prada tote bag, Maison Margiela Tabi flats, and Stanley Quencher. Perfect for the fashion-forward individual.',
+    price: 63350000,
+    originalPrice: 70500000,
+    currency: 'Rp',
+
+    postImages: [
+      '/products/Prada+MM+Stanley Combo/combo_eksplor1.webp',
+      '/products/Prada+MM+Stanley Combo/combo_eksplor2.webp',
+      '/products/Prada+MM+Stanley Combo/combo_eksplor3.webp',
+      '/products/Prada+MM+Stanley Combo/combo_eksplor4.webp'
+    ],
+
+    productImages: [
+      '/products/Prada+MM+Stanley Combo/combo_produk.webp',
+      '/products/Prada+MM+Stanley Combo/combo_eksplor1.webp',
+      '/products/Prada+MM+Stanley Combo/combo_eksplor2.webp'
+    ],
+
+    colors: [
+      {
+        id: 'luxury-combo',
+        name: 'Luxury Combo Set',
+        label: 'Luxury Combo',
+        image: '/products/Prada+MM+Stanley Combo/combo_produk.webp',
+        stock: 2
+      }
+    ],
+
+    sizes: [
+      {
+        id: 'combo-set',
+        name: 'Complete Set',
+        price: 63350000,
+        weight: 2.5,
+        weightRecommendation: '',
+        measurements: {}
+      }
+    ],
+
+    shippingOptions: [
+      {
+        id: 'dhl-collect',
+        name: 'DHL Express Collect',
+        courier: 'DHL',
+        service: 'Express',
+        price: 1500000,
+        estimatedDays: '3-5 Hari',
+        isFree: false,
+        isFast: true
+      }
+    ],
+
+    vouchers: [],
+
+    postData: {
+      title: 'Luxury Trio: Prada + MM + Stanley 💎',
+      content: `The ultimate luxury lifestyle trio is here!
+      Prada Black Tote Bag untuk daily essentials yang stylish,
+      Maison Margiela Tabi untuk statement footwear,
+      Stanley Quencher untuk hydration yang tetap luxe.
+      Three icons, one perfect combo.`,
+      tags: ['#Prada', '#MaisonMargiela', '#Stanley', '#LuxuryCombo', '#LifestyleGoals'],
+      author: {
+        name: 'Luxury Lifestyle ID',
+        avatar: '',
+        followerCount: 567000
+      },
+      location: 'Singapore',
+      editedAt: '1 hari yang lalu',
+      interactions: {
+        likes: 78901,
+        favorites: 34521,
+        comments: 5678
+      }
+    },
+
+    productData: {
+      rating: 5.0,
+      reviewCount: 34,
+      sold: '18+',
+      sizes: ['Complete Set'],
+      colors: ['Luxury Combo Set'],
+      category: 'Sets',
+      categorySlug: 'sets',
+      subcategory: 'Luxury Sets',
+      subcategorySlug: 'luxury-sets',
+      subtitle: 'Prada + MM + Stanley Ultimate Combo',
+      sku: 'LUX-COMBO-001',
+      stock: 5,
+      discountPercentage: 10,
+      badges: ['Diskon', 'Luxury', 'Limited']
+    },
+
+    taggedProducts: {
+      tags: [
+        {
+          productSlug: 'prada-tote-bag',
+          position: { x: 81, y: 48 },
+          imageIndex: 0
+        },
+        {
+          productSlug: 'mm-tabi-flats',
+          position: { x: 12, y: 95 },
+          imageIndex: 0
+        },
+        {
+          productSlug: 'stanley-quencher',
+          position: { x: 52, y: 73 },
           imageIndex: 0
         }
       ]

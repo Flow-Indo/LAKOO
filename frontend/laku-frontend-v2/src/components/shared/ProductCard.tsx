@@ -3,6 +3,24 @@ import Link from 'next/link';
 import { Product } from '@/types';
 import ProductName from './ProductName';
 
+// Format price: Rp with comma for millions, 'k' for thousands
+function formatPriceIDR(price: number, showRp: boolean = true): string {
+  let formatted: string;
+  if (price >= 1000000) {
+    // Convert to k format with decimal: 1,250,000 -> 1.250k
+    const thousands = price / 1000;
+    formatted = `${thousands.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 3 })}k`;
+  } else if (price >= 1000) {
+    // Thousands - show with space and k: 850 k
+    const thousands = Math.round(price / 1000);
+    formatted = `${thousands}k`;
+  } else {
+    // Below thousands
+    formatted = price.toLocaleString('id-ID');
+  }
+  return showRp ? `Rp ${formatted}` : formatted;
+}
+
 interface ProductCardProps {
   product: Product;
 }
@@ -84,14 +102,14 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Pricing */}
-          <div className="flex items-baseline gap-1.5 flex-wrap">
+          <div className="flex items-baseline gap-1 flex-wrap">
             <span className="text-red-600 font-bold">
-              <span className="text-sm">Rp</span>
-              <span className="text-lg">{product.price?.toLocaleString?.('id-ID') ?? ''}</span>
+              <span className="text-xs"></span>
+              <span className="text-lg">{formatPriceIDR(product.price ?? 0, false)}</span>
             </span>
             {product.originalPrice && product.originalPrice > product.price && (
               <span className="text-gray-400 text-xs line-through">
-                {product.originalPrice.toLocaleString('id-ID')}
+                {formatPriceIDR(product.originalPrice, false)}
               </span>
             )}
           </div>

@@ -69,7 +69,7 @@ export function CartPageClient({ initialCart }: Props) {
   return (
     <div className="min-h-screen bg-white-50">
       <CartHeader count={totalItemCount} activeTab={activeTab} onTabChange={(t) => setActiveTab(t)} />
-      <div className="max-w-7xl mx-auto px-0 pt-[10px] pb-[6px] flex flex-col gap-[10px]">
+      <div className="max-w-7xl mx-auto px-0 pt-[1px] pb-[6px] flex flex-col gap-[10px]">
         {/* (Virtual Fitting Room link removed - UI uses tabs) */}
 
         {/* Tabbed content */}

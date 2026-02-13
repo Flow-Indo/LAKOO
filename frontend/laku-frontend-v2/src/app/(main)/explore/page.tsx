@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ForYouMode } from '@/components/explore/modes/ForYouMode';
 import { VideoMode } from '@/components/explore/modes/VideoMode';
@@ -17,43 +17,74 @@ import { AppHeader } from '@/components/layouts/AppHeader';
 import { productsData } from '@/lib/products-data';
 import type { Product } from '@/types';
 
+// Products to EXCLUDE from market (these are posts only)
+const POST_ONLY_SLUGS = [
+  'lulu-combo',             // Lululemon combo - in explore feed as post
+  'prada-mm-stanley-combo', // Luxury combo - in explore feed as post
+];
+
+// Products that should NOT have tall images (use normal aspect ratio)
+const NORMAL_IMAGE_PRODUCTS = ['mm-tabi-flats'];
+
 // Transform productsData to Product type for market feed
-const getMarketProducts = (): Product[] => {
-  return Object.values(productsData).map((product) => ({
-    id: product.id,
-    slug: product.slug,
-    name: product.name,
-    price: product.price,
-    originalPrice: product.originalPrice,
-    discount: product.originalPrice
-      ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-      : 0,
-    image: product.productImages[0],
-    images: product.productImages.map((url) => ({ url })),
-    imageTall: true,
-    isOfficial: true,
-    category: product.productData.category,
-    description: product.description,
-    stock: product.productData.stock,
-    rating: product.productData.rating,
-    reviewCount: product.productData.reviewCount,
-    sold: parseInt(product.productData.sold.replace(/[^0-9]/g, '')) * (product.productData.sold.includes('K') ? 1000 : 1),
-    store: {
-      id: `store-${product.brand.toLowerCase().replace(/\s+/g, '-')}`,
-      name: product.brand,
-      location: 'Jakarta',
-    },
-  }));
+// Shows all original market products + new standalone products
+// Returns in original order for SSR (no hydration mismatch)
+const getMarketProductsOriginalOrder = (): Product[] => {
+  return Object.values(productsData)
+    .filter((product) => !POST_ONLY_SLUGS.includes(product.slug))
+    .map((product) => ({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      discount: product.originalPrice
+        ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+        : 0,
+      image: product.productImages[0],
+      images: product.productImages.map((url) => ({ url })),
+      imageTall: !NORMAL_IMAGE_PRODUCTS.includes(product.slug),
+      isOfficial: true,
+      category: product.productData.category,
+      description: product.description,
+      stock: product.productData.stock,
+      rating: product.productData.rating,
+      reviewCount: product.productData.reviewCount,
+      sold: parseInt(product.productData.sold.replace(/[^0-9]/g, '')) * (product.productData.sold.includes('K') ? 1000 : 1),
+      store: {
+        id: `store-${product.brand.toLowerCase().replace(/\s+/g, '-')}`,
+        name: product.brand,
+        location: 'Jakarta',
+      },
+    }));
 };
 
-// Market products with our real product data
-const MARKET_PRODUCTS = getMarketProducts();
+// Get original order products for SSR
+const MARKET_PRODUCTS_ORIGINAL = getMarketProductsOriginalOrder();
+
+// Shuffle array using Fisher-Yates algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 export default function ExplorePage() {
   const [currentView, setCurrentView] = useState<'explore' | 'market'>('explore');
   const [currentTab, setCurrentTab] = useState('foryou');
+  const [marketProducts, setMarketProducts] = useState<Product[]>(MARKET_PRODUCTS_ORIGINAL);
+  const [isClient, setIsClient] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
+  // Shuffle market products on client after mount
+  useEffect(() => {
+    setIsClient(true);
+    setMarketProducts(shuffleArray(MARKET_PRODUCTS_ORIGINAL));
+  }, []);
+
   const handleViewChange = useCallback((view: 'explore' | 'market') => {
     setCurrentView(view);
   }, []);
@@ -116,7 +147,7 @@ export default function ExplorePage() {
           <>
             <MarketSubNav />
             <CategoryGrid />
-            <InfiniteProductFeed initialProducts={MARKET_PRODUCTS} hasMore={true} />
+            <InfiniteProductFeed initialProducts={marketProducts} hasMore={true} />
           </>
         )}
 
