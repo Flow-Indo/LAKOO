@@ -4,6 +4,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ChatProvider } from '@/contexts/ChatContext';
 import { AppProvider } from '@/providers';
 import { DevAuthProvider } from '@/providers/DevAuthProvider';
+import { BottomNavProvider } from '@/components/layouts/BottomNavContext';
 import { Toaster } from 'sonner';
 import { Inter } from 'next/font/google';
 
@@ -18,6 +19,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'LAKU - Marketplace Indonesia',
   description: 'Platform belanja online dengan fitur group buying',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover',
+  other: {
+    'apple-mobile-web-app-status-bar-style': 'black',
+  },
 };
 
 export default function RootLayout({
@@ -36,8 +41,10 @@ export default function RootLayout({
             <ChatProvider>
               <DevAuthProvider>
                 <AppProvider>
-                  {children}
-                  <Toaster position="top-center" />
+                  <BottomNavProvider>
+                    {children}
+                    <Toaster position="top-center" />
+                  </BottomNavProvider>
                 </AppProvider>
               </DevAuthProvider>
             </ChatProvider>

@@ -7,12 +7,13 @@ import { BottomNav } from './BottomNav';
 
 interface AppLayoutProps {
   children: ReactNode;
+  hideBottomNav?: boolean;
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children, hideBottomNav = false }: AppLayoutProps) {
   const pathname = usePathname();
 
-  // Hide bottom navigation on product and store pages
+  // Hide bottom navigation on product and store pages, or when explicitly hidden
   const isProductPage = pathname?.startsWith('/product/');
   const isStorePage = pathname?.startsWith('/store/');
 
@@ -23,7 +24,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <main className={`bg-white ${isProductPage ? 'overflow-y-auto' : 'overflow-y-auto'}`}>
           {children}
         </main>
-        {!isProductPage && !isStorePage && <BottomNav />}
+        {!isProductPage && !isStorePage && !hideBottomNav && <BottomNav />}
       </div>
     </div>
   );

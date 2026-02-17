@@ -183,26 +183,6 @@ export function SimpleSwipeContainer({
           })}
         </motion.div>
       </div>
-
-      {/* Page Indicators */}
-      <motion.div 
-        className="fixed bottom-20 left-0 right-0 flex justify-center gap-1.5 z-30 pointer-events-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-      >
-        {pages.map((page, index) => (
-          <motion.div
-            key={page.id}
-            className="h-1 rounded-full"
-            animate={{
-              width: index === currentIndex ? 24 : 4,
-              backgroundColor: index === currentIndex ? '#111827' : '#D1D5DB',
-            }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-          />
-        ))}
-      </motion.div>
     </div>
   );
 }

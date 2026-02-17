@@ -23,11 +23,12 @@ export function ExploreSubNav({
 
   const tabs = [
     'For You',
-    'Video',
-    'Live',
-    'Nearby',
-    'Series',
-    'Travel',
+    'Following',
+    'Korea',
+    'Workwear',
+    'Sportswear',
+    'Performative',
+    'Muslimwear',
   ];
 
   // Scroll to tab on external active tab change

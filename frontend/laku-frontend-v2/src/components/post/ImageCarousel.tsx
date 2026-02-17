@@ -4,12 +4,17 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import ProductTag from './ProductTag';
 import { ProductData, ProductTag as ProductTagType } from '@/lib/products-data';
+import { Heart, MessageCircle, Send, Bookmark } from 'lucide-react';
 
 interface ImageCarouselProps {
   images: string[];
   isLive?: boolean;
   aspectRatio?: '1/1' | '3/4' | '4/3' | '16/9';
   taggedProducts?: Array<ProductData & { tag: ProductTagType }>;
+  likesCount?: number;
+  commentsCount?: number;
+  sharesCount?: number;
+  savesCount?: number;
 }
 
 const aspectRatioClasses: Record<string, string> = {
@@ -23,11 +28,23 @@ export default function ImageCarousel({
   images,
   isLive = false,
   aspectRatio = '3/4',
-  taggedProducts = []
+  taggedProducts = [],
+  likesCount = 0,
+  commentsCount = 0,
+  sharesCount = 0,
+  savesCount = 0
 }: ImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showTags, setShowTags] = useState(true);
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const formatCount = (num: number) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
+    return num.toString();
+  };
   const touchStartX = useRef<number | null>(null);
 
   if (images.length === 0) {
@@ -300,6 +317,60 @@ export default function ImageCarousel({
           ))}
         </div>
       )}
+
+      {/* Action Bar - Instagram style */}
+      <div className="flex items-center justify-between px-5 pb-1 pt-2 bg-white">
+        {/* Left: Like, Comment, Share */}
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setLiked(!liked)}
+            className="flex items-center gap-1.5 group"
+          >
+            <Heart
+              className={`w-6 h-6 transition-all ${
+                liked ? 'fill-red-500 text-red-500' : 'text-gray-800 group-hover:text-gray-600'
+              }`}
+              strokeWidth={2}
+            />
+            <span className={`text-[13px] font-medium ${
+              liked ? 'text-red-500' : 'text-gray-800'
+            }`}>
+              {formatCount(likesCount)}
+            </span>
+          </button>
+          <button className="flex items-center gap-1.5 group">
+            <MessageCircle
+              className="w-6 h-6 text-gray-800 group-hover:text-gray-600"
+              strokeWidth={2}
+            />
+            <span className="text-[13px] font-medium text-gray-800">
+              {formatCount(commentsCount)}
+            </span>
+          </button>
+          <button className="flex items-center gap-1.5 group">
+            <Send
+              className="w-6 h-6 text-gray-800 group-hover:text-gray-600"
+              strokeWidth={2}
+            />
+            <span className="text-[13px] font-medium text-gray-800">
+              {formatCount(sharesCount)}
+            </span>
+          </button>
+        </div>
+
+        {/* Right: Save */}
+        <button
+          onClick={() => setSaved(!saved)}
+          className="flex items-center gap-1.5 group"
+        >
+          <Bookmark
+            className={`w-6 h-6 transition-all ${
+              saved ? 'fill-black text-black' : 'text-gray-800 group-hover:text-gray-600'
+            }`}
+            strokeWidth={2}
+          />
+        </button>
+      </div>
 
       {/* Exit fullscreen button */}
       {isFullscreen && (

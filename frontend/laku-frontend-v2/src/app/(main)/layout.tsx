@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { BottomNav } from '@/components/layouts/BottomNav';
 import { usePathname } from 'next/navigation';
+import { useBottomNav } from '@/components/layouts/BottomNavContext';
 
 export default function MainLayout({
   children,
@@ -11,12 +12,13 @@ export default function MainLayout({
 }) {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
+  const { hideBottomNav: contextHideBottomNav } = useBottomNav();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Hide bottom navigation on store pages and product pages
+  // Hide bottom navigation on store pages, product pages, or when context says to hide
   const isStorePage = pathname?.startsWith('/store/');
   const isProductPage = pathname?.startsWith('/product/');
 
@@ -25,7 +27,7 @@ export default function MainLayout({
       <main>
         {children}
       </main>
-      {isMounted && !isStorePage && !isProductPage && <BottomNav />}
+      {isMounted && !isStorePage && !isProductPage && !contextHideBottomNav && <BottomNav />}
     </div>
   );
 }

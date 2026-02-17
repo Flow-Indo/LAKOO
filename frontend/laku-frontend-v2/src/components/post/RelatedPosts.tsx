@@ -1,95 +1,190 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { Heart, Eye } from 'lucide-react';
+'use client';
 
-interface RelatedPost {
+import { useState, useEffect, useCallback, useRef } from 'react';
+import Image from 'next/image';
+import { Heart } from 'lucide-react';
+import Link from 'next/link';
+
+interface Post {
   id: string;
   image: string;
   title: string;
-  author: { name: string; avatar: string };
-  views: number;
+  author: {
+    username: string;
+    avatar: string;
+  };
   likes: number;
+  isLiked?: boolean;
 }
 
-interface RelatedPostsProps {
-  posts?: RelatedPost[];
-}
-
-const formatNumber = (num: number): string => {
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
-  }
-  return num.toString();
+// Generate mock posts for recommendations
+const generateMockPosts = (startIndex: number, count: number): Post[] => {
+  const imageIds = [
+    1515886657613, 1441986300917, 1504674900247, 1476514525535,
+    1571019614242, 1523275335684, 1542291026, 1560343090,
+    1551028719, 1594938298603, 1617123164444, 1620799140408,
+    1596755094514, 1595777457583, 1549298916, 1473966968600,
+    1515886657614, 1441986300918, 1504674900248, 1476514525536,
+  ];
+  
+  return Array.from({ length: count }, (_, i) => ({
+    id: `rec-${startIndex + i}`,
+    image: `https://images.unsplash.com/photo-${imageIds[(startIndex + i) % imageIds.length]}?w=400&h=533&fit=crop`,
+    title: `Recommendation post ${startIndex + i + 1} - Check out this amazing content!`,
+    author: {
+      username: `user_${startIndex + i}`,
+      avatar: `https://i.pravatar.cc/150?img=${(startIndex + i) % 70}`,
+    },
+    likes: Math.floor(Math.random() * 5000) + 100,
+    isLiked: false,
+  }));
 };
 
-export default function RelatedPosts({ posts = [] }: RelatedPostsProps) {
-  if (posts.length === 0) {
-    return null; // Don't render if no related posts
-  }
+function RecommendationPost({ post }: { post: Post }) {
+  const [isLiked, setIsLiked] = useState(post.isLiked || false);
+  const [likes, setLikes] = useState(post.likes);
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsLiked(!isLiked);
+    setLikes(isLiked ? likes - 1 : likes + 1);
+  };
 
   return (
-    <div className="px-3 py-5 bg-white">
-      {/* Header - Tighter spacing */}
-      <div className="mb-4">
-        <h2 className="text-base font-bold text-gray-900">Mungkin Anda Suka</h2>
-        <p className="text-xs text-gray-600">Konten untuk Anda</p>
-      </div>
-      
-      {/* Grid - Optimized for iPhone */}
-      <div className="grid grid-cols-2 gap-2.5">
-        {posts.map((post) => (
-          <Link
-            key={post.id}
-            href={`/post/${post.id}`}
-            className="group block"
-          >
-            {/* Image - Slightly smaller on mobile */}
-            <div className="relative aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden mb-2">
-              <Image
-                src={post.image}
-                alt={post.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 390px) 50vw, (max-width: 768px) 33vw, 25vw"
-              />
-              
-              {/* Stats Overlay - Compact */}
-              <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between">
-                <div className="flex items-center gap-0.5 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded text-white text-[9px]">
-                  <Eye className="w-2 h-2" />
-                  <span>{formatNumber(post.views)}</span>
-                </div>
-                <div className="flex items-center gap-0.5 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded text-white text-[9px]">
-                  <Heart className="w-2 h-2" />
-                  <span>{formatNumber(post.likes)}</span>
+    <Link href={`/post/${post.id}`} className="block w-full">
+      <div className="relative bg-white rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow w-full">
+        <div className="relative w-full bg-gray-100" style={{ paddingBottom: '133.33%' }}>
+          <Image
+            src={post.image}
+            alt={post.title}
+            fill
+            className="object-cover absolute inset-0"
+            sizes="(max-width: 768px) 50vw, 33vw"
+          />
+        </div>
+
+        <div className="px-3 pt-2 pb-1 pr-4">
+          <p className="text-xs font-medium text-gray-900 line-clamp-2 leading-tight mb-2">
+            {post.title}
+          </p>
+
+          <div className="py-2 flex items-center justify-between">
+            <div className="flex items-center gap-1 flex-1 min-w-0">
+              <div className="relative w-4 h-4 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+                <div className="w-full h-full bg-gradient-to-br from-[#FF2442] to-[#FF6B35] flex items-center justify-center">
+                  <span className="text-[8px] text-white font-medium">
+                    {post.author.username.charAt(0).toUpperCase()}
+                  </span>
                 </div>
               </div>
+              <span className="text-xs text-gray-600 truncate">
+                {post.author.username}
+              </span>
             </div>
-            
-            {/* Title - Tighter */}
-            <h3 className="text-xs font-medium text-gray-900 line-clamp-2 leading-snug mb-1.5 group-hover:text-[#ff2742]">
-              {post.title}
-            </h3>
-            
-            {/* Author - Compact */}
-            <div className="flex items-center gap-1">
-              <Image
-                src={post.author.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(post.author.name)}`}
-                alt={post.author.name}
-                width={14}
-                height={14}
-                className="rounded-full"
+
+            <button
+              onClick={handleLike}
+              className="flex items-center gap-0.5 flex-shrink-0 -ml-0.5"
+            >
+              <Heart
+                className={`w-3 h-3 ${
+                  isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400'
+                }`}
               />
-              <span className="text-[10px] text-gray-600 truncate max-w-[80px]">{post.author.name}</span>
-            </div>
-          </Link>
+              <span className="text-xs text-gray-600">
+                {likes}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+export default function RelatedPosts() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Fetch initial posts
+  useEffect(() => {
+    const initialPosts = generateMockPosts(0, 10);
+    setPosts(initialPosts);
+    setOffset(10);
+    setIsLoading(false);
+  }, []);
+
+  // Load more posts when scrolling
+  const loadMorePosts = useCallback(() => {
+    if (isLoading) return;
+    setIsLoading(true);
+    
+    // Simulate API delay
+    setTimeout(() => {
+      const newPosts = generateMockPosts(offset, 10);
+      setPosts(prev => [...prev, ...newPosts]);
+      setOffset(prev => prev + 10);
+      setIsLoading(false);
+    }, 500);
+  }, [offset, isLoading]);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoading) {
+          loadMorePosts();
+        }
+      },
+      { threshold: 0.1, rootMargin: '200px' }
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, [loadMorePosts, isLoading]);
+
+  return (
+    <div className="px-1 py-1.5">
+      <div 
+        className="grid grid-cols-2 gap-1.5"
+        style={{
+          gridTemplateColumns: 'repeat(2, 1fr)',
+        }}
+      >
+        {posts.map((post) => (
+          <RecommendationPost key={post.id} post={post} />
         ))}
       </div>
-      
-      {/* Load More - Compact */}
-      <button className="mt-4 w-full py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
-        Lihat lebih banyak
-      </button>
+
+      {/* Load more trigger */}
+      <div ref={loadMoreRef} className="h-20 flex items-center justify-center">
+        {isLoading && (
+          <div className="flex gap-1 items-center">
+            <div 
+              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+              style={{ animationDelay: '0ms' }}
+            />
+            <div 
+              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+              style={{ animationDelay: '100ms' }}
+            />
+            <div 
+              className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+              style={{ animationDelay: '200ms' }}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

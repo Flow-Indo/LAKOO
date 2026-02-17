@@ -104,7 +104,7 @@ export function ProductCard({ product }: ProductCardProps) {
           {/* Pricing */}
           <div className="flex items-baseline gap-1 flex-wrap">
             <span className="text-red-600 font-bold">
-              <span className="text-xs"></span>
+              <span className="text-xs">Rp</span>
               <span className="text-lg">{formatPriceIDR(product.price ?? 0, false)}</span>
             </span>
             {product.originalPrice && product.originalPrice > product.price && (

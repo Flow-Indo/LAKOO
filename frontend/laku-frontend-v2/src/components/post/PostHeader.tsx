@@ -68,7 +68,7 @@ export default function PostHeader({ author }: PostHeaderProps) {
           </div>
         </div>
 
-        {/* Right: Follow + Share button */}
+        {/* Right: Follow + More button */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => setIsFollowing(!isFollowing)}
@@ -81,11 +81,10 @@ export default function PostHeader({ author }: PostHeaderProps) {
             {isFollowing ? 'Mengikuti' : 'Ikuti'}
           </button>
           <button
-            onClick={handleShare}
             className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
             </svg>
           </button>
         </div>
