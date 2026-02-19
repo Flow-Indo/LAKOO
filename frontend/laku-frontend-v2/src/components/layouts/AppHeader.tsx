@@ -7,9 +7,15 @@ interface AppHeaderProps {
   currentView?: 'scroll' | 'explore' | 'market';
   onViewChange?: (view: 'scroll' | 'explore' | 'market') => void;
   transparent?: boolean;
+  hidden?: boolean;
 }
 
-export function AppHeader({ currentView = 'scroll', onViewChange, transparent = false }: AppHeaderProps) {
+export function AppHeader({ currentView = 'scroll', onViewChange, transparent = false, hidden = false }: AppHeaderProps) {
+  // Don't render if hidden
+  if (hidden) {
+    return null;
+  }
+  
   const isTransparent = transparent || currentView === 'scroll';
   
   return (

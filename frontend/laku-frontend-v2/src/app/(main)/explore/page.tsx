@@ -81,6 +81,7 @@ export default function ExplorePage() {
   const [currentTab, setCurrentTab] = useState('For You');
   const [marketProducts, setMarketProducts] = useState<Product[]>(MARKET_PRODUCTS_ORIGINAL);
   const [isClient, setIsClient] = useState(false);
+  const [hideHeader, setHideHeader] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Shuffle market products on client after mount
@@ -126,6 +127,7 @@ export default function ExplorePage() {
       <AppHeader
         currentView={currentView}
         onViewChange={handleViewChange}
+        hidden={hideHeader}
       />
 
       <div 
@@ -141,7 +143,12 @@ export default function ExplorePage() {
       >
         {currentView === 'scroll' ? (
           <div className="h-full relative">
-            <ScrollVideoFeed videos={mockLiveShoppingVideos} onSwipeBack={() => setCurrentView('explore')} />
+            <ScrollVideoFeed 
+              videos={mockLiveShoppingVideos} 
+              onSwipeBack={() => setCurrentView('explore')}
+              onCommentOpen={() => setHideHeader(true)}
+              onCommentClose={() => setHideHeader(false)}
+            />
           </div>
         ) : currentView === 'explore' ? (
           <>
