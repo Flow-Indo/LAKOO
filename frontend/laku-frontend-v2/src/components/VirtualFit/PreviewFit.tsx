@@ -34,11 +34,6 @@ export default function PreviewFit({ shirts, pants, selectedShirtId, selectedPan
   const [pantsNudge, setPantsNudge] = useState<number>(-35);
   const preservedAbsoluteRef = useRef<number | null>(null);
   const [userNudged, setUserNudged] = useState<boolean>(false);
-  const sliderIsDraggingRef = useRef<boolean>(false);
-  const sliderRef = useRef<HTMLDivElement | null>(null);
-  const MIN_NUDGE = -50;
-  const MAX_NUDGE = -20;
-  const NUDGE_STEP = 5;
   const [pantAbove, setPantAbove] = useState<boolean>(false);
   const pantsZ = pantAbove ? 40 : 30;
   const shirtZ = pantAbove ? 30 : 40;
@@ -224,98 +219,13 @@ export default function PreviewFit({ shirts, pants, selectedShirtId, selectedPan
             }}
           />
         )}
- 
-        {/* vertical nudger control (right) */}
-        <div
-          ref={sliderRef}
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-8 flex items-center justify-center"
-          style={{ height: '70%' }}
-          onClick={(e) => {
-            // click to set nearest step
-            const el = sliderRef.current;
-            if (!el) return;
-            const rect = el.getBoundingClientRect();
-            const y = (e as React.MouseEvent).clientY - rect.top;
-            const ratio = y / rect.height;
-            const raw = MIN_NUDGE + ratio * (MAX_NUDGE - MIN_NUDGE);
-            const snapped = Math.round(raw / NUDGE_STEP) * NUDGE_STEP;
-            setPantsNudge(snapped);
-            setUserNudged(true);
-          }}
-        >
-          {/* slider track */}
-          <div className="relative h-full w-2 bg-transparent">
-            {/* ticks */}
-            {Array.from({ length: Math.floor((MAX_NUDGE - MIN_NUDGE) / NUDGE_STEP) + 1 }).map((_, idx) => {
-              const value = MIN_NUDGE + idx * NUDGE_STEP;
-              const percent = ((value - MIN_NUDGE) / (MAX_NUDGE - MIN_NUDGE)) * 100;
-              const isActive = value === pantsNudge;
-              return (
-                <div
-                  key={value}
-                  className={`absolute left-0 w-6 -translate-x-full ${isActive ? 'bg-gray-500' : 'bg-gray-300'}`}
-                  style={{ height: '1px', top: `${percent}%`, transform: 'translateY(-50%)' }}
-                />
-              );
-            })}
 
-            {/* knob */}
-            <div
-              role="slider"
-              tabIndex={0}
-              onMouseDown={(e) => {
-                sliderIsDraggingRef.current = true;
-                e.preventDefault();
-                const onMove = (ev: MouseEvent) => {
-                  const el = sliderRef.current;
-                  if (!el) return;
-                  const rect = el.getBoundingClientRect();
-                  const y = ev.clientY - rect.top;
-                  const ratio = Math.max(0, Math.min(1, y / rect.height));
-                  const raw = MIN_NUDGE + ratio * (MAX_NUDGE - MIN_NUDGE);
-                  const snapped = Math.round(raw / NUDGE_STEP) * NUDGE_STEP;
-                  setPantsNudge(snapped);
-                  setUserNudged(true);
-                };
-                const onUp = () => {
-                  sliderIsDraggingRef.current = false;
-                  window.removeEventListener('mousemove', onMove);
-                  window.removeEventListener('mouseup', onUp);
-                };
-                window.addEventListener('mousemove', onMove);
-                window.addEventListener('mouseup', onUp);
-              }}
-              onTouchStart={(e) => {
-                sliderIsDraggingRef.current = true;
-              }}
-              onTouchMove={(e) => {
-                const touch = e.touches[0];
-                const el = sliderRef.current;
-                if (!el) return;
-                const rect = el.getBoundingClientRect();
-                const y = touch.clientY - rect.top;
-                  const ratio = Math.max(0, Math.min(1, y / rect.height));
-                  const raw = MIN_NUDGE + ratio * (MAX_NUDGE - MIN_NUDGE);
-                  const snapped = Math.round(raw / NUDGE_STEP) * NUDGE_STEP;
-                  setPantsNudge(snapped);
-                setUserNudged(true);
-              }}
-              className="absolute left-0 -translate-x-full w-6 h-6 bg-white rounded-full border shadow-sm flex items-center justify-center"
-              style={{
-                top: `${((pantsNudge - MIN_NUDGE) / (MAX_NUDGE - MIN_NUDGE)) * 100}%`,
-                transform: 'translateY(-50%) translateX(-50%)',
-                zIndex: 50,
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* z-index toggle button removed */}
+        {/* z-index toggle button removed */}
 
         {/* chevrons removed — swipe in OptionFit controls selection */}
 
         {/* product details removed per request */}
+      </div>
     </div>
   );
 }

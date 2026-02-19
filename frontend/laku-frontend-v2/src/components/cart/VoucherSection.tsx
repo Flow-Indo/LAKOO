@@ -11,7 +11,7 @@ export function VoucherSection({ vouchers }: Props) {
   if (vouchers.length === 0) return null;
 
   return (
-    <div className="py-2 px-4 bg-white-50 border-t border-gray-200">
+    <div className="py-2 px-4 bg-white-50">
       
       <div className="flex items-center gap-3">
         <Tag className="w-5 h-5 text-red-600" />

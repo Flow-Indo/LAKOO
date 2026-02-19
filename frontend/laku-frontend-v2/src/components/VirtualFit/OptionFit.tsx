@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Trash2, ChevronRight } from 'lucide-react';
+import { Trash2, ChevronRight, Plus, Minus } from 'lucide-react';
 import SeeAllPopUp from './SeeAllPopUp';
 
 type FitProduct = {
@@ -46,6 +46,14 @@ export default function OptionFit({
   const [showAllTops, setShowAllTops] = useState<boolean>(false);
   const [showAllPants, setShowAllPants] = useState<boolean>(false);
   const [removingIds, setRemovingIds] = useState<string[]>([]);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  const getQuantity = (id: string) => quantities[id] ?? 1;
+
+  const setQuantity = (id: string, qty: number) => {
+    if (qty < 1) return;
+    setQuantities(prev => ({ ...prev, [id]: qty }));
+  };
  
   useEffect(() => {
     onPopupOpenChange?.(showAllTops || showAllPants);
@@ -289,11 +297,55 @@ export default function OptionFit({
             return (
               <div key={i} className="w-full flex-shrink-0">
                 <div
-                  className={`grid grid-cols-[80px_1fr] items-center gap-4 py-2 pl-4 pr-4 transition-all duration-300 ${selectMode && selectedIds.includes(s.id) ? 'bg-gray-100' : 'bg-white'} rounded-lg ${removingIds.includes(s.id) ? '-translate-x-full opacity-0 pointer-events-none' : ''} ${selectMode ? 'cursor-pointer' : ''}`}
+                  className={`relative grid grid-cols-[80px_1fr] items-center gap-4 py-2 pl-4 pr-4 transition-all duration-300 ${selectedIds.includes(s.id) ? 'bg-gray-200' : 'bg-white'} rounded-lg ${removingIds.includes(s.id) ? '-translate-x-full opacity-0 pointer-events-none' : ''} ${selectMode ? 'cursor-pointer' : ''}`}
                   onClick={() => {
                     if (selectMode && onToggleSelect) onToggleSelect(s.id);
                   }}
                 >
+                  {/* Add button in upper right corner */}
+                  <button
+                    type="button"
+                    className={`absolute right-2 z-10 flex items-center justify-center transition-colors ${
+                      selectedIds.includes(s.id) ? 'text-red-500' : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                    style={{ top: '50%', transform: 'translateY(-120%)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onToggleSelect) onToggleSelect(s.id);
+                    }}
+                  >
+                    {selectedIds.includes(s.id) ? <Minus className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                  </button>
+                  {selectedIds.includes(s.id) && (
+                    <div
+                      className="absolute right-2 z-10 flex items-center gap-0 rounded-md bg-transparent px-[1px] py-[1px] text-sm font-medium text-gray-900 h-[30px]"
+                      style={{ top: '50%', transform: 'translateY(40%)' }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (getQuantity(s.id) <= 1) {
+                            if (onToggleSelect) onToggleSelect(s.id);
+                          } else {
+                            setQuantity(s.id, Math.max(1, getQuantity(s.id) - 1));
+                          }
+                        }}
+                        className="inline-flex items-center justify-center w-6 h-6 text-sm text-gray-900"
+                      >
+                        −
+                      </button>
+                      <button className="bg-gray-100 px-3 py-1 rounded-sm text-[12px] font-medium">
+                        {getQuantity(s.id)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(s.id, getQuantity(s.id) + 1)}
+                        className="inline-flex items-center justify-center w-6 h-6 text-sm"
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
                   <div className="flex flex-col items-center">
                     <div
                       className={`w-20 h-20 rounded border p-2 flex items-center justify-center bg-white ${s.id === selectedShirtId ? 'ring-2 ring-amber-300' : ''}`}
@@ -305,7 +357,7 @@ export default function OptionFit({
                   <div className="relative w-full h-20" style={{ fontSize: '14px' }}>
                       <div className="text-sm font-bold text-gray-900">{s.name}</div>
                       <div className="text-sm text-gray-600">{s.variation}</div>
-                      <div className="text-red-600 font-semibold">Rp{s.price?.toLocaleString()}</div>
+                      <div className="text-sm font-medium text-red-600">Rp{s.price?.toLocaleString()}</div>
                       <div className="mt-2">
                         <button
                           type="button"
@@ -349,11 +401,55 @@ export default function OptionFit({
             return (
               <div key={i} className="w-full flex-shrink-0">
                 <div
-                  className={`grid grid-cols-[80px_1fr] items-center gap-4 py-2 pl-4 pr-4 transition-all duration-300 ${selectMode && selectedIds.includes(p.id) ? 'bg-gray-100' : 'bg-white'} rounded-lg ${removingIds.includes(p.id) ? '-translate-x-full opacity-0 pointer-events-none' : ''} ${selectMode ? 'cursor-pointer' : ''}`}
+                  className={`relative grid grid-cols-[80px_1fr] items-center gap-4 py-2 pl-4 pr-4 transition-all duration-300 ${selectedIds.includes(p.id) ? 'bg-gray-200' : 'bg-white'} rounded-lg ${removingIds.includes(p.id) ? '-translate-x-full opacity-0 pointer-events-none' : ''} ${selectMode ? 'cursor-pointer' : ''}`}
                   onClick={() => {
                     if (selectMode && onToggleSelect) onToggleSelect(p.id);
                   }}
                 >
+                  {/* Add button in upper right corner */}
+                  <button
+                    type="button"
+                    className={`absolute right-2 z-10 flex items-center justify-center transition-colors ${
+                      selectedIds.includes(p.id) ? 'text-red-500' : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                    style={{ top: '50%', transform: 'translateY(-120%)' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onToggleSelect) onToggleSelect(p.id);
+                    }}
+                  >
+                    {selectedIds.includes(p.id) ? <Minus className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                  </button>
+                  {selectedIds.includes(p.id) && (
+                    <div
+                      className="absolute right-2 z-10 flex items-center gap-0 rounded-md bg-transparent px-[1px] py-[1px] text-sm font-medium text-gray-900 h-[30px]"
+                      style={{ top: '50%', transform: 'translateY(40%)' }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (getQuantity(p.id) <= 1) {
+                            if (onToggleSelect) onToggleSelect(p.id);
+                          } else {
+                            setQuantity(p.id, Math.max(1, getQuantity(p.id) - 1));
+                          }
+                        }}
+                        className="inline-flex items-center justify-center w-6 h-6 text-sm text-gray-900"
+                      >
+                        −
+                      </button>
+                      <button className="bg-gray-100 px-3 py-1 rounded-sm text-[12px] font-medium">
+                        {getQuantity(p.id)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(p.id, getQuantity(p.id) + 1)}
+                        className="inline-flex items-center justify-center w-6 h-6 text-sm"
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
                   <div className="flex flex-col items-center">
                     <div
                       className={`w-20 h-20 rounded border p-2 flex items-center justify-center bg-white ${p.id === selectedPantId ? 'ring-2 ring-amber-300' : ''}`}
@@ -365,7 +461,7 @@ export default function OptionFit({
                     <div className="relative w-full h-20" style={{ fontSize: '14px' }}>
                       <div className="text-sm font-bold text-gray-900">{p.name}</div>
                       <div className="text-sm text-gray-600">{p.variation}</div>
-                      <div className="text-red-600 font-semibold">Rp{p.price?.toLocaleString()}</div>
+                      <div className="text-sm font-medium text-red-600">Rp{p.price?.toLocaleString()}</div>
                       <div className="mt-2">
                         <button
                           type="button"
@@ -395,8 +491,8 @@ export default function OptionFit({
       onClose={() => setShowAllTops(false)}
       onSelect={(id: string) => {
         onSelectShirt(id);
-        setShowAllTops(false);
-      }}
+              setShowAllTops(false);
+            }}
       onRemove={(id: string) => onRemoveProduct?.('shirt', id)}
       itemType="shirt"
     />
@@ -407,8 +503,8 @@ export default function OptionFit({
       onClose={() => setShowAllPants(false)}
       onSelect={(id: string) => {
         onSelectPant(id);
-        setShowAllPants(false);
-      }}
+              setShowAllPants(false);
+            }}
       onRemove={(id: string) => onRemoveProduct?.('pant', id)}
       itemType="pant"
     />

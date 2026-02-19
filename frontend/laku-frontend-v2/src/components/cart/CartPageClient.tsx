@@ -67,7 +67,7 @@ export function CartPageClient({ initialCart }: Props) {
   const totalItemCount = stores.reduce((acc, store) => acc + store.products.length, 0);
 
   return (
-    <div className="min-h-screen bg-white-50">
+    <div className="min-h-screen bg-gray-50">
       <CartHeader count={totalItemCount} activeTab={activeTab} onTabChange={(t) => setActiveTab(t)} />
       <div className="max-w-7xl mx-auto px-0 pt-[1px] pb-[6px] flex flex-col gap-[10px]">
         {/* (Virtual Fitting Room link removed - UI uses tabs) */}

@@ -28,16 +28,16 @@ export function CartHeader({ count = 0, activeTab = 'cart', onTabChange }: CartH
 
       {/* Tabs: Cart / Fitting */}
       <div className="bg-white">
-      <div className="max-w-7xl mx-auto px-4 pt-1.5 pb-1.5 flex items-center justify-start gap-10" style={{ height: '44px' }}>
+      <div className="max-w-7xl mx-auto px-4 pt-1.5 pb-1.5 flex items-center justify-center gap-10" style={{ height: '44px' }}>
             <button
               onClick={() => onTabChange && onTabChange('cart')}
-              className={`text-sm h-11 ${activeTab === 'cart' ? 'text-gray-900 font-medium border-b-2 border-gray-900 pb-0' : 'text-gray-600 font-medium'}`}
+              className={`text-base h-11 ${activeTab === 'cart' ? 'text-gray-900 font-medium border-b-2 border-gray-900 pb-0' : 'text-gray-600 font-medium'}`}
             >
               Cart
             </button>
             <button
               onClick={() => onTabChange && onTabChange('fitting')}
-              className={`text-sm h-11 ${activeTab === 'fitting' ? 'text-gray-900 font-medium border-b-2 border-gray-900 pb-0' : 'text-gray-500 font-bold'}`}
+              className={`text-base h-11 ${activeTab === 'fitting' ? 'text-gray-900 font-medium border-b-2 border-gray-900 pb-0' : 'text-gray-600 font-medium'}`}
               style={{ fontFamily: 'cursive' }}
             >
               Fitting

@@ -86,16 +86,11 @@ export default function CartTrash({
             −
           </button>
 
-          <button
-            type="button"
-            onClick={() => setIsOpen((v) => !v)}
-            aria-haspopup="menu"
-            aria-expanded={isOpen}
+          <span
             className="bg-gray-100 px-3 py-1 rounded-sm text-[12px] font-medium"
-            aria-label="Quantity menu"
           >
             {quantity}
-          </button>
+          </span>
 
           <button
             type="button"
