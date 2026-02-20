@@ -19,7 +19,6 @@ import { ScrollVideoFeed } from '@/components/scroll/ScrollVideoFeed';
 import { mockLiveShoppingVideos } from '@/lib/mock-live-shopping-data';
 import { useBottomNav } from '@/components/layouts/BottomNavContext';
 import type { Product } from '@/types';
-import { OutfitOfTheDay } from '@/components/explore/OutfitOfTheDay';
 
 // Products to EXCLUDE from market (these are posts only)
 const POST_ONLY_SLUGS = [
@@ -250,9 +249,9 @@ export default function ExplorePage() {
       case 'Sportswear':
       case 'Performative':
       case 'Muslimwear':
-        return <ForYouMode />;
+        return <ForYouMode currentTab={currentTab} />;
       default:
-        return <ForYouMode />;
+        return <ForYouMode currentTab={currentTab} />;
     }
   };
 
@@ -346,7 +345,6 @@ export default function ExplorePage() {
               </div>
             )}
             <CategoryGrid />
-            <OutfitOfTheDay />
             <InfiniteProductFeed initialProducts={marketProducts} hasMore={true} />
           </>
         )}

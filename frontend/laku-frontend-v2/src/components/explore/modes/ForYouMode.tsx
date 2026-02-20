@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { XiaohongshuPost } from '../XiaohongshuPost';
+import { OutfitOfTheDay } from '../OutfitOfTheDay';
 
 // Import product data for posts
 import { productsData } from '@/lib/products-data';
@@ -50,7 +51,11 @@ interface Post {
   likes: number;
 }
 
-export function ForYouMode() {
+interface ForYouModeProps {
+  currentTab?: string;
+}
+
+export function ForYouMode({ currentTab = 'For You' }: ForYouModeProps) {
   // Start with original order for SSR (no hydration mismatch)
   const [posts, setPosts] = useState<Post[]>(forYouPosts);
   const [loading, setLoading] = useState(false);
@@ -107,7 +112,8 @@ export function ForYouMode() {
   }, [loadMorePosts, loading]);
 
   return (
-    <div className="px-1 py-1.5">
+    <div className="px-1 pt-0 pb-1.5">
+      {currentTab === 'For You' && <OutfitOfTheDay />}
       <div className="grid grid-cols-2 gap-1.5">
         {posts.map((post) => (
           <XiaohongshuPost key={post.id} post={post as any} />

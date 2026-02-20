@@ -1,7 +1,10 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Product } from '@/types';
 import ProductName from './ProductName';
+import { useState, useRef, useCallback } from 'react';
 
 // Format price: Rp with comma for millions, 'k' for thousands
 function formatPriceIDR(price: number, showRp: boolean = true): string {
@@ -26,7 +29,80 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const rawImage = Array.isArray(product.images) ? product.images[0] : undefined;
+  const rawImages = Array.isArray(product.images) ? product.images : [];
+  // Extract image URLs from the images array (support both string and object formats)
+  const imageUrls = rawImages.map((img) =>
+    typeof img === 'string' ? img : (img as any)?.url
+  ).filter(Boolean);
+  
+  // Fallback to product.image if no images array
+  const allImages = imageUrls.length > 0 ? imageUrls : [product.image];
+  
+  // Start at index 0 (first actual image)
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [translateX, setTranslateX] = useState(-(allImages.length - 1) * 100);
+  const [isResetting, setIsResetting] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Navigate to next image - slides left to show first from right
+  const goToNext = useCallback(() => {
+    if (isResetting) return;
+    setCurrentIndex((prev) => (prev + 1) % allImages.length);
+    setTranslateX((prev) => prev - 100);
+  }, [isResetting, allImages.length]);
+
+  // Navigate to previous image - slides right to show last from left
+  const goToPrev = useCallback(() => {
+    if (isResetting) return;
+    setCurrentIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+    setTranslateX((prev) => prev + 100);
+  }, [isResetting, allImages.length]);
+
+  // Handle transition end - reset position silently for continuous loop
+  const handleTransitionEnd = useCallback(() => {
+    // If we went past the first image duplicate at the end (position N + duplicates at start)
+    // translateX would be at -(allImages.length + (allImages.length - 1)) * 100 = -(2N-1)*100
+    if (translateX <= -(2 * allImages.length - 1) * 100) {
+      setIsResetting(true);
+      setTranslateX(-(allImages.length - 1) * 100); // Reset to position (N-1), first actual image
+      setCurrentIndex(0);
+      setTimeout(() => setIsResetting(false), 50);
+    }
+    // If we went past position 0 (last image) when swiping right from first
+    // translateX would be at 100 (blank, no image there)
+    else if (translateX >= 100) {
+      setIsResetting(true);
+      setTranslateX(-(allImages.length - 1) * 100); // Reset to position (N-1), first actual image
+      setCurrentIndex(0);
+      setTimeout(() => setIsResetting(false), 50);
+    }
+  }, [translateX, allImages.length]);
+
+  // Handle touch start
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  }, []);
+
+  // Handle touch move
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const touchEndX = e.touches[0].clientX;
+    const diff = touchStartX.current - touchEndX;
+    
+    // Swipe threshold
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) {
+        goToNext();
+      } else {
+        goToPrev();
+      }
+      touchStartX.current = null;
+    }
+  }, [goToNext, goToPrev]);
+
+  const hasMultipleImages = allImages.length > 1;
+  const rawImage = rawImages.length > 0 ? rawImages[0] : undefined;
   const imageSrc =
     typeof rawImage === 'string' ? rawImage : (rawImage as any)?.url || product.image || '/placeholder.jpg';
   const imageWidth = (rawImage as any)?.width;
@@ -38,43 +114,82 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={productHref} className="block w-full">
       <div className="bg-white rounded-lg overflow-hidden border border-gray-100 hover:shadow-md transition-shadow w-full">
-        {/* Image Container - enforce either square (1:1) or tall (1:1.5) aspect ratio */}
+        {/* Image Container - Carousel with swipe support */}
         {(() => {
           // Prefer explicit product.imageTall when provided (deterministic from mock-data).
-          if ((product as any).imageTall === true) {
-            const paddingBottom = `${1.5 * 100}%`;
+          const isTall = (product as any).imageTall === true;
+          const paddingBottom = isTall ? `${1.5 * 100}%` : '100%';
+
+          // If multiple images, use carousel
+          if (hasMultipleImages) {
             return (
               <div
-                className="w-full bg-gray-100 overflow-hidden rounded-t-lg"
+                className="w-full bg-gray-100 overflow-hidden rounded-t-lg relative"
                 style={{ position: 'relative', width: '100%', paddingBottom }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
               >
-                <Image
-                  src={imageSrc}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  sizes="50vw"
-                />
+                {/* Continuous strip of images - with duplicates at ends for seamless looping */}
+                <div
+                  ref={containerRef}
+                  className="absolute inset-0 flex h-full w-full"
+                  style={{
+                    transform: `translateX(${translateX}%)`,
+                    transition: isResetting ? 'none' : 'transform 300ms ease-in-out',
+                  }}
+                  onTransitionEnd={handleTransitionEnd}
+                >
+                  {/* Duplicates at beginning excluding first image (for swiping right from first) */}
+                  {allImages.slice(1).map((img, index) => (
+                    <div key={`dup-start-${index}`} className="relative flex-shrink-0 w-full h-full">
+                      <Image
+                        src={img}
+                        alt={`${product.name} - Duplicate ${index}`}
+                        fill
+                        className="object-cover"
+                        sizes="50vw"
+                      />
+                    </div>
+                  ))}
+                  {/* All images */}
+                  {allImages.map((img, index) => (
+                    <div
+                      key={index}
+                      className="relative flex-shrink-0 w-full h-full"
+                    >
+                      <Image
+                        src={img}
+                        alt={`${product.name} - Image ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="50vw"
+                        priority={index === 0}
+                      />
+                    </div>
+                  ))}
+                  {/* First image at the end (for swiping left from last) */}
+                  <div className="relative flex-shrink-0 w-full h-full">
+                    <Image
+                      src={allImages[0]}
+                      alt={`${product.name} - First Image`}
+                      fill
+                      className="object-cover"
+                      sizes="50vw"
+                    />
+                  </div>
+                </div>
               </div>
             );
           }
 
-          const actualRatio = imageWidth && imageHeight ? (imageHeight / imageWidth) : undefined;
-          const targetRatio = actualRatio
-            ? Math.abs(actualRatio - 1) <= Math.abs(actualRatio - 1.5)
-              ? 1
-              : 1.5
-            : 1;
-
-          // Use a positioned container with padding-bottom to enforce the aspect ratio.
-          const paddingBottom = `${targetRatio * 100}%`;
+          // Single image - no carousel needed
           return (
             <div
               className="w-full bg-gray-100 overflow-hidden rounded-t-lg"
               style={{ position: 'relative', width: '100%', paddingBottom }}
             >
               <Image
-                src={imageSrc}
+                src={allImages[0]}
                 alt={product.name}
                 fill
                 className="object-cover"

@@ -227,7 +227,7 @@ export function OutfitOfTheDay() {
       
       {/* Caption */}
       <div className="px-4 mb-4 flex items-center justify-between">
-        <h3 className="text-base font-semibold text-gray-900 mb-[10px] pb-[10px] pt-[5px]">Outfit Of The Day For You</h3>
+        <h3 className="text-base font-semibold text-gray-900 mb-[10px] pb-[10px] pt-[5px]">Steal Her Fit ! 🔥💕🤩</h3>
         <div className="flex items-center gap-2">
           <div className="text-sm font-bold text-gray-900">
             {formatTime(timeLeft)}
