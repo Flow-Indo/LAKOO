@@ -1,4 +1,4 @@
-import { generateServiceToken } from "@shared/utils/serviceAuth";
+import { generateServiceToken } from "@shared/utils/serviceToken";
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { UserResponseDTO } from "../types/response_dto";
 
@@ -57,7 +57,7 @@ export class UserHTTPClient implements UserServiceClient {
     //internal
     async verifyUser(phonenumber: string, password: string): Promise<UserResponseDTO> {
         try {   
-            const url = `${this.userServiceURL}/internal/verify`;
+            const url = `${this.userServiceURL}/internal/user/verify`;
             const response: AxiosResponse<UserResponseDTO> = await this.httpClient.post(url, {
                 phoneNumber: phonenumber,
                 password
@@ -82,13 +82,16 @@ export class UserHTTPClient implements UserServiceClient {
 
     }
 
-    async createUser(phonenumber: string, firstName: string, lastName: string, password: string): Promise<UserResponseDTO> {
+    async createUser(firstName: string, lastName: string, password?: string, phoneNumber?: string, email?: string, google_id?: string): Promise<UserResponseDTO> {
         try {
-            const url = `${this.userServiceURL}/internal/create`;
+            const url = `${this.userServiceURL}/internal/user/create`;
+            console.log("Creating user with data:", {firstName, lastName, password, phoneNumber, email, google_id});
             const response: AxiosResponse<UserResponseDTO> = await this.httpClient.post(url, {
-                phoneNumber: phonenumber,
-                firstName,
-                lastName,
+                phoneNumber,
+                email: email,
+                googleId: google_id,
+                firstName: firstName,
+                lastName: lastName,
                 password
             });
 
@@ -105,6 +108,27 @@ export class UserHTTPClient implements UserServiceClient {
 
             }
             throw new Error(`Failed to create user: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    async findUser(identifier: any) {
+        try {
+            const url = `${this.userServiceURL}/user/${identifier}`;
+            const response: AxiosResponse<UserResponseDTO> = await this.httpClient.post(url);
+
+            return response.data;
+        } catch (error) {
+            if(axios.isAxiosError(error)) {
+                if(error.response) {
+                    throw new Error(
+                        `User service returned ${error.response.status}: ${JSON.stringify(error.response.data)} `
+                    )
+                } else if(error.request) {
+                    throw new Error("No response from user service");
+                }
+
+            }
+            throw new Error(`Failed to find user: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 

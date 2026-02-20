@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BLACKLIST_SERVICE_URL = process.env.BLACKLIST_SERVICE_URL || 'http://localhost:8081';
+const BLACKLIST_SERVICE_URL = process.env.BLACKLIST_SERVICE_URL || 'http://localhost:8017';
 
 export class BlacklistService {
     static async isUserBlacklisted(userId: string): Promise<boolean> {

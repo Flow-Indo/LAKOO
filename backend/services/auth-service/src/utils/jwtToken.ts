@@ -14,13 +14,13 @@ interface AccessTokenOnly {
     accessToken: String
 }
 
-const generateToken = (userId: String, phoneNumber: String, role: String, includeRefreshToken: boolean = true) : tokenPair | AccessTokenOnly => {
+const generateToken = (userId: String, phoneNumberOrEmail: String, role: String, includeRefreshToken: boolean = true) : tokenPair | AccessTokenOnly => {
 
     try {
         const accessToken = jwt.sign(
             {
                 userId,
-                phoneNumber,
+                phoneNumberOrEmail,
                 role,
                 type: "accessToken"
             },
@@ -33,7 +33,7 @@ const generateToken = (userId: String, phoneNumber: String, role: String, includ
             const refreshToken = jwt.sign(
                 {
                     userId,
-                    phoneNumber,
+                    phoneNumberOrEmail,
                     tokenId,
                     role,
                     type: "refreshToken"
@@ -51,27 +51,18 @@ const generateToken = (userId: String, phoneNumber: String, role: String, includ
     
     
 }
-
-const setTokenCookies = (res: Response, accessToken: String, refreshToken?: String) => {
-    try {
-        res.cookie('accessToken', accessToken, {
-            httpOnly: true,
-            secure: false,
-            sameSite: 'lax',
-            maxAge: 30 * 60 * 1000
+const setRefreshToken = (res: Response, refreshToken: String | undefined) => {
+    
+    if(refreshToken) {
+        res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        path: '/api/auth/refresh'
         })
-
-        if(refreshToken) {
-            res.cookie('refreshToken', refreshToken, {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
-                maxAge: 30 * 24 * 60 * 60 * 1000,
-                path: '/api/auth/refresh'
-            })
-        }
-    } catch(error) {
-        throw error;
+    } else {
+        throw new Error("Refresh token is required to set cookie");
     }
     
   
@@ -86,9 +77,9 @@ const generateAccessTokenOnly = (userId: String, phoneNumber: String, role: Stri
     
 }
 
-const generateBothToken = (userId: String, phoneNumber: String, role: String) : tokenPair => {
+const generateBothToken = (userId: String, phoneNumberOrEmail: String, role: String) : tokenPair => {
     try {
-        return generateToken(userId, phoneNumber, role, true) as tokenPair
+        return generateToken(userId, phoneNumberOrEmail, role, true) as tokenPair
     } catch(error) {
         throw error;
     }
@@ -96,4 +87,4 @@ const generateBothToken = (userId: String, phoneNumber: String, role: String) : 
 }
 
 
-export {generateAccessTokenOnly, generateBothToken, setTokenCookies}
+export {generateAccessTokenOnly, generateBothToken, setRefreshToken}

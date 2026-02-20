@@ -37,17 +37,19 @@ func (s *CartService) AddToCart(ctx context.Context, userId string, request type
 	if err != nil {
 		return err
 	}
-	//check is no product
+	// //check is no product, or check if requested quantity > stock quantity
 	if productResponse == nil {
 		return errors.New("product not found")
 	}
-	// MVP: stock validation is handled by downstream inventory/warehouse; product-service taggable endpoint does not expose stock.
 
 	//check if seller product or brand
 	var itemType models.CartItemType
-	if productResponse.ProductSource == "seller_product" || productResponse.SellerID != nil {
+	isSellerProduct := productResponse.SupplierID == nil
+	if isSellerProduct {
+		// s.sellerClient.GetProductById()
 		itemType = models.SellerProduct
 	} else {
+		// s.brandClient.GetProductById()
 		itemType = models.BrandProduct
 	}
 
@@ -60,45 +62,46 @@ func (s *CartService) AddToCart(ctx context.Context, userId string, request type
 	if err != nil {
 		return fmt.Errorf("invalid user ID format: %w", err)
 	}
-
-	// Create cart if user does not have an active cart
+	//create cart if user does not have an active cart
 	if existingActiveCart == nil {
-		existingActiveCart = &models.Cart{
+		newCart := &models.Cart{
 			UserID:         &userUUID,
 			Status:         models.CartStatusActive,
 			Currency:       "IDR",
-			ItemCount:      0,
-			Subtotal:       0,
+			ItemCount:      1,
+			Total:          float64(request.Quantity),
 			DiscountAmount: 0,
 			LastActivityAt: time.Now(),
 			CreatedAt:      time.Now(),
 			UpdatedAt:      time.Now(),
 		}
 
-		if err := s.repository.CreateCart(existingActiveCart); err != nil {
+		if err := s.repository.CreateCart(newCart); err != nil {
 			return err
 		}
 	}
 
+	//if active cart is available now
 	if existingActiveCart != nil {
 		currentPrice := productResponse.Price
 		priceChanged := false
 
 		for _, cartItem := range existingActiveCart.Items {
-			//if product exists already in the cart
-			if cartItem.ProductID.String() == request.ProductID && cartItem.ItemType == itemType {
+			//if product of same sku exists already in the cart
+			//if it is the same sku and same item type
+			if cartItem.ItemType == itemType && cartItem.SnapshotSKU == &productResponse.SKU {
 				priceChanged = cartItem.SnapshotUnitPrice != currentPrice
 
 				cartItem.Quantity += request.Quantity
 				cartItem.CurrentUnitPrice = currentPrice
 				cartItem.PriceChanged = priceChanged
 				cartItem.PriceLastCheckedAt = time.Now()
+				cartItem.Subtotal = float64(cartItem.Quantity) * currentPrice
 
-				// MVP: treat "taggable" as a lightweight availability gate (approved/active & not deleted)
-				// Stock validation is handled elsewhere (warehouse/inventory) in this architecture.
-				cartItem.IsAvailable = productResponse.IsTaggable
+				//check availability if the product is still available for the existingcart
+				cartItem.IsAvailable = productResponse.StockQuantity >= cartItem.Quantity
 				if !cartItem.IsAvailable {
-					message := "Product is not available"
+					message := fmt.Sprintf("Only %d items available", productResponse.StockQuantity)
 					cartItem.AvailabilityMessage = &message
 				} else {
 					cartItem.AvailabilityMessage = nil
@@ -116,12 +119,9 @@ func (s *CartService) AddToCart(ctx context.Context, userId string, request type
 			}
 		}
 
-		//if product didnt exist in the cart
+		//if product sku didnt exist in the cart
 
-		productID, err := uuid.Parse(productResponse.ID)
-		if err != nil {
-			return fmt.Errorf("invalid product ID format: %w", err)
-		}
+		productID, _ := uuid.Parse(productResponse.ID)
 		newCartItem := &models.CartItem{
 			CartID:    existingActiveCart.ID,
 			ItemType:  itemType,
@@ -137,26 +137,31 @@ func (s *CartService) AddToCart(ctx context.Context, userId string, request type
 			// SnapshotComparePrice: comparePrice,
 			PriceChanged:       false,
 			PriceLastCheckedAt: time.Now(),
-			IsAvailable:        productResponse.IsTaggable,
+			Subtotal:           currentPrice * float64(request.Quantity),
+			IsAvailable:        productResponse.StockQuantity >= 1,
 			//Availability message
 			//SnapshotVariantName
 			//SnapshotSellerName
 			//SnapshotBrandNme
 			SnapshotProductName: productResponse.Name,
-			SnapshotImageURL:    productResponse.PrimaryImageURL,
-			SnapshotSKU:         nil,
+			SnapshotImageURL:    &productResponse.ImageURL,
+			SnapshotSKU:         &productResponse.SKU,
 		}
 		if !newCartItem.IsAvailable {
-			message := "Product is not available"
+			message := "product is not available"
 			newCartItem.AvailabilityMessage = &message
 		}
+		//add item count
+		existingActiveCart.ItemCount += 1
 
 		if err := s.repository.CreateCartItem(userId, existingActiveCart.ID.String(), newCartItem); err != nil {
 			return fmt.Errorf("Unable to create cartItem for productID: %v", productResponse.ID)
 		}
+
 		if err := s.repository.RecalculateCartTotals(existingActiveCart.ID); err != nil {
 			return err
 		}
+
 	}
 
 	return nil
@@ -170,8 +175,6 @@ func (s *CartService) GetActiveCart(userId string) (*types.CartResponseDTO, erro
 
 	if cart == nil {
 		return &types.CartResponseDTO{
-			ID:        "",
-			UserID:    userId,
 			ItemCount: 0,
 			Items:     []models.CartItem{},
 			Total:     0,
@@ -182,21 +185,22 @@ func (s *CartService) GetActiveCart(userId string) (*types.CartResponseDTO, erro
 
 }
 
-func (s *CartService) RemoveFromCart(userId string, productId string) error {
+func (s *CartService) RemoveFromCart(userId string, sku string) error {
 	cart, err := s.repository.GetActiveCartByUserId(userId)
 	if err != nil {
 		return err
 	}
+
 	if cart == nil {
 		return errors.New("no active cart found")
 	}
 
-	productUUID, err := uuid.Parse(productId)
+	skuUUID, err := uuid.Parse(sku)
 	if err != nil {
 		return fmt.Errorf("invalid product ID format: %w", err)
 	}
 
-	if err := s.repository.RemoveCartItem(cart.ID, productUUID); err != nil {
+	if err := s.repository.RemoveCartItem(cart.ID, skuUUID); err != nil {
 		return err
 	}
 
@@ -222,11 +226,7 @@ func (s *CartService) ClearCart(userId string) error {
 func (s *CartService) parseToCartResponse(cart *models.Cart) *types.CartResponseDTO {
 	var cartResponse types.CartResponseDTO
 
-	cartResponse.ID = cart.ID.String()
-	if cart.UserID != nil {
-		cartResponse.UserID = cart.UserID.String()
-	}
-	cartResponse.Total = cart.Subtotal
+	cartResponse.Total = cart.Total
 	cartResponse.Items = cart.Items
 	cartResponse.ItemCount = cart.ItemCount
 

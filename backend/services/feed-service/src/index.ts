@@ -13,7 +13,7 @@ import { startCleanupJobs } from './jobs/cleanup.job';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3018;
+const PORT = process.env.FEED_SERVICE_PORT || 8020;
 
 app.disable('x-powered-by');
 

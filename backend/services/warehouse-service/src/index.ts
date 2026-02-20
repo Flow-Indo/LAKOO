@@ -12,7 +12,7 @@ import { errorHandler } from './middleware/error-handler';
 dotenv.config();
 
 const app: Express = express();
-const PORT = process.env.PORT || 3012;
+const PORT = process.env.WAREHOUSE_SERVICE_PORT || 8012;
 
 app.disable('x-powered-by');
 

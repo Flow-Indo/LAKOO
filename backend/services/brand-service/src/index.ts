@@ -11,7 +11,7 @@ import { errorHandler } from './middleware/error-handler';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3004;
+const PORT = process.env.BRAND_SERVICE_PORT || 8005;
 
 app.disable('x-powered-by');
 

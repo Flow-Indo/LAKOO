@@ -14,22 +14,22 @@ import (
 )
 
 type ProductHTTPClient struct {
-	GatewayURL    string
-	httpClient    *http.Client
-	serviceName   string
-	serviceSecret string
+	ProductServiceURL string
+	httpClient        *http.Client
+	serviceName       string
+	serviceSecret     string
 }
 
 type ProductHTTPClientConfig struct {
-	GatewayURL    string
-	Timeout       time.Duration
-	ServiceName   string
-	ServiceSecret string
+	ProductServiceURL string
+	Timeout           time.Duration
+	ServiceName       string
+	ServiceSecret     string
 }
 
 func NewProductHTTPClient(config ProductHTTPClientConfig) client.ProductServiceClient {
 	return &ProductHTTPClient{
-		GatewayURL: config.GatewayURL,
+		ProductServiceURL: config.ProductServiceURL,
 		httpClient: &http.Client{
 			Timeout: config.Timeout,
 		},
@@ -45,8 +45,7 @@ func (c *ProductHTTPClient) addServiceHeaders(req *http.Request) {
 }
 
 func (c *ProductHTTPClient) GetProductByIdBase(ctx context.Context, productId string) (*types.ProductResponseDTO, error) {
-	// Use product-service taggable endpoint (exists) for MVP contract compatibility
-	url := fmt.Sprintf("%s/api/products/%s/taggable", c.GatewayURL, productId)
+	url := fmt.Sprintf("%s/api/product/productsBase/%s", c.ProductServiceURL, productId)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -68,35 +67,9 @@ func (c *ProductHTTPClient) GetProductByIdBase(ctx context.Context, productId st
 		return nil, fmt.Errorf("product service returned %d: %s", resp.StatusCode, string(body))
 	}
 
-	// product-service response shape:
-	// { success: true, data: { id, name, sellerId, status, isTaggable, price, primaryImageUrl, productSource } }
-	var wrapped struct {
-		Success bool `json:"success"`
-		Data    struct {
-			ID              string  `json:"id"`
-			Name            string  `json:"name"`
-			SellerID        *string `json:"sellerId"`
-			Status          string  `json:"status"`
-			IsTaggable      bool    `json:"isTaggable"`
-			Price           float64 `json:"price"`
-			PrimaryImageURL *string `json:"primaryImageUrl"`
-			ProductSource   string  `json:"productSource"`
-		} `json:"data"`
-	}
-
-	if err := utils.ParseJSONBody(resp.Body, &wrapped); err != nil {
+	var product types.ProductResponseDTO
+	if err := utils.ParseJSONBody(resp.Body, &product); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	product := types.ProductResponseDTO{
-		ID:              wrapped.Data.ID,
-		Name:            wrapped.Data.Name,
-		Price:           wrapped.Data.Price,
-		SellerID:        wrapped.Data.SellerID,
-		Status:          wrapped.Data.Status,
-		IsTaggable:      wrapped.Data.IsTaggable,
-		PrimaryImageURL: wrapped.Data.PrimaryImageURL,
-		ProductSource:   wrapped.Data.ProductSource,
 	}
 
 	return &product, nil

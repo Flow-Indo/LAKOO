@@ -18,7 +18,7 @@ import { prisma } from './lib/prisma';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3007;
+const PORT = process.env.PAYMENT_SERVICE_PORT || 8007;
 
 app.disable('x-powered-by');
 

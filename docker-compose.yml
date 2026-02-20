@@ -6,7 +6,7 @@ services:
   #   container_name: LAKOO-frontend
   #   volumes :
   #     - ./frontend:/app
-  #     - /app/node_modules
+  #     - frontend_node_modules:/app/node_modules
   #   depends_on:
   #     - api-gateway
 
@@ -32,17 +32,30 @@ services:
      - "8003"
     volumes:
       - ./backend/services/cart-service:/app
-      - go_modules:/go/pkg/mod
-      - go_build_cache:/root/.cache/go-build
+      - cart_go_modules:/go/pkg/mod
+      - cart_go_build_cache:/root/.cache/go-build
+    env_file:
+      - ./backend/services/cart-service/.env
     environment:
-      CART_SERVICE_PORT: ${DOCKER_CART_SERVICE_PORT}
-      DB_HOST: ${DOCKER_DB_HOST}
-      DB_USER: ${DOCKER_DB_USER}
-      DB_PASSWORD: ${DOCKER_DB_PASSWORD}
-      DB_NAME: ${DOCKER_DB_NAME}
-      DB_PORT: ${DOCKER_DB_PORT}
-      DB_SSL: require
-      PRODUCT_SERVICE_BASE_URL: ${DOCKER_PRODUCT_SERVICE_BASE_URL}
+      - CART_SERVICE_PORT=:8003
+
+#this is using order service ts, have to make env
+  order-service:
+    build:
+      context: ./backend/services/order-service-ts
+      dockerfile: ./Dockerfile.dev
+    container_name: LAKOO-order-service
+    expose: 
+      - "8006"  
+    volumes:
+      - ./backend/services/order-service-ts:/app
+      - ./backend/shared/typescript:/app/shared/typescript
+      - order_node_modules:/app/node_modules
+    env_file:
+      - ./backend/services/order-service-ts/.env
+    environment: 
+      - NODE_ENV=production
+      - ORDER_SERVICE_PORT=8006
   
   auth-service:
     build:
@@ -55,11 +68,81 @@ services:
       - ./backend/services/auth-service:/app
       - ./backend/shared/typescript:/app/shared/typescript
       - auth_node_modules:/app/node_modules
+    env_file:
+      - ./backend/services/auth-service/.env
     environment: 
-      JWT_SECRET: ${DOCKER_JWT_SECRET}
-      AUTH_SERVICE_PORT: ${DOCKER_AUTH_SERVICE_PORT}
-      USER_SERVICE_URL: ${DOCKER_USER_SERVICE_URL}
+      - AUTH_SERVICE_PORT=8001
   
+#have to make env
+  # payment-service:
+  #   build:
+  #     context: ./backend/services/payment-service
+  #     dockerfile: ./Dockerfile.dev
+  #   container_name: LAKOO-payment-service
+  #   expose: 
+  #     - "8007"  
+  #   volumes:
+  #     - ./backend/services/payment-service:/app
+  #     - ./backend/shared/typescript:/app/shared/typescript
+  #     - payment_node_modules:/app/node_modules
+  #   env_file:
+  #     - ./backend/services/payment-service/.env
+  #   environment: 
+  #     - NODE_ENV=production
+  #     - PAYMENT_SERVICE_PORT=8007
+
+#have to make env, and also .env.example
+  product-service:
+    build:
+      context: ./backend/services/product-service
+      dockerfile: ./Dockerfile.dev
+    container_name: LAKOO-product-service
+    expose: 
+      - "8002"  
+    volumes:
+      - ./backend/services/product-service:/app
+      - ./backend/shared/typescript:/app/shared/typescript
+      - product_node_modules:/app/node_modules
+    env_file:
+      - ./backend/services/product-service/.env
+    environment: 
+      - NODE_ENV=production
+      - PRODUCT_SERVICE_PORT=8002
+
+#have to make env, and also .env.example
+  # review-service:
+  #   build:
+  #     context: ./backend/services/review-service
+  #     dockerfile: ./Dockerfile.dev
+  #   container_name: LAKOO-review-service
+  #   expose: 
+  #     - "8016"  
+  #   volumes:
+  #     - ./backend/services/review-service:/app
+  #     - ./backend/shared/typescript:/app/shared/typescript
+  #     - review_node_modules:/app/node_modules
+  #   env_file:
+  #     - ./backend/services/review-service/.env
+  #   environment: 
+  #     - NODE_ENV=production
+  #     - REVIEW_SERVICE_PORT=8016
+  
+  #need to make .env.example and .env
+  # seller-service:
+  #   build:
+  #     context: ./backend/services/seller-service
+  #     dockerfile: ./Dockerfile.dev
+  #   container_name: LAKOO-seller-service
+  #   expose: 
+  #     - "8015"  
+  #   volumes:
+  #     - ./backend/services/seller-service:/app
+  #     - seller_go_modules:/go/pkg/mod
+  #     - seller_go_build_cache:/root/.cache/go-build
+  #   env_file:
+  #     - ./backend/services/seller-service/.env
+  #   environment: 
+  #     - SELLER_SERVICE_PORT=8015
 
   user-service:
     build:
@@ -72,21 +155,169 @@ services:
       - ./backend/services/user-service:/app
       - ./backend/shared/typescript:/app/shared/typescript
       - user_node_modules:/app/node_modules
+    env_file:
+      - ./backend/services/user-service/.env
     environment: 
-      USER_SERVICE_PORT: ${DOCKER_USER_SERVICE_PORT}
-      NODE_ENV: ${DOCKER_NODE_ENV}
-      AUTH_DATABASE_URL: ${DOCKER_AUTH_DATABASE_URL}
+      - USER_SERVICE_PORT=8018
+      - NODE_ENV=development
 
-    
+#have to write .env
+  # warehouse-service:
+  #   build:
+  #     context: ./backend/services/warehouse-service
+  #     dockerfile: ./Dockerfile.dev
+  #   container_name: LAKOO-warehouse-service
+  #   expose: 
+  #     - "8012"  
+  #   volumes:
+  #     - ./backend/services/warehouse-service:/app
+  #     - ./backend/shared/typescript:/app/shared/typescript
+  #     - warehouse_node_modules:/app/node_modules
+  #   env_file:
+  #     - ./backend/services/warehouse-service/.env
+  #   environment: 
+  #     - WAREHOUSE_SERVICE_PORT=8012
+  #     - NODE_ENV=development
+  
+  #have to make .env
+  blacklist-service:
+    build:
+      context: ./backend/services/blacklist-service
+      dockerfile: ./Dockerfile.dev
+    container_name: LAKOO-blacklist-service
+    expose: 
+      - "8017"  
+    volumes:
+      - ./backend/services/blacklist-service:/app
+      - ./backend/shared/typescript:/app/shared/typescript
+      - blacklist_node_modules:/app/node_modules
+    environment: 
+      - BLACKLIST_SERVICE_PORT=8017
+  
+#brand service need to have .env.example
+  # brand-service:
+  #   build:
+  #     context: ./backend/services/brand-service
+  #     dockerfile: ./Dockerfile.dev
+  #   container_name: LAKOO-brand-service
+  #   expose: 
+  #     - "8005"  
+  #   volumes:
+  #     - ./backend/services/brand-service:/app
+  #     - ./backend/shared/typescript:/app/shared/typescript
+  #     - brand_node_modules:/app/node_modules
+  #   env_file:
+  #     - ./backend/services/brand-service/.env
+  #   environment: 
+  #     - NODE_ENV=production
+  #     - BRAND_SERVICE_PORT=8005
+  
+  #fill in env
+#   content-service:
+#     build:
+#       context: ./backend/services/content-service
+#       dockerfile: ./Dockerfile.dev
+#     container_name: content-service
+#     restart: unless-stopped
+#     expose:
+#       - "8019"
+#     env_file:
+#       - ./backend/services/content-service/.env
+#     environment:
+#       - NODE_ENV=production
+#       - CONTENT_SERVICE_PORT=8019
+#       - ALLOWED_ORIGINS=http://localhost:3000
+#       - GATEWAY_SECRET=${GATEWAY_SECRET:-dev-gateway-secret}
+#       - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
+#       - GATEWAY_AUTH_MAX_SKEW_SECONDS=${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
+#       - SERVICE_NAME=content-service
+#       - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL:-http://product-service:8002}
+#       - FEED_SERVICE_URL=${FEED_SERVICE_URL:-http://feed-service:3018}
+#       - NOTIFICATION_SERVICE_URL=${NOTIFICATION_SERVICE_URL:-http://notification-service:8008}
+  
+  
+# #address service need to have .env.example
+#   address-service:
+#     build:
+#       context: ./backend/services/address-service
+#       dockerfile: ./Dockerfile.dev
+#     container_name: address-service
+#     restart: unless-stopped
+#     expose: 
+#       - "8018"
+#     env_file:
+#       - ./backend/services/address-service/.env
+#     environment:
+#       - NODE_ENV=production
+#       - PORT=8010
+#       - GATEWAY_SECRET=${GATEWAY_SECRET:-dev-gateway-secret}
+#       - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
+#       - GATEWAY_AUTH_MAX_SKEW_SECONDS=${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
 
+# #fill in env
+#   feed-service:
+#     build:
+#       context: ./backend/services/feed-service
+#       dockerfile: ./Dockerfile.dev
+#     container_name: feed-service
+#     restart: unless-stopped
+#     expose: 
+#       - "8020"
+#     env_file:
+#       - ./backend/services/feed-service/.env
+#     environment:
+#       - NODE_ENV=production
+#       - FEED_SERVICE_PORT=8020
+#       - ALLOWED_ORIGINS=http://localhost:3000
+#       - GATEWAY_SECRET=${GATEWAY_SECRET:-dev-gateway-secret}
+#       - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
+#       - GATEWAY_AUTH_MAX_SKEW_SECONDS=${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
+#       - SERVICE_NAME=feed-service
+#       - CONTENT_SERVICE_URL=${CONTENT_SERVICE_URL:-http://content-service:8019}
+#       - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL:-http://product-service:8002}
+#       - NOTIFICATION_SERVICE_URL=${NOTIFICATION_SERVICE_URL:-http://notification-service:8008}
+#       - FEED_PAGE_SIZE=${FEED_PAGE_SIZE:-20}
+#       - FEED_MAX_AGE_DAYS=${FEED_MAX_AGE_DAYS:-30}
+#       - TRENDING_WINDOW_HOURS=${TRENDING_WINDOW_HOURS:-24}
+#       - ENABLE_BACKGROUND_JOBS=${ENABLE_BACKGROUND_JOBS:-true}
+  
+#   #fill in .env
+#   logistic-service:
+#     build:
+#       context: ./backend/services/logistic-service
+#       dockerfile: ./Dockerfile.dev
+#     container_name: logistic-service
+#     restart: unless-stopped
+#     expose:
+#       - "8009"
+#     env_file:
+#       - ./backend/services/logistic-service/.env
+#     environment:
+#       - NODE_ENV=production
+#       - LOGISTIC_SERVICE_PORT=8009
+#       - ALLOWED_ORIGINS=http://localhost:3000
+#       - GATEWAY_SECRET=${GATEWAY_SECRET:-dev-gateway-secret}
+#       - SERVICE_SECRET=${SERVICE_SECRET:-dev-service-secret}
+#       - GATEWAY_AUTH_MAX_SKEW_SECONDS=${GATEWAY_AUTH_MAX_SKEW_SECONDS:-86400}
+#       - ORDER_SERVICE_URL=${ORDER_SERVICE_URL:-http://order-service:8006}
+#       - PRODUCT_SERVICE_URL=${PRODUCT_SERVICE_URL:-http://product-service:8002}
+#       - NOTIFICATION_SERVICE_URL=${NOTIFICATION_SERVICE_URL:-http://notification-service:8008}
+#       - BITESHIP_BASE_URL=${BITESHIP_BASE_URL:-https://api.biteship.com/v1}
+#       - BITESHIP_API_KEY=${BITESHIP_API_KEY:-}
+#       - BITESHIP_WEBHOOK_SECRET=${BITESHIP_WEBHOOK_SECRET:-}
+#       # Local dev convenience: when Biteship isn't configured, return empty rates quickly (caller can fallback).
+#       - ALLOW_UNCONFIGURED_SHIPPING_RATES=${ALLOW_UNCONFIGURED_SHIPPING_RATES:-true}
+#       - RATE_CACHE_TTL_HOURS=${RATE_CACHE_TTL_HOURS:-24}
+
+  
   
   api-gateway:
     build:
       context: ./backend/api-gateway
       dockerfile: ./Dockerfile.dev
     container_name: LAKOO-api-gateway
-    ports:
-      - "8080:8080"
+    expose:
+     - "8080"
     volumes:
       - ./backend/api-gateway:/app
       - api_gateway_node_modules:/app/node_modules
@@ -94,16 +325,11 @@ services:
       - cart-service
       - auth-service
       - user-service
+    env_file:
+      - ./backend/api-gateway/.env
     environment:
-      PRODUCT_SERVICE_BASE_URL: ${DOCKER_PRODUCT_SERVICE_BASE_URL}
-      SERVICE_SECRET: ${SERVICE_SECRET}
-      FRONTEND_URL: ${DOCKER_FRONTEND_URL}
-      API_GATEWAY_PORT: ${DOCKER_API_GATEWAY_PORT}
-      JWT_SECRET: ${DOCKER_JWT_SECRET}
-      CART_SERVICE_URL: ${DOCKER_CART_SERVICE_URL}
-      AUTH_SERVICE_URL: ${DOCKER_AUTH_SERVICE_URL}
-      ORDER_SERVICE_URL: ${DOCKER_ORDER_SERVICE_URL}
-      SELLER_SERVICE_URL: ${DOCKER_SELLER_SERVICE_URL}
+      - API_GATEWAY_PORT=8080
+    
 
   redis:
     image: redis:7-alpine
@@ -122,8 +348,18 @@ services:
 
 
 volumes:
-  go_modules:
-  go_build_cache:
+  cart_go_modules:
+  cart_go_build_cache:
+  seller_go_modules:
+  seller_go_build_cache:
   auth_node_modules:
   user_node_modules:
   api_gateway_node_modules:
+  blacklist_node_modules:
+  brand_node_modules:
+  order_node_modules:
+  payment_node_modules:
+  product_node_modules:
+  review_node_modules:
+  warehouse_node_modules:
+  frontend_node_modules:

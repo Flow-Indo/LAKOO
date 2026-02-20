@@ -19,7 +19,7 @@ export const  verifyServiceToken = (token: string | string[], serviceSecret: str
     }
 
     const [tokenServiceName, timestampStr, signature] = parts;
-    const timestamp = parseInt(timestampStr!);
+    const timestamp = parseInt(timestampStr as string);
 
     //check timestamp (5 minutes)
     const now = Math.floor(Date.now() / 1000);

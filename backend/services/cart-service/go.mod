@@ -2,7 +2,10 @@ module github.com/Flow-Indo/LAKOO/backend/services/cart-service
 
 go 1.25.0
 
-replace github.com/Flow-Indo/LAKOO/backend/shared/go => ../../shared/go
+//replace shared to ../../shared
+// replace github.com/Flow-Indo/LAKOO/backend/shared => ../../shared
+
+// replace github.com/Flow-Indo/LAKOO/backend/shared =>  ../../shared
 
 require (
 	github.com/Flow-Indo/LAKOO/backend/shared/go v0.0.0-20260119151619-f06f49a17d9a

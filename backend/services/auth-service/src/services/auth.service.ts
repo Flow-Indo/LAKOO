@@ -13,7 +13,7 @@ export default class AuthService {
         this.otp_repository = new OTPRepository();
         this.userServiceClient = new UserHTTPClient({
             gatewayURL:  process.env.GATEWAY_URL ?? 'http://localhost:8080',
-            userServiceURL: process.env.USER_SERVICE_URL ?? 'http://localhost:3004', 
+            userServiceURL: process.env.USER_SERVICE_URL ?? 'http://localhost:8018', 
             timeout: 5000,
             serviceName: "AUTH_SERVICE",
             serviceSecret: process.env.SERVICE_SECRET ?? 'secret',
@@ -30,10 +30,9 @@ export default class AuthService {
         }
     }
 
-    async createUser(phonenumber: string, firstName: string, lastName: string, password: string): Promise<UserResponseDTO> {
+    async createUser(phoneNumber: string, firstName: string, lastName: string, password: string): Promise<UserResponseDTO> {
         try {
-            const user : UserResponseDTO = await this.userServiceClient.createUser(phonenumber, firstName, lastName, password);
-
+            const user : UserResponseDTO = await this.userServiceClient.createUser(phoneNumber, firstName, lastName, password);
             return user;
         } catch (error) {
             throw error;
@@ -70,7 +69,7 @@ export default class AuthService {
                 throw new Error("The OTP for this phonenumber is not available");
             }
 
-            const createdAt = OTP.createdAt ? new Date(OTP.createdAt) : new Date();
+            const createdAt = new Date(OTP.createdAt);
             const expiry = new Date(createdAt.getTime() + (5 * 60 * 1000));
 
             if(new Date() > expiry) {
@@ -84,7 +83,7 @@ export default class AuthService {
             return { success : true, message: "Correct OTP"};
 
         } catch(error: any)  {
-            return { success : false, message: error.message};
+            return { success : false, message: error.mesage};
         }
     }
 

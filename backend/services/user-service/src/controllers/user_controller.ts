@@ -1,6 +1,7 @@
 import { type Request, type Response} from 'express';
-import { UserService } from '@src/services/user_service';
-import { UserResponseDTO } from '@src/types/response_dto';
+import { UserService } from '@src/services/user_service.js';
+import { UserResponseDTO } from '@src/types/response_dto.js';
+import { findUserSchema } from '@shared/schemas/user_zodSchema.js';
 
 
 export class UserController {
@@ -12,26 +13,32 @@ export class UserController {
    findUser = async(req: Request, res: Response) => {
         try {
             //parse and validate params using zod
-            const { phoneNumber } = req.params;
-            const user : UserResponseDTO | null = await this.userService.findUser(phoneNumber as string);
+            const validated = findUserSchema.parse(req.query);
+
+            let user : UserResponseDTO | null = null;
+
+            user = await this.userService.findUser(validated);
 
             if(!user) {
-                return res.status(404).json({
+                res.status(404).json({
                     error: "user not found"
                 })
             }
             return res.json({
-                success: true,
-                user
+                success: user,
+                user: user
             })
 
         } catch (error) {
-            return res.status(500).json({
-                error: error instanceof Error ? error.message : String(error)
+            return res.status(404).json({
+                error: error
             })
         }
 
    }
+
+  
+
 
    verifyUser = async(req: Request, res: Response) => {
         try {
@@ -57,28 +64,18 @@ export class UserController {
 
    createUser = async(req: Request, res: Response) => {
         try {
-            const { phoneNumber, firstName , lastName, password } = req.body;
-
-            const user : UserResponseDTO = await this.userService.createUser(phoneNumber, firstName, lastName, password);
-            if (!user) {
-                return res.status(400).json({ success: false, error: 'Failed to create user' });
-            }
+            const { phoneNumber, email, googleId, firstName, lastName, password } = req.body;
+            const user : UserResponseDTO = await this.userService.createUser(firstName, lastName, password, email, googleId, phoneNumber);
 
             return res.status(201).json({
                 success: true,
-                data: {
-                    // UserResponseDTO uses `userId`; include both for compatibility
-                    id: user.userId,
-                    userId: user.userId,
-                    phoneNumber: user.phoneNumber,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    role: user.role
-                }
+                user: user
             });
-        } catch (error) {
-            console.error('Create user error:', error);
-            return res.status(500).json({ success: false, error: 'Internal server error' });
+
+        } catch (error: any) {
+            res.status(400).json({
+                error: error.message ?? "Unable to create user"
+            });
         }
    }
 

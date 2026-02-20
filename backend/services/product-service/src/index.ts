@@ -18,7 +18,7 @@ import moderationRoutes from './routes/moderation.routes';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PRODUCT_SERVICE_PORT || 8002;
 
 // Security and logging
 app.use(helmet());

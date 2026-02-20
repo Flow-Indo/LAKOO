@@ -21,12 +21,9 @@ export const verifyGatewayToken = (token: string | string[], gatewaySecret: stri
     
     const timestamp = parseInt(timestampStr as string);
 
-    // Check timestamp skew (default 5 minutes). Allow override for local docker time drift.
+    //check timestamp (5 minutes)
     const now = Math.floor(Date.now() / 1000);
-    const maxSkewSecondsRaw = process.env.GATEWAY_AUTH_MAX_SKEW_SECONDS;
-    const maxSkewSecondsParsed = maxSkewSecondsRaw ? Number.parseInt(maxSkewSecondsRaw, 10) : 300;
-    const maxSkewSeconds = Number.isFinite(maxSkewSecondsParsed) && maxSkewSecondsParsed > 0 ? maxSkewSecondsParsed : 300;
-    if (Math.abs(now - timestamp) > maxSkewSeconds) {
+    if (now - timestamp > 300) {
         throw new Error("Token Expired")
     }
     

@@ -1,16 +1,11 @@
-import { UserController } from "@src/controllers/user_controller";
-import { Router, type Router as RouterType } from "express";
-import { getUserBodyLoginSchema, getUserBodySignInSchema } from "@shared/schemas/user_zodSchema";
-import { validate } from '@shared/middleware/validateZodMiddleware';
+import { UserController } from "@src/controllers/user_controller.js";
+import { Router } from "express";
+import { getUserBodySignUpSchema } from "@shared/schemas/user_zodSchema.js";
+import { validate } from '@shared/middleware/validateZodMiddleware.js';
 
-
-
-const internalRouter: RouterType = Router();
+const internalRouter = Router();
 const controller = new UserController();
 
-internalRouter.post("/create", validate(getUserBodySignInSchema), controller.createUser);
-internalRouter.post("/verify", validate(getUserBodyLoginSchema), controller.verifyUser);
-
-
+internalRouter.post("/create", validate(getUserBodySignUpSchema), controller.createUser);
 
 export {internalRouter};

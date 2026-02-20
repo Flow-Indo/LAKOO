@@ -1,0 +1,656 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Base reset for margin only, let Tailwind handle padding */
+* {
+  margin: 0;
+}
+
+/* Root background - pure white */
+html {
+  height: 100%;
+  background-color: #FFFFFF;
+}
+
+body {
+  height: 100%;
+  background-color: #FFFFFF;
+  overflow: auto;
+  font-family: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont,
+    'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%; /* Pure white */
+  }
+
+  html {
+    height: 100%;
+    background-color: #F9FAFB; /* gray-50 */
+  }
+
+  body {
+    height: 100%;
+    background-color: #F9FAFB;
+    overflow: auto;
+  }
+
+  /* Prevent horizontal scroll on all screen sizes */
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  /* Hide scrollbars for horizontal scrolling elements */
+  .scrollbar-hide {
+    /* Firefox */
+    scrollbar-width: none;
+    /* Safari and Chrome */
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Custom scrollbar for main content */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #D1D5DB;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ===== PLUS JAKARTA SANS TYPOGRAPHY ===== */
+
+/* Apply font to all elements */
+* {
+  font-family: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont,
+    'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-plus-jakarta), sans-serif;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+}
+
+/* Buttons */
+button, .btn {
+  font-family: var(--font-plus-jakarta), sans-serif;
+  font-weight: 600;
+}
+
+/* Inputs */
+input, textarea, select {
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+
+/* Links */
+a {
+  font-family: var(--font-plus-jakarta), sans-serif;
+}
+
+/* Typography Scale for Indonesian Text */
+
+/* Display Text */
+.text-display {
+  font-size: 3.5rem; /* 56px */
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Heading 1 */
+.text-h1 {
+  font-size: 2.5rem; /* 40px */
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+/* Heading 2 */
+.text-h2 {
+  font-size: 2rem; /* 32px */
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+/* Heading 3 */
+.text-h3 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Heading 4 */
+.text-h4 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Body Large */
+.text-body-lg {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Body Regular */
+.text-body {
+  font-size: 1rem; /* 16px */
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* Body Small */
+.text-body-sm {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Caption */
+.text-caption {
+  font-size: 0.75rem; /* 12px */
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Button Text */
+.text-button {
+  font-size: 1rem; /* 16px */
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+/* Price Text */
+.text-price {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Indonesian text needs slightly more line-height */
+.text-indonesia {
+  line-height: 1.65;
+}
+
+/* Font Weight Reference */
+
+/* Extra Light - 200 */
+.text-extra-light {
+  font-weight: 200;
+}
+/* Use for: Subtle decorative text, large hero text */
+
+/* Light - 300 */
+.text-light {
+  font-weight: 300;
+}
+/* Use for: Secondary information, captions */
+
+/* Regular - 400 */
+.text-regular {
+  font-weight: 400;
+}
+/* Use for: Body text, descriptions, paragraphs */
+
+/* Medium - 500 */
+.text-medium {
+  font-weight: 500;
+}
+/* Use for: Emphasized text, labels, tabs */
+
+/* Semibold - 600 */
+.text-semibold {
+  font-weight: 600;
+}
+/* Use for: Buttons, important labels, cards */
+
+/* Bold - 700 */
+.text-bold {
+  font-weight: 700;
+}
+/* Use for: Headings, prices, CTAs */
+
+/* Extra Bold - 800 */
+.text-extrabold {
+  font-weight: 800;
+}
+/* Use for: Large headings, hero titles, special emphasis */
+
+/* Mobile-specific typography adjustments */
+@media (max-width: 768px) {
+  /* Slightly smaller headings on mobile */
+  .text-display {
+    font-size: 2.5rem; /* 40px */
+  }
+
+  .text-h1 {
+    font-size: 2rem; /* 32px */
+  }
+
+  .text-h2 {
+    font-size: 1.5rem; /* 24px */
+  }
+
+  /* Ensure readability on small screens */
+  body {
+    font-size: 16px; /* Never go below 16px on mobile */
+  }
+
+  /* Better tap targets */
+  button, a {
+    min-height: 0px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ===== SWIPER STYLES ===== */
+
+/* Hide swiper pagination completely */
+.swiper-pagination {
+  display: none !important;
+}
+
+/* ===== SAFE AREA SUPPORT ===== */
+
+/* iOS safe area support for bottom bar */
+.safe-area-pb, .pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+/* ===== PRODUCT PAGE SCROLLING FIXES ===== */
+
+/* Ensure page scrolls properly */
+html, body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Remove swiper pagination default styles conflict */
+.swiper-pagination {
+  display: none !important;
+}
+
+/* Hide scrollbar but keep functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ===== ROUTE-BASED STYLES ===== */
+
+/* Live route exception - center column can be black */
+.live-route-container {
+  background-color: #000000 !important;
+}
+
+/* ===== MOBILE PRODUCT PAGE STYLES ===== */
+
+/* Ensure mobile scrolling works properly on product pages */
+@media (max-width: 1023px) {
+  html, body {
+    overflow: auto !important;
+    height: auto !important;
+  }
+
+  /* Prevent over-scrolling on product pages */
+  /* Gentle overscroll prevention for mobile product pages */
+  body:has(.mobile-product-page) {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Mobile product page container */
+  .mobile-product-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent all overscroll on mobile */
+  @supports (-webkit-touch-callout: none) {
+    .mobile-product-page {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+}
+
+/* Hide scrollbar on thumbnail strip */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Ensure transitions don't flash black */
+.center-column {
+  transition: background-color 0ms !important; /* Instant, no fade */
+}
+
+/* Safe area for iOS in Live Route */
+.live-route-container {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ===== GRID & IMAGE FIXES FOR TAOBAO-STYLE LAYOUT ===== */
+/* (Removed aggressive .grid > * override to avoid global layout interference) */
+
+/* Masonry product container (tight edges, 2 columns, horizontal gap only) */
+.product-masonry {
+  padding: 0;
+  box-sizing: border-box;
+  column-count: 2;
+  column-gap: 0;
+  -webkit-column-fill: balance;
+  column-fill: balance;
+  width: 100%;
+}
+
+.product-masonry-item {
+  display: block;
+  width: 100%;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  margin-bottom: 4px; /* vertical spacing between cards */
+}
+
+/* Ensure page always allows vertical scrolling */
+html, body, #__next {
+  height: auto !important;
+  overflow-y: auto !important;
+}
+
+/* Full-bleed helper to escape parent padding and touch screen edges */
+.full-bleed {
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  width: 100vw;
+  box-sizing: border-box;
+  /* tiny side gaps to avoid touching screen edges */
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-top: 4px;
+}
+
+/* Full-bleed helper to cancel parent paddings (mobile -> xl) */
+.product-full-bleed {
+  width: calc(100% + 48px);
+  margin-left: -24px;
+  margin-right: -24px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  .product-full-bleed {
+    width: calc(100% + 64px);
+    margin-left: -32px;
+    margin-right: -32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-full-bleed {
+    width: calc(100% + 96px);
+    margin-left: -48px;
+    margin-right: -48px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .product-full-bleed {
+    width: calc(100% + 128px);
+    margin-left: -64px;
+    margin-right: -64px;
+  }
+}
+
+/* Simple aspect-square fallback for environments without Tailwind aspect-ratio */
+.aspect-square {
+  position: relative;
+  display: inline-block;
+}
+.aspect-square::before {
+  content: "";
+  display: block;
+  padding-bottom: 100%;
+}
+.aspect-square > * {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Small gap variant used on product grid */
+.gap-2 {
+  gap: 8px;
+}
+
+/* Line clamp helper for two-line truncation with ellipsis */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* Smooth touch handling for swipe experience */
+* {
+  -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent pull-to-refresh on swipe container */
+.swipe-container {
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+}
+
+/* Hide scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ===== POPUP ANIMATIONS ===== */
+
+/* Slide up animation for popup open */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Slide down animation for popup close */
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
+}

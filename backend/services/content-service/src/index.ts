@@ -14,7 +14,7 @@ import collectionRoutes from './routes/collection.routes';
 dotenv.config();
 
 const app: Express = express();
-const PORT = process.env.PORT || 3017;
+const PORT = process.env.CONTENT_SERVICE_PORT || 8019;
 
 // =============================================================================
 // Security & Middleware

@@ -1,1 +1,0 @@
-{"version":3,"file":"response_dto.d.ts","sourceRoot":"","sources":["response_dto.ts"],"names":[],"mappings":"AAEA,MAAM,WAAW,eAAe;IAC5B,MAAM,EAAE,MAAM,CAAC;IACf,WAAW,EAAE,MAAM,CAAC;IACpB,SAAS,EAAE,MAAM,CAAC;IAClB,QAAQ,EAAE,MAAM,GAAG,IAAI,CAAC;IACxB,IAAI,EAAE,MAAM,CAAC;CAChB"}

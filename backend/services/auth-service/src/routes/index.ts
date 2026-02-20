@@ -1,29 +1,39 @@
 import express, {type Router} from 'express';
-import {AuthController }from '@src/controllers/auth.controller'
+import {AuthController }from '@src/controllers/v1/auth.controller'
+import { OAuthController } from '@src/controllers/v2/oauth.controller';
 import { validate } from '@shared/middleware/validateZodMiddleware';
-import { getUserBodyLoginSchema, getUserBodySignInSchema, getUserParamsSchema } from '@shared/schemas/user_zodSchema';
-import { gatewayAuth, optionalAuth } from '@src/middleware/gateway';
+import { getUserBodyLoginSchema, getUserBodySignUpSchema } from '@shared/schemas/user_zodSchema';
+import passport from 'passport';
 
 
 const router: Router = express.Router();
 
-const controller = new AuthController();
+const authController = new AuthController();
 
-// Public routes (no auth required)
-router.post("/login", validate(getUserBodyLoginSchema), controller.login);
-router.post("/signup", validate(getUserBodySignInSchema), controller.signup);
-router.post("/send-otp", controller.sendOTP);
+router.use((req, res, next) => {
+  console.log(`router auth service received: ${req.method} ${req.url}`);
+  next();
+});
+router.get('/health', (req, res) => {
+  res.json({ status: 'ok banget', service: 'auth-service' });
+});
+
+router.post("/login", validate(getUserBodyLoginSchema), authController.login);
+router.post("/signup", validate(getUserBodySignUpSchema), authController.signup);
+
 // router.post("/refresh", controller.refresh);
+// router.post("/sendOTP", controller.sendOTP);
 
-// Protected routes (require gateway auth) - to be implemented
-// router.post("/logout", gatewayAuth, controller.logout);
-// router.post("/logout-all", gatewayAuth, controller.logoutAll);
-// router.get("/me", gatewayAuth, controller.getCurrentUser);
-// router.post("/change-password", gatewayAuth, controller.changePassword);
+const oauthController = new OAuthController();
 
-// Admin routes - to be implemented
-// router.get("/sessions", gatewayAuth, controller.getSessions);
-// router.delete("/sessions/:sessionId", gatewayAuth, controller.revokeSession);
+router.get("/google", passport.authenticate('google', { scope : ['profile', 'email']}));
+router.get("/google/callback", passport.authenticate('google', { 
+        session: false,
+        failureRedirect: `${process.env.CLIENT_URL}/login?error=oauth_failed`
+    }), oauthController.googleCallback);
+
+
+
 
 
 export {router};

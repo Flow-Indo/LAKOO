@@ -5,12 +5,6 @@ import { BlacklistService } from '@src/services/blacklistService.js';
 
 dotenv.config();
 
-type DecodedJwt = {
-    userId: string;
-    phoneNumber: string;
-    role: string;
-};
-
 const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
         //get token from cookie or header
@@ -31,41 +25,30 @@ const authMiddleware = async (req: Request, res: Response, next: NextFunction) =
             })
         }
 
-        const decoded = jwt.verify(token, JWT_SECRET) as DecodedJwt;
-        
-        const blacklistStrict = String(process.env.BLACKLIST_STRICT || 'false').toLowerCase() === 'true';
-        const disableBlacklist = String(process.env.DISABLE_BLACKLIST || 'false').toLowerCase() === 'true';
-
-        if (!disableBlacklist) {
-            try {
-                //check if token is blacklisted
-                const isTokenBlacklisted = await BlacklistService.isTokenBlacklisted(token);
-                if (isTokenBlacklisted) {
-                    return res.status(401).json({
-                        error: 'Token has been revoked'
-                    });
-                }
-
-                //validate if user exists (deleted/banned)
-                const isUserBlacklisted = await BlacklistService.isUserBlacklisted(decoded.userId);
-                if(isUserBlacklisted) {
-                    return res.status(401).json({
-                        error: 'User not found or has been deactivated'
-                    })
-                }
-            } catch (err: any) {
-                if (blacklistStrict) {
-                    throw err;
-                }
-                console.warn('Blacklist service unavailable; skipping blacklist checks.', err?.message || err);
-            }
+        //check if token is blacklisted
+        const isTokenBlacklisted = await BlacklistService.isTokenBlacklisted(token);
+        if (isTokenBlacklisted) {
+            return res.status(401).json({
+                error: 'Token has been revoked'
+            });
         }
 
-        // Store on req for downstream middleware (proxy) without relying on mutating req.headers.
-        (req as any).user = decoded;
+        const decoded = jwt.verify(token, JWT_SECRET) as {
+            userId: string,
+            phoneNumber: string,
+            role: string
+        };
+        
+        //validate if user exists (deleted/banned)
+        const isUserBlacklisted = await BlacklistService.isUserBlacklisted(decoded.userId);
+        if(isUserBlacklisted) {
+            return res.status(401).json({
+                error: 'User not found or has been deactivated'
+            })
+        } 
 
         req.headers['x-user-id'] = decoded.userId;
-        req.headers['x-user-phone'] = decoded.phoneNumber;
+        req.headers['x-user-phoneNumber'] = decoded.phoneNumber;
         req.headers['x-user-role'] = decoded.role || 'user';
 
         next();

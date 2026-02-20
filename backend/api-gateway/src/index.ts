@@ -9,24 +9,7 @@ dotenv.config();
 
 
 const app = express();
-const PORT = process.env.API_GATEWAY_PORT || "3000";
-
-const logRequests = String(process.env.GATEWAY_LOG_REQUESTS || 'false').toLowerCase() === 'true';
-if (logRequests) {
-    app.use((req: Request, res: Response, next) => {
-        const startedAt = Date.now();
-        res.on('finish', () => {
-            const elapsedMs = Date.now() - startedAt;
-            console.log(`[api-gateway] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${elapsedMs}ms)`);
-        });
-        res.on('close', () => {
-            if (res.writableEnded) return;
-            const elapsedMs = Date.now() - startedAt;
-            console.warn(`[api-gateway] ${req.method} ${req.originalUrl} closed (${elapsedMs}ms)`);
-        });
-        next();
-    });
-}
+const PORT = process.env.API_GATEWAY_PORT;
 
 app.use(express.json());
 app.use(helmet());

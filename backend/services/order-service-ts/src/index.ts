@@ -13,7 +13,7 @@ import { errorHandler } from './middleware/error-handler';
 import { prisma } from './lib/prisma';
 
 const app = express();
-const PORT = process.env.PORT || 3006;
+const PORT = process.env.ORDER_SERVICE_PORT || 8006;
 
 app.disable('x-powered-by');
 
