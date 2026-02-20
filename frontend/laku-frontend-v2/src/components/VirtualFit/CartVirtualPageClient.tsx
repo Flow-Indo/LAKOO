@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 
 import PreviewFit from './PreviewFit';
 import OptionFit from './OptionFit';
-import VirtualCartTotal from '@/components/VirtualFit/VirtualCartTotal';
+import CartTotalSticky from '@/components/cart/CartTotalSticky';
 import { storeAssets } from '@/lib/mock-store-data';
 import { useCartStore } from '@/stores/cart-store';
 
@@ -69,7 +69,7 @@ export default function CartVirtualPageClient() {
   };
 
   return (
-    <div className="min-h-screen bg-white-50 flex flex-col">
+    <div className="min-h-0 bg-white-50 flex flex-col">
       
       <div className="flex-1 min-h-0 overflow-auto">
         <PreviewFit
@@ -113,7 +113,7 @@ export default function CartVirtualPageClient() {
           }}
         />
       </div>
-      <VirtualCartTotal popupOpen={popupOpen} selectAll={selectAll} onSelectAll={onSelectAll} summary={summary} onCheckout={() => { console.log('checkout'); }} />
+      <CartTotalSticky selectAll={selectAll} onSelectAll={onSelectAll} summary={summary} onCheckout={() => { console.log('checkout'); }} />
     </div>
   );
 }

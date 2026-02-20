@@ -24,7 +24,7 @@ export default function CartTotalSticky({ selectAll, onSelectAll, summary, onChe
 
   return (
     // act as footer on mobile (replace BottomNav)
-    <div className="fixed bottom-16 left-0 right-0 z-[9999] md:hidden">
+    <div className="fixed bottom-20 left-0 right-0 z-[9999] md:hidden">
       {/* full-bleed sticky bar — no max-width wrapper so bg fills full width */}
       <div className="bg-white rounded-t-lg p-3 flex items-center justify-between w-full border-b border-gray-200">
           <div className="flex items-center gap-[10px]">

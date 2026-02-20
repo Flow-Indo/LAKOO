@@ -105,7 +105,7 @@ import ScrollText from './ScrollText';
                   <div className="rounded-2xl p-4 mt-[5px] mb-[5px]">
                     <div className="flex items-center gap-3">
                       <ScrollText className="w-6 h-6 text-gray-700" />
-                      <span className="text-base text-gray-900">Orders</span>
+                      <span className="text-sm text-gray-900">Orders</span>
                     </div>
                   </div>
 
@@ -118,35 +118,35 @@ import ScrollText from './ScrollText';
                   >
                     <div className="flex items-center gap-3">
                       <ShoppingCart className="w-6 h-6 text-gray-700" />
-                      <span className="text-base text-gray-900">Cart</span>
+                      <span className="text-sm text-gray-900">Cart</span>
                     </div>
                   </div>
 
                   <div className="rounded-2xl p-4 mt-[5px] mb-[5px]">
                     <div className="flex items-center gap-3">
                       <Headset className="w-6 h-6 text-gray-700" />
-                      <span className="text-base text-gray-900">Help Center</span>
+                      <span className="text-sm text-gray-900">Help Center</span>
                     </div>
                   </div>
 
                   <div className="rounded-2xl p-4 mt-[5px] mb-[5px]">
                     <div className="flex items-center gap-3">
                       <Inbox className="w-6 h-6 text-gray-700" />
-                      <span className="text-base text-gray-900">Drafts</span>
+                      <span className="text-sm text-gray-900">Drafts</span>
                     </div>
                   </div>
 
                   <div className="rounded-2xl p-4 mt-[5px] mb-[5px]">
                     <div className="flex items-center gap-3">
                       <History className="w-6 h-6 text-gray-700" />
-                      <span className="text-base text-gray-900">History</span>
+                      <span className="text-sm text-gray-900">History</span>
                     </div>
                   </div>
 
                   <div className="rounded-2xl p-4 mt-[5px] mb-[5px]">
                     <div className="flex items-center gap-3">
                       <Download className="w-6 h-6 text-gray-700" />
-                      <span className="text-base text-gray-900">Downloads</span>
+                      <span className="text-sm text-gray-900">Downloads</span>
                     </div>
                   </div>
 
@@ -167,7 +167,7 @@ import ScrollText from './ScrollText';
                     }}
                     className="w-full text-center rounded-2xl p-3 border border-gray-200 cursor-pointer"
                   >
-                    <span className="text-base text-gray-900">Tukar Akun</span>
+                    <span className="text-sm text-gray-900">Tukar Akun</span>
                   </div>
                 </div>
               </div>
